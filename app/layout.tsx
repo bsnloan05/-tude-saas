@@ -19,7 +19,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Fiches de cours",
+  title: "Elyo",
   description: "Transforme la voix du prof en fiche de révision",
 };
 
