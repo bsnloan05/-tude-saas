@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { marked } from "marked";
+import { createClient } from "@/lib/supabase/client";
 
 // L'API de reconnaissance vocale du navigateur n'est pas encore standardisée
 // dans les types TypeScript officiels, donc on la déclare nous-mêmes ici.
@@ -42,6 +44,7 @@ declare global {
 type Status = "idle" | "recording" | "generating" | "done" | "error";
 
 export default function Home() {
+  const router = useRouter();
   const [status, setStatus] = useState<Status>("idle");
   const [liveTranscript, setLiveTranscript] = useState("");
   const [notes, setNotes] = useState("");
@@ -268,6 +271,13 @@ export default function Home() {
     await generateFiche(transcript);
   };
 
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
+
   return (
     <div className="dot-grid relative isolate flex min-h-screen flex-col items-center overflow-hidden bg-[#0b1120] px-4 py-16 print:bg-white print:p-0">
       <div
@@ -363,9 +373,17 @@ export default function Home() {
           </span>
           <span className="text-sm font-semibold text-[#e7ecf5]">Elyo</span>
         </div>
-        <span className="rounded-full border border-[#2a3552] px-2.5 py-0.5 text-[11px] font-medium text-[#8b97b0]">
-          Bêta
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="rounded-full border border-[#2a3552] px-2.5 py-0.5 text-[11px] font-medium text-[#8b97b0]">
+            Bêta
+          </span>
+          <button
+            onClick={handleLogout}
+            className="text-xs font-medium text-[#8b97b0] transition-colors hover:text-[#e7ecf5]"
+          >
+            Se déconnecter
+          </button>
+        </div>
       </header>
 
       <main className="flex w-full max-w-2xl flex-col items-center gap-8">

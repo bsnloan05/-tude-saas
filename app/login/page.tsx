@@ -1,0 +1,145 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+
+type Mode = "signin" | "signup";
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [mode, setMode] = useState<Mode>("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [infoMessage, setInfoMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setErrorMessage("");
+    setInfoMessage("");
+    setLoading(true);
+
+    const supabase = createClient();
+
+    if (mode === "signup") {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        setErrorMessage(error.message);
+      } else {
+        setInfoMessage(
+          "Compte créé. Vérifie ta boîte mail si une confirmation est demandée, sinon tu peux te connecter directement.",
+        );
+        setMode("signin");
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        setErrorMessage(error.message);
+      } else {
+        router.push("/");
+        router.refresh();
+      }
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <div className="dot-grid isolate relative flex min-h-screen flex-col items-center justify-center bg-[#0b1120] px-4">
+      <div className="w-full max-w-sm rounded-lg border border-[#232d45] bg-[#141b2e] p-7 shadow-sm">
+        <div className="mb-6 flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+              <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
+              <path d="M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.93V20H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.07A7 7 0 0019 11z" />
+            </svg>
+          </span>
+          <span className="text-sm font-semibold text-[#e7ecf5]">Elyo</span>
+        </div>
+
+        <h1 className="mb-1 text-xl font-bold text-[#e7ecf5]">
+          {mode === "signin" ? "Connexion" : "Créer un compte"}
+        </h1>
+        <p className="mb-6 text-sm text-[#8b97b0]">
+          {mode === "signin"
+            ? "Connecte-toi pour accéder à tes fiches."
+            : "Crée un compte pour commencer à générer tes fiches."}
+        </p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="email" className="text-sm font-medium text-[#c3cbdc]">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5] outline-none focus:border-[#2563eb]"
+              placeholder="toi@exemple.com"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="password" className="text-sm font-medium text-[#c3cbdc]">
+              Mot de passe
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5] outline-none focus:border-[#2563eb]"
+              placeholder="6 caractères minimum"
+            />
+          </div>
+
+          {errorMessage && (
+            <p className="rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-sm text-red-200">
+              {errorMessage}
+            </p>
+          )}
+          {infoMessage && (
+            <p className="rounded-md border border-emerald-900/50 bg-emerald-950/50 px-3 py-2 text-sm text-emerald-200">
+              {infoMessage}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-1 rounded-full bg-[#2563eb] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8] disabled:opacity-50"
+          >
+            {loading
+              ? "Chargement..."
+              : mode === "signin"
+                ? "Se connecter"
+                : "Créer mon compte"}
+          </button>
+        </form>
+
+        <button
+          onClick={() => {
+            setMode(mode === "signin" ? "signup" : "signin");
+            setErrorMessage("");
+            setInfoMessage("");
+          }}
+          className="mt-4 w-full text-center text-sm text-[#8b97b0] hover:text-[#e7ecf5]"
+        >
+          {mode === "signin"
+            ? "Pas encore de compte ? Inscris-toi"
+            : "Déjà un compte ? Connecte-toi"}
+        </button>
+      </div>
+    </div>
+  );
+}
