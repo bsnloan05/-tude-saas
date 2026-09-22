@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { marked } from "marked";
 import { createClient } from "@/lib/supabase/client";
@@ -410,6 +411,12 @@ export default function Home() {
           <span className="rounded-full border border-[#2a3552] px-2.5 py-0.5 text-[11px] font-medium text-[#8b97b0]">
             Bêta
           </span>
+          <Link
+            href="/pricing"
+            className="text-xs font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
+          >
+            Tarifs
+          </Link>
           <button
             onClick={handleLogout}
             className="text-xs font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
