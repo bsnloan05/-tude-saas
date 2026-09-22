@@ -35,30 +35,28 @@ body {
   @page {
     margin: 1.5cm;
   }
-
-  body {
-    background: #ffffff !important;
-  }
 }
 
-/* À l'écran, l'appli est sombre en permanence : pas de texture de papier ici.
-   On réserve l'effet "page de cahier" (lignes + liseré doré) au PDF exporté,
-   où un fond clair façon papier reste plus adapté à l'impression. */
-@media print {
-  .notebook-lines {
-    background-color: #fbf6ea !important;
-    background-image:
-      linear-gradient(to right, transparent 39px, #d9bd85 39px, #d9bd85 40px, transparent 40px),
-      repeating-linear-gradient(
-        to bottom,
-        transparent 0,
-        transparent 27px,
-        #e5dcc0 27px,
-        #e5dcc0 28px
-      ) !important;
-    padding: 1.25rem 1.25rem 1.25rem 3rem !important;
-    border-radius: 0.5rem;
-  }
+/* Effet "page de cahier" (lignes + liseré doré) pour le PDF exporté. Cette
+   classe est appliquée par JavaScript juste avant l'impression (voir
+   page.tsx, "printMode") plutôt que via "@media print" : ce dernier s'est
+   avéré peu fiable sur le moteur d'impression de Safari iOS (fond sombre
+   qui reste visible), donc on force l'apparence claire directement dans le
+   DOM au moment de générer le PDF, ce qui fonctionne partout de la même
+   façon. */
+.notebook-lines-print {
+  background-color: #fbf6ea;
+  background-image:
+    linear-gradient(to right, transparent 39px, #d9bd85 39px, #d9bd85 40px, transparent 40px),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 27px,
+      #e5dcc0 27px,
+      #e5dcc0 28px
+    );
+  padding: 1.25rem 1.25rem 1.25rem 3rem;
+  border-radius: 0.5rem;
 }
 
 /* Léger fond en petits points pour donner de la texture au thème sombre,

@@ -54,6 +54,7 @@ export default function Home() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [highlightMode, setHighlightMode] = useState(true);
+  const [printMode, setPrintMode] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalTranscriptRef = useRef("");
@@ -207,6 +208,27 @@ export default function Home() {
     return () => stopWaveform();
   }, []);
 
+  // Safari sur iPhone gère mal le CSS "@media print" (le fond sombre reste
+  // visible dans le PDF). Solution plus fiable : on bascule vraiment la
+  // page en apparence claire juste avant d'imprimer, via un vrai style en
+  // ligne (donc indépendant du support "print" du navigateur), puis on
+  // revient au thème sombre une fois l'impression terminée ou annulée.
+  useEffect(() => {
+    if (!printMode) {
+      document.body.style.backgroundColor = "";
+      return;
+    }
+    document.body.style.backgroundColor = "#fbf6ea";
+    const timeout = setTimeout(() => window.print(), 50);
+    return () => clearTimeout(timeout);
+  }, [printMode]);
+
+  useEffect(() => {
+    const handleAfterPrint = () => setPrintMode(false);
+    window.addEventListener("afterprint", handleAfterPrint);
+    return () => window.removeEventListener("afterprint", handleAfterPrint);
+  }, []);
+
   const startRecording = () => {
     if (!recognitionRef.current) return;
     finalTranscriptRef.current = "";
@@ -279,10 +301,14 @@ export default function Home() {
   };
 
   return (
-    <div className="dot-grid relative isolate flex min-h-screen flex-col items-center overflow-hidden bg-[#0b1120] px-4 py-16 print:bg-white print:p-0">
+    <div
+      className={`relative isolate flex min-h-screen flex-col items-center overflow-hidden px-4 py-16 ${
+        printMode ? "bg-[#fbf6ea] p-0" : "dot-grid bg-[#0b1120]"
+      }`}
+    >
       <div
         aria-hidden
-        className="-z-10 pointer-events-none absolute -top-32 left-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-[#2563eb]/25 blur-[100px] print:hidden"
+        className={`-z-10 pointer-events-none absolute -top-32 left-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-[#2563eb]/25 blur-[100px] ${printMode ? "hidden" : ""}`}
       />
 
       {/* Grande icône signature qui dérive autour du centre de l'écran, sur
@@ -295,7 +321,7 @@ export default function Home() {
           ça, l'icône transperçait la fiche au lieu de rester derrière. */}
       <svg
         aria-hidden
-        className="big-bg-icon pointer-events-none absolute top-1/2 left-1/2 -z-10 h-[22rem] w-[22rem] -translate-x-1/2 -translate-y-1/2 text-[#38bdf8] print:hidden"
+        className={`big-bg-icon pointer-events-none absolute top-1/2 left-1/2 -z-10 h-[22rem] w-[22rem] -translate-x-1/2 -translate-y-1/2 text-[#38bdf8] ${printMode ? "hidden" : ""}`}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -305,7 +331,10 @@ export default function Home() {
         <path d="M20 5c-3-1.5-6-1.5-8 0v14c2-1.5 5-1.5 8 0V5z" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
 
-      <div aria-hidden className="-z-10 pointer-events-none absolute inset-0 overflow-hidden print:hidden">
+      <div
+        aria-hidden
+        className={`-z-10 pointer-events-none absolute inset-0 overflow-hidden ${printMode ? "hidden" : ""}`}
+      >
         <svg
           className="float-icon absolute top-[10%] left-[6%] h-11 w-11 text-[#38bdf8]/20"
           style={{ animationDelay: "0s" }}
@@ -363,7 +392,9 @@ export default function Home() {
         </svg>
       </div>
 
-      <header className="relative mb-12 flex w-full max-w-2xl flex-wrap items-center justify-between gap-y-2 print:hidden">
+      <header
+        className={`relative mb-12 flex w-full max-w-2xl flex-wrap items-center justify-between gap-y-2 ${printMode ? "hidden" : ""}`}
+      >
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
@@ -387,7 +418,9 @@ export default function Home() {
       </header>
 
       <main className="flex w-full max-w-2xl flex-col items-center gap-8">
-        <div className="flex flex-col items-center gap-3 text-center print:hidden">
+        <div
+          className={`flex flex-col items-center gap-3 text-center ${printMode ? "hidden" : ""}`}
+        >
           <h1 className="text-balance text-2xl font-bold tracking-tight text-[#e7ecf5] sm:text-3xl">
             Transforme tes cours en{" "}
             <span className="relative inline-block">
@@ -424,7 +457,7 @@ export default function Home() {
         )}
 
         {isSupported && (
-          <div className="flex flex-col items-center gap-3 print:hidden">
+          <div className={`flex flex-col items-center gap-3 ${printMode ? "hidden" : ""}`}>
             <button
               onClick={status === "recording" ? stopRecording : startRecording}
               disabled={status === "generating"}
@@ -520,8 +553,16 @@ export default function Home() {
         )}
 
         {status === "done" && (
-          <div className="fiche-enter w-full rounded-lg border border-[#232d45] bg-[#141b2e] p-5 shadow-sm print:border-0 print:bg-[#fbf6ea] print:p-0 print:shadow-none">
-            <div className="mb-5 flex flex-col gap-3 border-b border-[#232d45] px-2 pb-4 print:hidden sm:flex-row sm:items-center sm:justify-between">
+          <div
+            className={`fiche-enter w-full rounded-lg p-5 ${
+              printMode
+                ? "border-0 bg-[#fbf6ea] p-0 shadow-none"
+                : "border border-[#232d45] bg-[#141b2e] shadow-sm"
+            }`}
+          >
+            <div
+              className={`mb-5 flex flex-col gap-3 border-b border-[#232d45] px-2 pb-4 sm:flex-row sm:items-center sm:justify-between ${printMode ? "hidden" : ""}`}
+            >
               <span className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5 shrink-0 text-[#38bdf8]">
                   <path d="M12 20h9" strokeLinecap="round" />
@@ -569,14 +610,16 @@ export default function Home() {
                   {copied ? "Copié !" : "Copier la fiche"}
                 </button>
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => setPrintMode(true)}
                   className="rounded-full border border-[#2a3552] px-3 py-1.5 text-xs font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95 sm:px-4 sm:text-sm"
                 >
                   Télécharger en PDF
                 </button>
               </div>
             </div>
-            <div className="notebook-lines text-[#c3cbdc] print:bg-[#fbf6ea] print:text-black">
+            <div
+              className={printMode ? "notebook-lines-print text-black" : "text-[#c3cbdc]"}
+            >
               <ReactMarkdown
                 components={{
                   h2: (props) => (
@@ -584,7 +627,9 @@ export default function Home() {
                       className={`mt-6 mb-3 text-2xl font-semibold first:mt-0 ${
                         highlightMode
                           ? "text-amber-400"
-                          : "text-[#e7ecf5] print:text-[#1f2937]"
+                          : printMode
+                            ? "text-[#1f2937]"
+                            : "text-[#e7ecf5]"
                       }`}
                       {...props}
                     />
@@ -594,7 +639,9 @@ export default function Home() {
                       className={`mt-4 mb-2 text-base font-semibold ${
                         highlightMode
                           ? "text-teal-400"
-                          : "text-[#8b97b0] print:text-[#4b5563]"
+                          : printMode
+                            ? "text-[#4b5563]"
+                            : "text-[#8b97b0]"
                       }`}
                       {...props}
                     />
@@ -605,7 +652,9 @@ export default function Home() {
                       className={`mb-3 list-disc space-y-1.5 pl-6 ${
                         highlightMode
                           ? "marker:text-amber-400"
-                          : "marker:text-[#8b97b0] print:marker-[#4b5563]"
+                          : printMode
+                            ? "marker:text-[#4b5563]"
+                            : "marker:text-[#8b97b0]"
                       }`}
                       {...props}
                     />
@@ -616,7 +665,9 @@ export default function Home() {
                       className={
                         highlightMode
                           ? "rounded bg-[#38bdf8]/20 px-1 font-semibold text-[#7dd3fc]"
-                          : "font-semibold text-[#e7ecf5] print:text-[#1f2937]"
+                          : printMode
+                            ? "font-semibold text-[#1f2937]"
+                            : "font-semibold text-[#e7ecf5]"
                       }
                       {...props}
                     />
@@ -626,7 +677,9 @@ export default function Home() {
                       className={
                         highlightMode
                           ? "my-4 rounded-r-lg border-l-4 border-emerald-500 bg-emerald-500/10 py-2.5 pr-3 pl-4 text-emerald-200 [&>p]:mb-0"
-                          : "my-4 border-l-2 border-[#2a3552] pl-4 text-[#8b97b0] print:border-[#9ca3af] print:text-[#4b5563] [&>p]:mb-0"
+                          : printMode
+                            ? "my-4 border-l-2 border-[#9ca3af] pl-4 text-[#4b5563] [&>p]:mb-0"
+                            : "my-4 border-l-2 border-[#2a3552] pl-4 text-[#8b97b0] [&>p]:mb-0"
                       }
                       {...props}
                     />
