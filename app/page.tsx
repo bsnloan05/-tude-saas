@@ -388,7 +388,7 @@ export default function Home() {
 
       <main className="flex w-full max-w-2xl flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-3 text-center print:hidden">
-          <h1 className="text-2xl font-bold tracking-tight text-[#e7ecf5] sm:text-3xl">
+          <h1 className="text-balance text-2xl font-bold tracking-tight text-[#e7ecf5] sm:text-3xl">
             Transforme tes cours en{" "}
             <span className="relative inline-block">
               fiches de révision
@@ -409,7 +409,7 @@ export default function Home() {
               </svg>
             </span>
           </h1>
-          <p className="max-w-md text-[#8b97b0]">
+          <p className="max-w-xs text-balance text-[#8b97b0] sm:max-w-md">
             Démarre l&apos;enregistrement pendant le cours, arrête-le à la
             fin : ta fiche est générée automatiquement.
           </p>
