@@ -117,7 +117,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-1 rounded-full bg-[#2563eb] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8] disabled:opacity-50"
+            className="mt-1 rounded-full bg-[#2563eb] px-4 py-2.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:opacity-50"
           >
             {loading
               ? "Chargement..."
@@ -133,7 +133,7 @@ export default function LoginPage() {
             setErrorMessage("");
             setInfoMessage("");
           }}
-          className="mt-4 w-full text-center text-sm text-[#8b97b0] hover:text-[#e7ecf5]"
+          className="mt-4 w-full text-center text-sm text-[#8b97b0] transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
         >
           {mode === "signin"
             ? "Pas encore de compte ? Inscris-toi"

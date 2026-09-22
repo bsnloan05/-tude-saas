@@ -379,7 +379,7 @@ export default function Home() {
           </span>
           <button
             onClick={handleLogout}
-            className="text-xs font-medium text-[#8b97b0] transition-colors hover:text-[#e7ecf5]"
+            className="text-xs font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
           >
             Se déconnecter
           </button>
@@ -510,7 +510,7 @@ export default function Home() {
             {latestTranscriptRef.current.trim() && (
               <button
                 onClick={retryGeneration}
-                className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-500"
+                className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors transition-transform duration-150 hover:bg-red-500 active:scale-95"
               >
                 Réessayer la génération
               </button>
@@ -532,7 +532,7 @@ export default function Home() {
                 <div className="flex rounded-full border border-[#2a3552] p-0.5 text-xs font-medium">
                   <button
                     onClick={() => setHighlightMode(false)}
-                    className={`rounded-full px-3 py-1 transition-colors ${
+                    className={`rounded-full px-3 py-1 transition-colors transition-transform duration-150 active:scale-95 ${
                       !highlightMode
                         ? "bg-[#2563eb] text-white"
                         : "text-[#8b97b0] hover:text-[#e7ecf5]"
@@ -542,7 +542,7 @@ export default function Home() {
                   </button>
                   <button
                     onClick={() => setHighlightMode(true)}
-                    className={`rounded-full px-3 py-1 transition-colors ${
+                    className={`rounded-full px-3 py-1 transition-colors transition-transform duration-150 active:scale-95 ${
                       highlightMode
                         ? "bg-[#2563eb] text-white"
                         : "text-[#8b97b0] hover:text-[#e7ecf5]"
@@ -563,13 +563,13 @@ export default function Home() {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  className="rounded-full border border-[#2a3552] px-3 py-1.5 text-xs font-medium text-[#c3cbdc] transition-colors hover:bg-[#1b2440] sm:px-4 sm:text-sm"
+                  className="rounded-full border border-[#2a3552] px-3 py-1.5 text-xs font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95 sm:px-4 sm:text-sm"
                 >
                   {copied ? "Copié !" : "Copier la fiche"}
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className="rounded-full border border-[#2a3552] px-3 py-1.5 text-xs font-medium text-[#c3cbdc] transition-colors hover:bg-[#1b2440] sm:px-4 sm:text-sm"
+                  className="rounded-full border border-[#2a3552] px-3 py-1.5 text-xs font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95 sm:px-4 sm:text-sm"
                 >
                   Télécharger en PDF
                 </button>
