@@ -363,7 +363,7 @@ export default function Home() {
         </svg>
       </div>
 
-      <header className="relative mb-12 flex w-full max-w-2xl items-center justify-between print:hidden">
+      <header className="relative mb-12 flex w-full max-w-2xl flex-wrap items-center justify-between gap-y-2 print:hidden">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
@@ -388,7 +388,7 @@ export default function Home() {
 
       <main className="flex w-full max-w-2xl flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-3 text-center print:hidden">
-          <h1 className="text-3xl font-bold tracking-tight text-[#e7ecf5]">
+          <h1 className="text-2xl font-bold tracking-tight text-[#e7ecf5] sm:text-3xl">
             Transforme tes cours en{" "}
             <span className="relative inline-block">
               fiches de révision
@@ -520,15 +520,15 @@ export default function Home() {
 
         {status === "done" && (
           <div className="fiche-enter w-full rounded-lg border border-[#232d45] bg-[#141b2e] p-5 shadow-sm print:border-0 print:p-0 print:shadow-none">
-            <div className="mb-5 flex items-center justify-between border-b border-[#232d45] px-2 pb-4 print:hidden">
+            <div className="mb-5 flex flex-col gap-3 border-b border-[#232d45] px-2 pb-4 print:hidden sm:flex-row sm:items-center sm:justify-between">
               <span className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5 text-[#38bdf8]">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5 shrink-0 text-[#38bdf8]">
                   <path d="M12 20h9" strokeLinecap="round" />
                   <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 Ta fiche de cours
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="flex rounded-full border border-[#2a3552] p-0.5 text-xs font-medium">
                   <button
                     onClick={() => setHighlightMode(false)}
@@ -563,13 +563,13 @@ export default function Home() {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  className="rounded-full border border-[#2a3552] px-4 py-1.5 text-sm font-medium text-[#c3cbdc] transition-colors hover:bg-[#1b2440]"
+                  className="rounded-full border border-[#2a3552] px-3 py-1.5 text-xs font-medium text-[#c3cbdc] transition-colors hover:bg-[#1b2440] sm:px-4 sm:text-sm"
                 >
                   {copied ? "Copié !" : "Copier la fiche"}
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className="rounded-full border border-[#2a3552] px-4 py-1.5 text-sm font-medium text-[#c3cbdc] transition-colors hover:bg-[#1b2440]"
+                  className="rounded-full border border-[#2a3552] px-3 py-1.5 text-xs font-medium text-[#c3cbdc] transition-colors hover:bg-[#1b2440] sm:px-4 sm:text-sm"
                 >
                   Télécharger en PDF
                 </button>
