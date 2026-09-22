@@ -519,7 +519,7 @@ export default function Home() {
         )}
 
         {status === "done" && (
-          <div className="fiche-enter w-full rounded-lg border border-[#232d45] bg-[#141b2e] p-5 shadow-sm print:border-0 print:p-0 print:shadow-none">
+          <div className="fiche-enter w-full rounded-lg border border-[#232d45] bg-[#141b2e] p-5 shadow-sm print:border-0 print:bg-[#fbf6ea] print:p-0 print:shadow-none">
             <div className="mb-5 flex flex-col gap-3 border-b border-[#232d45] px-2 pb-4 print:hidden sm:flex-row sm:items-center sm:justify-between">
               <span className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5 shrink-0 text-[#38bdf8]">
@@ -575,13 +575,15 @@ export default function Home() {
                 </button>
               </div>
             </div>
-            <div className="notebook-lines text-[#c3cbdc] print:text-black">
+            <div className="notebook-lines text-[#c3cbdc] print:bg-[#fbf6ea] print:text-black">
               <ReactMarkdown
                 components={{
                   h2: (props) => (
                     <h2
                       className={`mt-6 mb-3 text-2xl font-semibold first:mt-0 ${
-                        highlightMode ? "text-amber-400" : "text-[#e7ecf5]"
+                        highlightMode
+                          ? "text-amber-400"
+                          : "text-[#e7ecf5] print:text-[#1f2937]"
                       }`}
                       {...props}
                     />
@@ -589,7 +591,9 @@ export default function Home() {
                   h3: (props) => (
                     <h3
                       className={`mt-4 mb-2 text-base font-semibold ${
-                        highlightMode ? "text-teal-400" : "text-[#8b97b0]"
+                        highlightMode
+                          ? "text-teal-400"
+                          : "text-[#8b97b0] print:text-[#4b5563]"
                       }`}
                       {...props}
                     />
@@ -598,7 +602,9 @@ export default function Home() {
                   ul: (props) => (
                     <ul
                       className={`mb-3 list-disc space-y-1.5 pl-6 ${
-                        highlightMode ? "marker:text-amber-400" : "marker:text-[#8b97b0]"
+                        highlightMode
+                          ? "marker:text-amber-400"
+                          : "marker:text-[#8b97b0] print:marker-[#4b5563]"
                       }`}
                       {...props}
                     />
@@ -609,7 +615,7 @@ export default function Home() {
                       className={
                         highlightMode
                           ? "rounded bg-[#38bdf8]/20 px-1 font-semibold text-[#7dd3fc]"
-                          : "font-semibold text-[#e7ecf5]"
+                          : "font-semibold text-[#e7ecf5] print:text-[#1f2937]"
                       }
                       {...props}
                     />
@@ -619,7 +625,7 @@ export default function Home() {
                       className={
                         highlightMode
                           ? "my-4 rounded-r-lg border-l-4 border-emerald-500 bg-emerald-500/10 py-2.5 pr-3 pl-4 text-emerald-200 [&>p]:mb-0"
-                          : "my-4 border-l-2 border-[#2a3552] pl-4 text-[#8b97b0] [&>p]:mb-0"
+                          : "my-4 border-l-2 border-[#2a3552] pl-4 text-[#8b97b0] print:border-[#9ca3af] print:text-[#4b5563] [&>p]:mb-0"
                       }
                       {...props}
                     />
