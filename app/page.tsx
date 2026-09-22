@@ -409,7 +409,7 @@ export default function Home() {
               </svg>
             </span>
           </h1>
-          <p className="max-w-xs text-balance text-[#8b97b0] sm:max-w-md">
+          <p className="max-w-md text-balance text-[#8b97b0]">
             Démarre l&apos;enregistrement pendant le cours, arrête-le à la
             fin : ta fiche est générée automatiquement.
           </p>
