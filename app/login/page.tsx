@@ -6,6 +6,19 @@ import { createClient } from "@/lib/supabase/client";
 
 type Mode = "signin" | "signup";
 
+function translateAuthError(message: string): string {
+  const known: Record<string, string> = {
+    "Invalid login credentials": "Email ou mot de passe incorrect.",
+    "User already registered": "Un compte existe déjà avec cet email.",
+    "Password should be at least 6 characters":
+      "Le mot de passe doit contenir au moins 6 caractères.",
+    "Unable to validate email address: invalid format":
+      "Adresse email invalide.",
+    "Email not confirmed": "Confirme ton email avant de te connecter.",
+  };
+  return known[message] ?? message;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("signin");
@@ -26,7 +39,7 @@ export default function LoginPage() {
     if (mode === "signup") {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) {
-        setErrorMessage(error.message);
+        setErrorMessage(translateAuthError(error.message));
       } else {
         setInfoMessage(
           "Compte créé. Vérifie ta boîte mail si une confirmation est demandée, sinon tu peux te connecter directement.",
@@ -39,7 +52,7 @@ export default function LoginPage() {
         password,
       });
       if (error) {
-        setErrorMessage(error.message);
+        setErrorMessage(translateAuthError(error.message));
       } else {
         router.push("/");
         router.refresh();
@@ -80,9 +93,10 @@ export default function LoginPage() {
               id="email"
               type="email"
               required
+              autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5] outline-none focus:border-[#2563eb]"
+              className="rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5] outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
               placeholder="toi@exemple.com"
             />
           </div>
@@ -98,7 +112,7 @@ export default function LoginPage() {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5] outline-none focus:border-[#2563eb]"
+              className="rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5] outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
               placeholder="6 caractères minimum"
             />
           </div>
@@ -117,7 +131,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-1 rounded-full bg-[#2563eb] px-4 py-2.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:opacity-50"
+            className="mt-1 rounded-full bg-[#2563eb] px-4 py-2.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading
               ? "Chargement..."

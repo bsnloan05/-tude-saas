@@ -427,7 +427,7 @@ export default function Home() {
             <button
               onClick={status === "recording" ? stopRecording : startRecording}
               disabled={status === "generating"}
-              className={`flex h-14 w-44 items-center justify-center gap-2 rounded-full text-base font-semibold text-white shadow-sm transition-transform transition-colors duration-150 active:scale-95 disabled:opacity-50 ${
+              className={`flex h-14 w-44 items-center justify-center gap-2 rounded-full text-base font-semibold text-white shadow-sm transition-transform transition-colors duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 ${
                 status === "recording"
                   ? "bg-red-600 hover:bg-red-700"
                   : "bg-[#2563eb] hover:bg-[#1d4ed8]"
