@@ -1,7 +1,15 @@
 import Groq from "groq-sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 const client = new Groq();
+
+// Quotas mensuels par forfait, en secondes.
+const PLAN_QUOTA_SECONDS: Record<string, number> = {
+  free: 2 * 3600,
+  standard: 40 * 3600,
+  premium: 75 * 3600,
+};
 
 // Le tier gratuit de Groq limite chaque requête à 8000 tokens (entrée + sortie
 // cumulées) par minute. Une transcription de cours dépasse vite cette limite,
@@ -55,10 +63,56 @@ function sleep(ms: number) {
 }
 
 export async function POST(request: NextRequest) {
-  const { transcript } = await request.json();
+  const { transcript, durationSeconds } = await request.json();
 
   if (!transcript || typeof transcript !== "string" || transcript.trim().length === 0) {
     return NextResponse.json({ error: "Transcription vide." }, { status: 400 });
+  }
+
+  const sessionDuration =
+    typeof durationSeconds === "number" && durationSeconds > 0 ? durationSeconds : 0;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Non connecté." }, { status: 401 });
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan")
+    .eq("id", user.id)
+    .single();
+
+  const plan = profile?.plan ?? "free";
+  const quotaSeconds = PLAN_QUOTA_SECONDS[plan] ?? PLAN_QUOTA_SECONDS.free;
+
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const { data: sessions } = await supabase
+    .from("usage_sessions")
+    .select("duration_seconds")
+    .eq("user_id", user.id)
+    .gte("created_at", startOfMonth.toISOString());
+
+  const usedSeconds = (sessions ?? []).reduce(
+    (total, session) => total + session.duration_seconds,
+    0,
+  );
+
+  if (usedSeconds + sessionDuration > quotaSeconds) {
+    const remainingMinutes = Math.max(0, Math.floor((quotaSeconds - usedSeconds) / 60));
+    return NextResponse.json(
+      {
+        error: `Quota mensuel atteint (il te reste ${remainingMinutes} min ce mois-ci). Passe à un forfait supérieur pour continuer.`,
+      },
+      { status: 403 },
+    );
   }
 
   const cleanTranscript = transcript.trim();
@@ -76,6 +130,11 @@ export async function POST(request: NextRequest) {
       });
 
       const notes = response.choices[0]?.message?.content ?? "";
+      if (sessionDuration > 0) {
+        await supabase
+          .from("usage_sessions")
+          .insert({ user_id: user.id, duration_seconds: sessionDuration });
+      }
       return NextResponse.json({ notes });
     }
 
@@ -111,6 +170,11 @@ export async function POST(request: NextRequest) {
     });
 
     const notes = finalResponse.choices[0]?.message?.content ?? "";
+    if (sessionDuration > 0) {
+      await supabase
+        .from("usage_sessions")
+        .insert({ user_id: user.id, duration_seconds: sessionDuration });
+    }
     return NextResponse.json({ notes });
   } catch (error) {
     console.error("Erreur Groq API:", error);

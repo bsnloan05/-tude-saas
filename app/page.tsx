@@ -59,6 +59,7 @@ export default function Home() {
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalTranscriptRef = useRef("");
   const latestTranscriptRef = useRef("");
+  const sessionDurationRef = useRef(0);
   const isRecordingRef = useRef(false);
 
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -243,13 +244,13 @@ export default function Home() {
     startWaveform();
   };
 
-  const generateFiche = async (transcript: string) => {
+  const generateFiche = async (transcript: string, durationSeconds: number) => {
     setStatus("generating");
     try {
       const response = await fetch("/api/generate-notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript }),
+        body: JSON.stringify({ transcript, durationSeconds }),
       });
 
       if (!response.ok) {
@@ -274,7 +275,7 @@ export default function Home() {
       setErrorMessage("Aucune transcription à récupérer, relance un enregistrement.");
       return;
     }
-    generateFiche(transcript);
+    generateFiche(transcript, sessionDurationRef.current);
   };
 
   const stopRecording = async () => {
@@ -282,6 +283,7 @@ export default function Home() {
     isRecordingRef.current = false;
     recognitionRef.current.stop();
     stopWaveform();
+    sessionDurationRef.current = recordingSeconds;
 
     const transcript = latestTranscriptRef.current.trim();
     if (!transcript) {
@@ -290,7 +292,7 @@ export default function Home() {
       return;
     }
 
-    await generateFiche(transcript);
+    await generateFiche(transcript, sessionDurationRef.current);
   };
 
   const handleLogout = async () => {
