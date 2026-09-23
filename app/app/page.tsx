@@ -473,21 +473,21 @@ export default function Home() {
               <path d="M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.93V20H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.07A7 7 0 0019 11z" />
             </svg>
           </span>
-          <span className="text-sm font-semibold text-[#e7ecf5]">Elyo</span>
+          <span className="text-base font-semibold text-[#e7ecf5]">Elyo</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="rounded-full border border-[#2a3552] px-2.5 py-0.5 text-[11px] font-medium text-[#8b97b0]">
+          <span className="rounded-full border border-[#2a3552] px-2.5 py-0.5 text-xs font-medium text-[#8b97b0]">
             Bêta
           </span>
           <Link
             href="/pricing"
-            className="text-xs font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
+            className="rounded-full bg-[#2563eb]/15 px-3 py-1 text-sm font-semibold text-[#38bdf8] transition-colors transition-transform duration-150 hover:bg-[#2563eb]/25 active:scale-95"
           >
             Tarifs
           </Link>
           <button
             onClick={handleLogout}
-            className="text-xs font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
+            className="text-sm font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
           >
             Se déconnecter
           </button>
