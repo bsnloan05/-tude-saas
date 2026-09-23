@@ -56,7 +56,6 @@ export default function Home() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [highlightMode, setHighlightMode] = useState(true);
-  const [printMode, setPrintMode] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalTranscriptRef = useRef("");
@@ -211,27 +210,6 @@ export default function Home() {
     return () => stopWaveform();
   }, []);
 
-  // Safari sur iPhone gère mal le CSS "@media print" (le fond sombre reste
-  // visible dans le PDF). Solution plus fiable : on bascule vraiment la
-  // page en apparence claire juste avant d'imprimer, via un vrai style en
-  // ligne (donc indépendant du support "print" du navigateur), puis on
-  // revient au thème sombre une fois l'impression terminée ou annulée.
-  useEffect(() => {
-    if (!printMode) {
-      document.body.style.backgroundColor = "";
-      return;
-    }
-    document.body.style.backgroundColor = "#fbf6ea";
-    const timeout = setTimeout(() => window.print(), 50);
-    return () => clearTimeout(timeout);
-  }, [printMode]);
-
-  useEffect(() => {
-    const handleAfterPrint = () => setPrintMode(false);
-    window.addEventListener("afterprint", handleAfterPrint);
-    return () => window.removeEventListener("afterprint", handleAfterPrint);
-  }, []);
-
   const startRecording = () => {
     if (!recognitionRef.current) return;
     finalTranscriptRef.current = "";
@@ -307,15 +285,75 @@ export default function Home() {
     router.refresh();
   };
 
+  // On génère un PDF via une page toute neuve, indépendante, déjà stylée en
+  // clair dès sa création — plutôt que de faire basculer la page actuelle en
+  // clair puis d'imprimer (ce qui dépend du support de "@media print" du
+  // navigateur, peu fiable sur Safari iOS : le fond sombre restait visible).
+  // Ici il n'y a rien à attendre ni à synchroniser, donc ça marche partout.
+  const downloadPdf = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      setErrorMessage(
+        "Impossible d'ouvrir la fenêtre d'impression. Autorise les pop-ups pour ce site.",
+      );
+      setStatus("error");
+      return;
+    }
+
+    const headingColor = highlightMode ? "#b45309" : "#1f2937";
+    const subheadingColor = highlightMode ? "#0f766e" : "#4b5563";
+    const strongBg = highlightMode ? "#fef3c7" : "transparent";
+    const strongColor = highlightMode ? "#78350f" : "#1f2937";
+    const blockquoteBorder = highlightMode ? "#10b981" : "#9ca3af";
+    const blockquoteBg = highlightMode ? "#ecfdf5" : "transparent";
+    const blockquoteColor = highlightMode ? "#065f46" : "#4b5563";
+
+    Promise.resolve(marked.parse(notes)).then((html) => {
+      printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Fiche de cours</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: #fbf6ea;
+    color: #1f2937;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 32px 32px 32px 56px;
+    line-height: 1.6;
+  }
+  h2 { color: ${headingColor}; font-size: 1.5em; margin-top: 1.5em; }
+  h2:first-child { margin-top: 0; }
+  h3 { color: ${subheadingColor}; font-size: 1.1em; margin-top: 1.2em; }
+  strong { background: ${strongBg}; color: ${strongColor}; padding: 0 2px; border-radius: 2px; }
+  blockquote {
+    border-left: 4px solid ${blockquoteBorder};
+    background: ${blockquoteBg};
+    color: ${blockquoteColor};
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    border-radius: 0 6px 6px 0;
+  }
+  blockquote p { margin: 0; }
+  ul { padding-left: 1.5em; }
+  li { margin-bottom: 0.4em; }
+</style>
+</head>
+<body>${html}</body>
+</html>`);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => printWindow.print(), 150);
+    });
+  };
+
   return (
-    <div
-      className={`relative isolate flex min-h-screen flex-col items-center overflow-hidden px-4 py-16 ${
-        printMode ? "bg-[#fbf6ea] p-0" : "dot-grid bg-[#0b1120]"
-      }`}
-    >
+    <div className="dot-grid relative isolate flex min-h-screen flex-col items-center overflow-hidden bg-[#0b1120] px-4 py-16">
       <div
         aria-hidden
-        className={`-z-10 pointer-events-none absolute -top-32 left-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-[#2563eb]/25 blur-[100px] ${printMode ? "hidden" : ""}`}
+        className="-z-10 pointer-events-none absolute -top-32 left-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-[#2563eb]/25 blur-[100px]"
       />
 
       {/* Grande icône signature qui dérive autour du centre de l'écran, sur
@@ -328,7 +366,7 @@ export default function Home() {
           ça, l'icône transperçait la fiche au lieu de rester derrière. */}
       <svg
         aria-hidden
-        className={`big-bg-icon pointer-events-none absolute top-1/2 left-1/2 -z-10 h-[22rem] w-[22rem] -translate-x-1/2 -translate-y-1/2 text-[#38bdf8] ${printMode ? "hidden" : ""}`}
+        className="big-bg-icon pointer-events-none absolute top-1/2 left-1/2 -z-10 h-[22rem] w-[22rem] -translate-x-1/2 -translate-y-1/2 text-[#38bdf8]"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -340,7 +378,7 @@ export default function Home() {
 
       <div
         aria-hidden
-        className={`-z-10 pointer-events-none absolute inset-0 overflow-hidden ${printMode ? "hidden" : ""}`}
+        className="-z-10 pointer-events-none absolute inset-0 overflow-hidden"
       >
         <svg
           className="float-icon absolute top-[10%] left-[6%] h-11 w-11 text-[#38bdf8]/20"
@@ -399,9 +437,7 @@ export default function Home() {
         </svg>
       </div>
 
-      <header
-        className={`relative mb-12 flex w-full max-w-2xl flex-wrap items-center justify-between gap-y-2 ${printMode ? "hidden" : ""}`}
-      >
+      <header className="relative mb-12 flex w-full max-w-2xl flex-wrap items-center justify-between gap-y-2">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
@@ -431,9 +467,7 @@ export default function Home() {
       </header>
 
       <main className="flex w-full max-w-2xl flex-col items-center gap-8">
-        <div
-          className={`flex flex-col items-center gap-3 text-center ${printMode ? "hidden" : ""}`}
-        >
+        <div className="flex flex-col items-center gap-3 text-center">
           <h1 className="text-balance text-2xl font-bold tracking-tight text-[#e7ecf5] sm:text-3xl">
             Transforme tes cours en{" "}
             <span className="relative inline-block">
@@ -470,7 +504,7 @@ export default function Home() {
         )}
 
         {isSupported && (
-          <div className={`flex flex-col items-center gap-3 ${printMode ? "hidden" : ""}`}>
+          <div className="flex flex-col items-center gap-3">
             <button
               onClick={status === "recording" ? stopRecording : startRecording}
               disabled={status === "generating"}
@@ -575,16 +609,8 @@ export default function Home() {
         )}
 
         {status === "done" && (
-          <div
-            className={`fiche-enter w-full rounded-lg p-5 ${
-              printMode
-                ? "border-0 bg-[#fbf6ea] p-0 shadow-none"
-                : "border border-[#232d45] bg-[#141b2e] shadow-sm"
-            }`}
-          >
-            <div
-              className={`mb-5 flex flex-col gap-3 border-b border-[#232d45] px-2 pb-4 sm:flex-row sm:items-center sm:justify-between ${printMode ? "hidden" : ""}`}
-            >
+          <div className="fiche-enter w-full rounded-lg border border-[#232d45] bg-[#141b2e] p-5 shadow-sm">
+            <div className="mb-5 flex flex-col gap-3 border-b border-[#232d45] px-2 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <span className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5 shrink-0 text-[#38bdf8]">
                   <path d="M12 20h9" strokeLinecap="round" />
@@ -632,26 +658,20 @@ export default function Home() {
                   {copied ? "Copié !" : "Copier la fiche"}
                 </button>
                 <button
-                  onClick={() => setPrintMode(true)}
+                  onClick={downloadPdf}
                   className="rounded-full border border-[#2a3552] px-3 py-1.5 text-xs font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95 sm:px-4 sm:text-sm"
                 >
                   Télécharger en PDF
                 </button>
               </div>
             </div>
-            <div
-              className={printMode ? "notebook-lines-print text-black" : "text-[#c3cbdc]"}
-            >
+            <div className="text-[#c3cbdc]">
               <ReactMarkdown
                 components={{
                   h2: (props) => (
                     <h2
                       className={`mt-6 mb-3 text-2xl font-semibold first:mt-0 ${
-                        highlightMode
-                          ? "text-amber-400"
-                          : printMode
-                            ? "text-[#1f2937]"
-                            : "text-[#e7ecf5]"
+                        highlightMode ? "text-amber-400" : "text-[#e7ecf5]"
                       }`}
                       {...props}
                     />
@@ -659,11 +679,7 @@ export default function Home() {
                   h3: (props) => (
                     <h3
                       className={`mt-4 mb-2 text-base font-semibold ${
-                        highlightMode
-                          ? "text-teal-400"
-                          : printMode
-                            ? "text-[#4b5563]"
-                            : "text-[#8b97b0]"
+                        highlightMode ? "text-teal-400" : "text-[#8b97b0]"
                       }`}
                       {...props}
                     />
@@ -672,11 +688,7 @@ export default function Home() {
                   ul: (props) => (
                     <ul
                       className={`mb-3 list-disc space-y-1.5 pl-6 ${
-                        highlightMode
-                          ? "marker:text-amber-400"
-                          : printMode
-                            ? "marker:text-[#4b5563]"
-                            : "marker:text-[#8b97b0]"
+                        highlightMode ? "marker:text-amber-400" : "marker:text-[#8b97b0]"
                       }`}
                       {...props}
                     />
@@ -687,9 +699,7 @@ export default function Home() {
                       className={
                         highlightMode
                           ? "rounded bg-[#38bdf8]/20 px-1 font-semibold text-[#7dd3fc]"
-                          : printMode
-                            ? "font-semibold text-[#1f2937]"
-                            : "font-semibold text-[#e7ecf5]"
+                          : "font-semibold text-[#e7ecf5]"
                       }
                       {...props}
                     />
@@ -699,9 +709,7 @@ export default function Home() {
                       className={
                         highlightMode
                           ? "my-4 rounded-r-lg border-l-4 border-emerald-500 bg-emerald-500/10 py-2.5 pr-3 pl-4 text-emerald-200 [&>p]:mb-0"
-                          : printMode
-                            ? "my-4 border-l-2 border-[#9ca3af] pl-4 text-[#4b5563] [&>p]:mb-0"
-                            : "my-4 border-l-2 border-[#2a3552] pl-4 text-[#8b97b0] [&>p]:mb-0"
+                          : "my-4 border-l-2 border-[#2a3552] pl-4 text-[#8b97b0] [&>p]:mb-0"
                       }
                       {...props}
                     />
