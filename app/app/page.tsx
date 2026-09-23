@@ -539,7 +539,21 @@ export default function Home() {
             arrête-le à la fin : ta fiche est générée automatiquement.
           </p>
 
-          {usage && (
+          {usage && usage.quotaSeconds === 0 && (
+            <div className="mt-2 flex w-full max-w-xs flex-col items-center gap-2 rounded-lg border border-[#232d45] bg-[#141b2e] p-4 text-center">
+              <p className="text-sm text-[#c3cbdc]">
+                Choisis un forfait pour commencer à créer des fiches.
+              </p>
+              <Link
+                href="/pricing"
+                className="rounded-full bg-[#2563eb] px-4 py-1.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+              >
+                Voir les tarifs
+              </Link>
+            </div>
+          )}
+
+          {usage && usage.quotaSeconds > 0 && (
             <div className="mt-2 flex w-full max-w-xs flex-col gap-1.5">
               <div className="flex items-center justify-between text-xs text-[#8b97b0]">
                 <span>
@@ -584,7 +598,7 @@ export default function Home() {
           <div className="flex flex-col items-center gap-3">
             <button
               onClick={status === "recording" ? stopRecording : startRecording}
-              disabled={status === "generating"}
+              disabled={status === "generating" || (usage?.quotaSeconds === 0 && status !== "recording")}
               className={`flex h-14 w-44 items-center justify-center gap-2 rounded-full text-base font-semibold text-white shadow-sm transition-transform transition-colors duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 ${
                 status === "recording"
                   ? "bg-red-600 hover:bg-red-700"

@@ -156,21 +156,18 @@ export default function LandingPage() {
 
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
           <Link
-            href="/login?mode=signup"
-            className="flex h-12 w-52 items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
-          >
-            Essayer gratuitement
-          </Link>
-          <Link
             href="/pricing"
-            className="flex h-12 w-52 items-center justify-center rounded-full border border-[#2a3552] text-base font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#141b2e] active:scale-95"
+            className="flex h-12 w-52 items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
           >
             Voir les tarifs
           </Link>
+          <Link
+            href="/login?mode=signup"
+            className="flex h-12 w-52 items-center justify-center rounded-full border border-[#2a3552] text-base font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#141b2e] active:scale-95"
+          >
+            Créer un compte
+          </Link>
         </div>
-        <p className="mt-3 text-xs text-[#8b97b0]">
-          2h gratuites par mois, sans carte bancaire.
-        </p>
       </main>
 
       <section className="w-full max-w-4xl border-t border-[#232d45] py-16">

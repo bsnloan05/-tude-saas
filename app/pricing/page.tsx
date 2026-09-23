@@ -7,22 +7,14 @@ import Link from "next/link";
 type PlanKey = "standard" | "premium";
 
 const PLANS: Array<{
-  key: PlanKey | "free";
+  key: PlanKey;
   name: string;
   strikePrice?: string;
   price: string;
   quota: string;
-  courses?: string;
-  cta?: string;
+  cta: string;
   popular?: boolean;
 }> = [
-  {
-    key: "free",
-    name: "Gratuit",
-    price: "0$",
-    quota: "2h de cours / mois",
-    courses: "≈ 1 cours de 2h",
-  },
   {
     key: "standard",
     name: "Standard",
@@ -136,7 +128,7 @@ export default function PricingPage() {
         </p>
       )}
 
-      <div className="grid w-full max-w-4xl gap-6 sm:grid-cols-3">
+      <div className="grid w-full max-w-2xl gap-6 sm:grid-cols-2">
         {PLANS.map((plan) => (
           <div
             key={plan.key}
@@ -161,34 +153,21 @@ export default function PricingPage() {
                 </span>
               )}
               <span className="text-3xl font-bold text-[#e7ecf5]">{plan.price}</span>
-              {plan.key !== "free" && (
-                <span className="text-sm text-[#8b97b0]">/mois</span>
-              )}
+              <span className="text-sm text-[#8b97b0]">/mois</span>
             </div>
-            <p className={`text-sm text-[#8b97b0] ${plan.courses ? "" : "mb-6"}`}>
-              {plan.quota}
-            </p>
-            {plan.courses && (
-              <p className="mb-6 text-xs text-[#6b7690]">{plan.courses}</p>
-            )}
+            <p className="mb-6 text-sm text-[#8b97b0]">{plan.quota}</p>
 
-            {plan.key === "free" ? (
-              <span className="mt-auto rounded-full border border-[#2a3552] px-4 py-2 text-center text-sm font-medium text-[#8b97b0]">
-                Forfait actuel par défaut
-              </span>
-            ) : (
-              <button
-                onClick={() => handleUpgrade(plan.key as PlanKey)}
-                disabled={loadingPlan !== null}
-                className={`mt-auto rounded-full px-4 py-2.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 ${
-                  plan.popular
-                    ? "bg-[#2563eb] hover:bg-[#1d4ed8]"
-                    : "bg-[#2a3552] hover:bg-[#33406b]"
-                }`}
-              >
-                {loadingPlan === plan.key ? "Redirection..." : plan.cta}
-              </button>
-            )}
+            <button
+              onClick={() => handleUpgrade(plan.key)}
+              disabled={loadingPlan !== null}
+              className={`mt-auto rounded-full px-4 py-2.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 ${
+                plan.popular
+                  ? "bg-[#2563eb] hover:bg-[#1d4ed8]"
+                  : "bg-[#2a3552] hover:bg-[#33406b]"
+              }`}
+            >
+              {loadingPlan === plan.key ? "Redirection..." : plan.cta}
+            </button>
           </div>
         ))}
       </div>
