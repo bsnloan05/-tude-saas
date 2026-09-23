@@ -12,7 +12,7 @@ const PLANS: Array<{
   strikePrice?: string;
   price: string;
   quota: string;
-  courses: string;
+  courses?: string;
   cta?: string;
   popular?: boolean;
 }> = [
@@ -29,7 +29,6 @@ const PLANS: Array<{
     strikePrice: "14,99$",
     price: "11,99$",
     quota: "40h de cours / mois",
-    courses: "≈ 20 cours de 2h",
     cta: "Passer à Standard",
   },
   {
@@ -38,7 +37,6 @@ const PLANS: Array<{
     strikePrice: "19,99$",
     price: "16,99$",
     quota: "75h de cours / mois",
-    courses: "≈ 37 cours de 2h",
     cta: "Passer à Premium",
     popular: true,
   },
@@ -167,8 +165,12 @@ export default function PricingPage() {
                 <span className="text-sm text-[#8b97b0]">/mois</span>
               )}
             </div>
-            <p className="text-sm text-[#8b97b0]">{plan.quota}</p>
-            <p className="mb-6 text-xs text-[#6b7690]">{plan.courses}</p>
+            <p className={`text-sm text-[#8b97b0] ${plan.courses ? "" : "mb-6"}`}>
+              {plan.quota}
+            </p>
+            {plan.courses && (
+              <p className="mb-6 text-xs text-[#6b7690]">{plan.courses}</p>
+            )}
 
             {plan.key === "free" ? (
               <span className="mt-auto rounded-full border border-[#2a3552] px-4 py-2 text-center text-sm font-medium text-[#8b97b0]">

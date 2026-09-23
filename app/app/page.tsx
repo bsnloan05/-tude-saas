@@ -488,7 +488,7 @@ export default function Home() {
         </svg>
       </div>
 
-      <header className="relative mb-12 flex w-full max-w-2xl flex-wrap items-center justify-between gap-y-2">
+      <header className="relative mb-12 flex w-full max-w-5xl flex-wrap items-center justify-between gap-y-2">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
