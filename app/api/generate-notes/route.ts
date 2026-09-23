@@ -1,15 +1,9 @@
 import Groq from "groq-sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getQuotaSeconds } from "@/lib/plans";
 
 const client = new Groq();
-
-// Quotas mensuels par forfait, en secondes.
-const PLAN_QUOTA_SECONDS: Record<string, number> = {
-  free: 2 * 3600,
-  standard: 40 * 3600,
-  premium: 75 * 3600,
-};
 
 // Le tier gratuit de Groq limite chaque requête à 8000 tokens (entrée + sortie
 // cumulées) par minute. Une transcription de cours dépasse vite cette limite,
@@ -87,8 +81,7 @@ export async function POST(request: NextRequest) {
     .eq("id", user.id)
     .single();
 
-  const plan = profile?.plan ?? "free";
-  const quotaSeconds = PLAN_QUOTA_SECONDS[plan] ?? PLAN_QUOTA_SECONDS.free;
+  const quotaSeconds = getQuotaSeconds(profile?.plan);
 
   const startOfMonth = new Date();
   startOfMonth.setDate(1);

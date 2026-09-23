@@ -44,6 +44,13 @@ declare global {
 
 type Status = "idle" | "recording" | "generating" | "done" | "error";
 
+function formatDuration(totalSeconds: number): string {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.round((totalSeconds % 3600) / 60);
+  if (hours === 0) return `${minutes}min`;
+  return minutes === 0 ? `${hours}h` : `${hours}h${minutes.toString().padStart(2, "0")}`;
+}
+
 export default function Home() {
   const router = useRouter();
   const [status, setStatus] = useState<Status>("idle");
@@ -56,6 +63,11 @@ export default function Home() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [highlightMode, setHighlightMode] = useState(true);
+  const [usage, setUsage] = useState<{
+    usedSeconds: number;
+    quotaSeconds: number;
+    plan: string;
+  } | null>(null);
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalTranscriptRef = useRef("");
@@ -184,6 +196,21 @@ export default function Home() {
     recognitionRef.current = recognition;
   }, []);
 
+  const fetchUsage = async () => {
+    try {
+      const response = await fetch("/api/usage");
+      if (!response.ok) return;
+      const data = await response.json();
+      setUsage(data);
+    } catch {
+      // Pas grave si ça échoue : c'est juste un indicateur, pas bloquant.
+    }
+  };
+
+  useEffect(() => {
+    fetchUsage();
+  }, []);
+
   useEffect(() => {
     if (status !== "generating") {
       setElapsedSeconds(0);
@@ -244,6 +271,7 @@ export default function Home() {
       const data = await response.json();
       setNotes(data.notes);
       setStatus("done");
+      fetchUsage();
     } catch (error) {
       setStatus("error");
       setErrorMessage(
@@ -494,6 +522,39 @@ export default function Home() {
             <br />
             arrête-le à la fin : ta fiche est générée automatiquement.
           </p>
+
+          {usage && (
+            <div className="mt-2 flex w-full max-w-xs flex-col gap-1.5">
+              <div className="flex items-center justify-between text-xs text-[#8b97b0]">
+                <span>
+                  {formatDuration(usage.usedSeconds)} / {formatDuration(usage.quotaSeconds)}{" "}
+                  ce mois-ci
+                </span>
+                {usage.usedSeconds / usage.quotaSeconds > 0.6 && (
+                  <Link
+                    href="/pricing"
+                    className="font-medium text-[#38bdf8] transition-transform duration-150 hover:underline active:scale-95"
+                  >
+                    Passer au payant
+                  </Link>
+                )}
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#232d45]">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    usage.usedSeconds / usage.quotaSeconds > 0.85
+                      ? "bg-red-500"
+                      : usage.usedSeconds / usage.quotaSeconds > 0.6
+                        ? "bg-amber-400"
+                        : "bg-[#38bdf8]"
+                  }`}
+                  style={{
+                    width: `${Math.min(100, (usage.usedSeconds / usage.quotaSeconds) * 100)}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {!isSupported && (
