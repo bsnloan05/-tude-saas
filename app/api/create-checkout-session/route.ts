@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
     line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
     client_reference_id: user.id,
     customer_email: user.email,
-    success_url: `${origin}/?checkout=success`,
-    cancel_url: `${origin}/?checkout=cancelled`,
+    success_url: `${origin}/app?checkout=success`,
+    cancel_url: `${origin}/pricing?checkout=cancelled`,
   });
 
   return NextResponse.json({ url: session.url });

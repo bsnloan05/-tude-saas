@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "signin" | "signup";
@@ -19,9 +19,14 @@ function translateAuthError(message: string): string {
   return known[message] ?? message;
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<Mode>("signin");
+
+  useEffect(() => {
+    if (searchParams.get("mode") === "signup") setMode("signup");
+  }, [searchParams]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -54,7 +59,7 @@ export default function LoginPage() {
       if (error) {
         setErrorMessage(translateAuthError(error.message));
       } else {
-        router.push("/");
+        router.push("/app");
         router.refresh();
       }
     }
@@ -155,5 +160,13 @@ export default function LoginPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

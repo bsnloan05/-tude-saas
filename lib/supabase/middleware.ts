@@ -30,13 +30,11 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isAuthRoute = request.nextUrl.pathname.startsWith("/login");
-  // Les routes API gerent leur propre authentification (session utilisateur
-  // ou signature Stripe pour le webhook) : on ne les redirige jamais vers
-  // /login, sinon le webhook Stripe (qui n'a pas de session de navigateur)
-  // serait bloque avant meme d'atteindre le code de la route.
-  const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
+  // Seule /app (l'outil) exige d'etre connecte : / (accueil) et /pricing
+  // restent publiques, visibles par n'importe quel visiteur.
+  const isProtectedRoute = request.nextUrl.pathname.startsWith("/app");
 
-  if (!user && !isAuthRoute && !isApiRoute) {
+  if (!user && isProtectedRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -44,7 +42,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/app";
     return NextResponse.redirect(url);
   }
 

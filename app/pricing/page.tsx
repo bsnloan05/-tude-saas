@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 type PlanKey = "standard" | "premium";
@@ -33,6 +34,7 @@ const PLANS: Array<{
 ];
 
 export default function PricingPage() {
+  const router = useRouter();
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -45,6 +47,11 @@ export default function PricingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
       });
+
+      if (response.status === 401) {
+        router.push("/login?mode=signup");
+        return;
+      }
 
       if (!response.ok) {
         throw new Error("La création du paiement a échoué.");
