@@ -44,6 +44,12 @@ declare global {
 
 type Status = "idle" | "recording" | "generating" | "done" | "error";
 
+const PLAN_LABELS: Record<string, string> = {
+  free: "Gratuit",
+  standard: "Standard",
+  premium: "Premium",
+};
+
 function formatDuration(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.round((totalSeconds % 3600) / 60);
@@ -67,7 +73,10 @@ export default function Home() {
     usedSeconds: number;
     quotaSeconds: number;
     plan: string;
+    email: string;
   } | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalTranscriptRef = useRef("");
@@ -210,6 +219,20 @@ export default function Home() {
   useEffect(() => {
     fetchUsage();
   }, []);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [profileOpen]);
 
   useEffect(() => {
     if (status !== "generating") {
@@ -485,12 +508,50 @@ export default function Home() {
           >
             Tarifs
           </Link>
-          <button
-            onClick={handleLogout}
-            className="text-base font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
-          >
-            Se déconnecter
-          </button>
+          <div className="relative" ref={profileMenuRef}>
+            <button
+              onClick={() => setProfileOpen((open) => !open)}
+              className="flex items-center gap-1.5 text-base font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                <path d="M12 12a4.5 4.5 0 100-9 4.5 4.5 0 000 9z" />
+                <path d="M4 20a8 8 0 0116 0 1 1 0 01-1 1H5a1 1 0 01-1-1z" />
+              </svg>
+              Profil
+            </button>
+
+            {profileOpen && (
+              <div className="absolute top-full right-0 z-10 mt-2 w-64 rounded-lg border border-[#232d45] bg-[#141b2e] p-4 shadow-lg">
+                {usage ? (
+                  <>
+                    <p className="truncate text-sm font-medium text-[#e7ecf5]">
+                      {usage.email}
+                    </p>
+                    <p className="mt-1 text-xs text-[#8b97b0]">
+                      Forfait :{" "}
+                      <span className="font-semibold text-[#38bdf8]">
+                        {PLAN_LABELS[usage.plan] ?? usage.plan}
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-[#8b97b0]">Chargement...</p>
+                )}
+                <Link
+                  href="/pricing"
+                  className="mt-3 block rounded-full border border-[#2a3552] px-3 py-1.5 text-center text-sm font-medium text-[#c3cbdc] transition-colors hover:bg-[#1b2440]"
+                >
+                  Gérer mon forfait
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="mt-2 w-full rounded-full px-3 py-1.5 text-center text-sm font-medium text-[#8b97b0] transition-colors hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+                >
+                  Se déconnecter
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

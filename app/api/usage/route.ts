@@ -36,5 +36,5 @@ export async function GET() {
     0,
   );
 
-  return NextResponse.json({ plan, usedSeconds, quotaSeconds });
+  return NextResponse.json({ plan, usedSeconds, quotaSeconds, email: user.email });
 }
