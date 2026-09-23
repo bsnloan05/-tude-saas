@@ -156,16 +156,16 @@ export default function LandingPage() {
 
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
           <Link
-            href="/pricing"
+            href="/login?mode=signup"
             className="flex h-12 w-52 items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
           >
-            Voir les tarifs
+            Créer un compte
           </Link>
           <Link
-            href="/login?mode=signup"
+            href="/login"
             className="flex h-12 w-52 items-center justify-center rounded-full border border-[#2a3552] text-base font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#141b2e] active:scale-95"
           >
-            Créer un compte
+            Se connecter
           </Link>
         </div>
       </main>
