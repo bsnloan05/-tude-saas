@@ -129,6 +129,9 @@ export async function POST(request: NextRequest) {
           .from("usage_sessions")
           .insert({ user_id: user.id, duration_seconds: sessionDuration });
       }
+      if (notes.trim()) {
+        await supabase.from("fiches").insert({ user_id: user.id, content: notes });
+      }
       return NextResponse.json({ notes });
     }
 
@@ -168,6 +171,9 @@ export async function POST(request: NextRequest) {
       await supabase
         .from("usage_sessions")
         .insert({ user_id: user.id, duration_seconds: sessionDuration });
+    }
+    if (notes.trim()) {
+      await supabase.from("fiches").insert({ user_id: user.id, content: notes });
     }
     return NextResponse.json({ notes });
   } catch (error) {

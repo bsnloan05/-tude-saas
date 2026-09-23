@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
 import { marked } from "marked";
 import { createClient } from "@/lib/supabase/client";
+import FicheContent from "@/components/FicheContent";
+import { downloadFichePdf } from "@/lib/downloadFichePdf";
 
 // L'API de reconnaissance vocale du navigateur n'est pas encore standardisée
 // dans les types TypeScript officiels, donc on la déclare nous-mêmes ici.
@@ -342,61 +343,9 @@ export default function Home() {
   // navigateur, peu fiable sur Safari iOS : le fond sombre restait visible).
   // Ici il n'y a rien à attendre ni à synchroniser, donc ça marche partout.
   const downloadPdf = () => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      setErrorMessage(
-        "Impossible d'ouvrir la fenêtre d'impression. Autorise les pop-ups pour ce site.",
-      );
+    downloadFichePdf(notes, highlightMode, (message) => {
+      setErrorMessage(message);
       setStatus("error");
-      return;
-    }
-
-    const headingColor = highlightMode ? "#b45309" : "#1f2937";
-    const subheadingColor = highlightMode ? "#0f766e" : "#4b5563";
-    const strongBg = highlightMode ? "#fef3c7" : "transparent";
-    const strongColor = highlightMode ? "#78350f" : "#1f2937";
-    const blockquoteBorder = highlightMode ? "#10b981" : "#9ca3af";
-    const blockquoteBg = highlightMode ? "#ecfdf5" : "transparent";
-    const blockquoteColor = highlightMode ? "#065f46" : "#4b5563";
-
-    Promise.resolve(marked.parse(notes)).then((html) => {
-      printWindow.document.write(`<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Fiche de cours</title>
-<style>
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-    background: #fbf6ea;
-    color: #1f2937;
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 32px 32px 32px 56px;
-    line-height: 1.6;
-  }
-  h2 { color: ${headingColor}; font-size: 1.5em; margin-top: 1.5em; }
-  h2:first-child { margin-top: 0; }
-  h3 { color: ${subheadingColor}; font-size: 1.1em; margin-top: 1.2em; }
-  strong { background: ${strongBg}; color: ${strongColor}; padding: 0 2px; border-radius: 2px; }
-  blockquote {
-    border-left: 4px solid ${blockquoteBorder};
-    background: ${blockquoteBg};
-    color: ${blockquoteColor};
-    margin: 1em 0;
-    padding: 0.5em 1em;
-    border-radius: 0 6px 6px 0;
-  }
-  blockquote p { margin: 0; }
-  ul { padding-left: 1.5em; }
-  li { margin-bottom: 0.4em; }
-</style>
-</head>
-<body>${html}</body>
-</html>`);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => printWindow.print(), 150);
     });
   };
 
@@ -538,8 +487,14 @@ export default function Home() {
                   <p className="text-sm text-[#8b97b0]">Chargement...</p>
                 )}
                 <Link
-                  href="/pricing"
+                  href="/app/fiches"
                   className="mt-3 block rounded-full border border-[#2a3552] px-3 py-1.5 text-center text-sm font-medium text-[#c3cbdc] transition-colors hover:bg-[#1b2440]"
+                >
+                  Mes fiches
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="mt-2 block rounded-full border border-[#2a3552] px-3 py-1.5 text-center text-sm font-medium text-[#c3cbdc] transition-colors hover:bg-[#1b2440]"
                 >
                   Gérer mon forfait
                 </Link>
@@ -787,60 +742,7 @@ export default function Home() {
                 </button>
               </div>
             </div>
-            <div className="text-[#c3cbdc]">
-              <ReactMarkdown
-                components={{
-                  h2: (props) => (
-                    <h2
-                      className={`mt-6 mb-3 text-2xl font-semibold first:mt-0 ${
-                        highlightMode ? "text-amber-400" : "text-[#e7ecf5]"
-                      }`}
-                      {...props}
-                    />
-                  ),
-                  h3: (props) => (
-                    <h3
-                      className={`mt-4 mb-2 text-base font-semibold ${
-                        highlightMode ? "text-teal-400" : "text-[#8b97b0]"
-                      }`}
-                      {...props}
-                    />
-                  ),
-                  p: (props) => <p className="mb-3 leading-relaxed" {...props} />,
-                  ul: (props) => (
-                    <ul
-                      className={`mb-3 list-disc space-y-1.5 pl-6 ${
-                        highlightMode ? "marker:text-amber-400" : "marker:text-[#8b97b0]"
-                      }`}
-                      {...props}
-                    />
-                  ),
-                  li: (props) => <li {...props} />,
-                  strong: (props) => (
-                    <strong
-                      className={
-                        highlightMode
-                          ? "rounded bg-[#38bdf8]/20 px-1 font-semibold text-[#7dd3fc]"
-                          : "font-semibold text-[#e7ecf5]"
-                      }
-                      {...props}
-                    />
-                  ),
-                  blockquote: (props) => (
-                    <blockquote
-                      className={
-                        highlightMode
-                          ? "my-4 rounded-r-lg border-l-4 border-emerald-500 bg-emerald-500/10 py-2.5 pr-3 pl-4 text-emerald-200 [&>p]:mb-0"
-                          : "my-4 border-l-2 border-[#2a3552] pl-4 text-[#8b97b0] [&>p]:mb-0"
-                      }
-                      {...props}
-                    />
-                  ),
-                }}
-              >
-                {notes}
-              </ReactMarkdown>
-            </div>
+            <FicheContent notes={notes} highlightMode={highlightMode} />
           </div>
         )}
       </main>
