@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: `Quota mensuel atteint (il te reste ${remainingMinutes} min ce mois-ci). Passe à un forfait supérieur pour continuer.`,
+        code: "quota_exceeded",
       },
       { status: 403 },
     );

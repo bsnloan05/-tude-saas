@@ -50,6 +50,7 @@ export default function Home() {
   const [liveTranscript, setLiveTranscript] = useState("");
   const [notes, setNotes] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isQuotaError, setIsQuotaError] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
   const [copied, setCopied] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -238,6 +239,7 @@ export default function Home() {
     setLiveTranscript("");
     setNotes("");
     setErrorMessage("");
+    setIsQuotaError(false);
     setCopied(false);
     isRecordingRef.current = true;
     setStatus("recording");
@@ -247,6 +249,7 @@ export default function Home() {
 
   const generateFiche = async (transcript: string, durationSeconds: number) => {
     setStatus("generating");
+    setIsQuotaError(false);
     try {
       const response = await fetch("/api/generate-notes", {
         method: "POST",
@@ -256,6 +259,7 @@ export default function Home() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
+        if (data.code === "quota_exceeded") setIsQuotaError(true);
         throw new Error(data.error || "La génération a échoué.");
       }
 
@@ -550,13 +554,22 @@ export default function Home() {
         {status === "error" && (
           <div className="flex w-full flex-col items-center gap-3 rounded-lg border border-red-900/50 bg-red-950/50 px-4 py-3 text-sm text-red-200 print:hidden">
             <p>{errorMessage}</p>
-            {latestTranscriptRef.current.trim() && (
-              <button
-                onClick={retryGeneration}
+            {isQuotaError ? (
+              <Link
+                href="/pricing"
                 className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors transition-transform duration-150 hover:bg-red-500 active:scale-95"
               >
-                Réessayer la génération
-              </button>
+                Voir les tarifs
+              </Link>
+            ) : (
+              latestTranscriptRef.current.trim() && (
+                <button
+                  onClick={retryGeneration}
+                  className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors transition-transform duration-150 hover:bg-red-500 active:scale-95"
+                >
+                  Réessayer la génération
+                </button>
+              )
             )}
           </div>
         )}
