@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -22,11 +22,9 @@ function translateAuthError(message: string): string {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<Mode>("signin");
-
-  useEffect(() => {
-    if (searchParams.get("mode") === "signup") setMode("signup");
-  }, [searchParams]);
+  const [mode, setMode] = useState<Mode>(
+    searchParams.get("mode") === "signup" ? "signup" : "signin",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");

@@ -40,7 +40,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthRoute) {
+  const isLandingRoute = request.nextUrl.pathname === "/";
+
+  // Un visiteur deja connecte n'a pas besoin de revoir la page marketing
+  // (ni le formulaire de connexion) : direction l'outil directement.
+  if (user && (isAuthRoute || isLandingRoute)) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
     return NextResponse.redirect(url);
