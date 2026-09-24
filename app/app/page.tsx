@@ -445,7 +445,7 @@ export default function Home() {
               <path d="M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.93V20H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.07A7 7 0 0019 11z" />
             </svg>
           </span>
-          <span className="text-base font-semibold text-[#e7ecf5]">Elyo</span>
+          <span className="text-base font-semibold text-[#e7ecf5]">Memoflash</span>
         </div>
         <div className="ml-auto flex items-center gap-3">
           <span className="rounded-full border border-[#2a3552] px-3 py-1 text-sm font-medium text-[#8b97b0]">

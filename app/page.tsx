@@ -3,7 +3,7 @@ import Link from "next/link";
 const STEPS = [
   {
     title: "Démarre",
-    text: "Appuie sur un bouton en début de cours, Elyo écoute en direct.",
+    text: "Appuie sur un bouton en début de cours, Memoflash écoute en direct.",
   },
   {
     title: "Écoute ton cours normalement",
@@ -104,7 +104,7 @@ export default function LandingPage() {
               <path d="M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.93V20H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.07A7 7 0 0019 11z" />
             </svg>
           </span>
-          <span className="text-sm font-semibold text-[#e7ecf5]">Elyo</span>
+          <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
         </div>
         <div className="flex items-center gap-4">
           <Link
@@ -193,7 +193,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="flex w-full max-w-4xl flex-col items-center gap-4 border-t border-[#232d45] py-10 text-center sm:flex-row sm:justify-between sm:text-left">
-        <span className="text-sm text-[#8b97b0]">© 2026 Elyo</span>
+        <span className="text-sm text-[#8b97b0]">© 2026 Memoflash</span>
         <div className="flex gap-4">
           <Link
             href="/pricing"

@@ -150,7 +150,7 @@ function LoginForm() {
               <path d="M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.93V20H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.07A7 7 0 0019 11z" />
             </svg>
           </span>
-          <span className="text-sm font-semibold text-[#e7ecf5]">Elyo</span>
+          <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
         </div>
 
         <h1 className="mb-1 text-xl font-bold text-[#e7ecf5]">

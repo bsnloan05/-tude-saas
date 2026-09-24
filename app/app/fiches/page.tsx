@@ -55,7 +55,7 @@ export default function FichesPage() {
         >
           ← Retour
         </Link>
-        <span className="text-sm font-semibold text-[#e7ecf5]">Elyo</span>
+        <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
       </div>
 
       <div className="w-full max-w-2xl">

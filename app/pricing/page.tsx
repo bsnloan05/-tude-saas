@@ -48,7 +48,7 @@ const FAQ = [
   {
     question: "Est-ce que ça fonctionne sur téléphone ?",
     answer:
-      "Oui, Elyo fonctionne directement dans le navigateur de ton téléphone, sans rien à installer.",
+      "Oui, Memoflash fonctionne directement dans le navigateur de ton téléphone, sans rien à installer.",
   },
 ];
 
@@ -112,7 +112,7 @@ export default function PricingPage() {
         >
           ← Retour
         </Link>
-        <span className="text-sm font-semibold text-[#e7ecf5]">Elyo</span>
+        <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
       </div>
 
       <h1 className="mb-2 text-center text-3xl font-bold text-[#e7ecf5]">
@@ -177,7 +177,7 @@ export default function PricingPage() {
           <rect x="3" y="11" width="18" height="10" rx="2" />
           <path d="M7 11V7a5 5 0 0110 0v4" />
         </svg>
-        Paiement sécurisé par Stripe — aucune donnée bancaire stockée par Elyo
+        Paiement sécurisé par Stripe — aucune donnée bancaire stockée par Memoflash
       </div>
 
       <div className="mt-20 w-full max-w-2xl border-t border-[#232d45] pt-12">
