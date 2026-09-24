@@ -84,6 +84,7 @@ export default function Home() {
   const latestTranscriptRef = useRef("");
   const sessionDurationRef = useRef(0);
   const isRecordingRef = useRef(false);
+  const restartIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -196,10 +197,26 @@ export default function Home() {
     };
 
     recognition.onend = () => {
-      // Le navigateur peut arrêter l'écoute tout seul (silence, limite interne...).
-      // Tant qu'on est censé être en train d'enregistrer, on relance automatiquement.
-      if (isRecordingRef.current) {
+      // Le navigateur peut arrêter l'écoute tout seul (silence, limite interne,
+      // redémarrage forcé pour rafraîchir la connexion...). Tant qu'on est censé
+      // être en train d'enregistrer, on relance automatiquement.
+      if (!isRecordingRef.current) return;
+      try {
         recognition.start();
+      } catch {
+        // Le navigateur n'a parfois pas fini de libérer l'instance précédente :
+        // on retente une fois après un court délai plutôt que d'abandonner la
+        // transcription en silence (c'est ce qui causait le blocage après
+        // de longues sessions d'enregistrement).
+        setTimeout(() => {
+          if (!isRecordingRef.current) return;
+          try {
+            recognition.start();
+          } catch {
+            // Toujours bloqué : on laisse tomber cette tentative, un prochain
+            // onend (ou le rafraîchissement périodique) réessaiera.
+          }
+        }, 300);
       }
     };
 
@@ -258,7 +275,10 @@ export default function Home() {
   }, [status]);
 
   useEffect(() => {
-    return () => stopWaveform();
+    return () => {
+      stopWaveform();
+      if (restartIntervalRef.current) clearInterval(restartIntervalRef.current);
+    };
   }, []);
 
   const startRecording = () => {
@@ -272,8 +292,22 @@ export default function Home() {
     setCopied(false);
     isRecordingRef.current = true;
     setStatus("recording");
-    recognitionRef.current.start();
+    try {
+      recognitionRef.current.start();
+    } catch {
+      // Ignoré : si une instance précédente tourne encore, onend la relancera.
+    }
     startWaveform();
+
+    // Sur les très longues sessions, la reconnaissance vocale du navigateur a
+    // tendance à se dégrader (moins précise, voire silencieuse) après environ
+    // une heure. On force donc un redémarrage périodique de la connexion, ce
+    // qui la garde fraîche sans perdre le texte déjà transcrit (accumulé à
+    // part dans latestTranscriptRef).
+    if (restartIntervalRef.current) clearInterval(restartIntervalRef.current);
+    restartIntervalRef.current = setInterval(() => {
+      if (isRecordingRef.current) recognitionRef.current?.stop();
+    }, 55000);
   };
 
   const generateFiche = async (transcript: string, durationSeconds: number) => {
@@ -316,6 +350,10 @@ export default function Home() {
   const stopRecording = async () => {
     if (!recognitionRef.current) return;
     isRecordingRef.current = false;
+    if (restartIntervalRef.current) {
+      clearInterval(restartIntervalRef.current);
+      restartIntervalRef.current = null;
+    }
     recognitionRef.current.stop();
     stopWaveform();
     sessionDurationRef.current = recordingSeconds;
