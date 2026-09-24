@@ -592,20 +592,6 @@ export default function Home() {
             arrête-le à la fin : ta fiche est générée automatiquement.
           </p>
 
-          {usage && usage.quotaSeconds === 0 && (
-            <div className="mt-2 flex w-full max-w-xs flex-col items-center gap-2 rounded-lg border border-[#232d45] bg-[#141b2e] p-4 text-center">
-              <p className="text-sm text-[#c3cbdc]">
-                Choisis un forfait pour commencer à créer des fiches.
-              </p>
-              <Link
-                href="/pricing"
-                className="rounded-full bg-[#2563eb] px-4 py-1.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
-              >
-                Voir les tarifs
-              </Link>
-            </div>
-          )}
-
           {usage && usage.quotaSeconds > 0 && (
             <div className="mt-2 flex w-full max-w-xs flex-col gap-1.5">
               <div className="flex items-center justify-between text-xs text-[#8b97b0]">
@@ -653,10 +639,13 @@ export default function Home() {
               onClick={() => {
                 if (status === "recording") {
                   stopRecording();
-                } else if (usage?.quotaSeconds === 0) {
-                  router.push("/pricing");
-                } else {
+                } else if (usage && usage.quotaSeconds > 0) {
                   startRecording();
+                } else {
+                  // Pas de forfait confirmé (ou infos pas encore chargées) :
+                  // on envoie vers les tarifs plutôt que de risquer de
+                  // laisser démarrer un enregistrement sans quota.
+                  router.push("/pricing");
                 }
               }}
               disabled={status === "generating"}
