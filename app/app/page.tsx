@@ -650,8 +650,16 @@ export default function Home() {
         {isSupported && (
           <div className="flex flex-col items-center gap-3">
             <button
-              onClick={status === "recording" ? stopRecording : startRecording}
-              disabled={status === "generating" || (usage?.quotaSeconds === 0 && status !== "recording")}
+              onClick={() => {
+                if (status === "recording") {
+                  stopRecording();
+                } else if (usage?.quotaSeconds === 0) {
+                  router.push("/pricing");
+                } else {
+                  startRecording();
+                }
+              }}
+              disabled={status === "generating"}
               className={`flex h-14 w-44 items-center justify-center gap-2 rounded-full text-base font-semibold text-white shadow-sm transition-transform transition-colors duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 ${
                 status === "recording"
                   ? "bg-red-600 hover:bg-red-700"
