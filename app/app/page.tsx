@@ -281,6 +281,21 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    // Quand l'onglet redevient actif après avoir été mis en arrière-plan
+    // (changement d'onglet, d'application...), le navigateur a pu dégrader
+    // la reconnaissance vocale pendant ce temps. On force un redémarrage
+    // propre de la connexion pour repartir sur de bonnes bases.
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isRecordingRef.current) {
+        recognitionRef.current?.stop();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   const startRecording = () => {
     if (!recognitionRef.current) return;
     finalTranscriptRef.current = "";
@@ -700,6 +715,11 @@ export default function Home() {
                     .padStart(2, "0")}
                   :{(recordingSeconds % 60).toString().padStart(2, "0")}
                 </span>
+                <p className="max-w-xs text-center text-xs text-amber-300/80">
+                  Reste sur cet onglet pendant l&apos;enregistrement (ne
+                  change pas d&apos;onglet ni d&apos;application), sinon le
+                  navigateur peut perdre des mots.
+                </p>
               </div>
             )}
           </div>
