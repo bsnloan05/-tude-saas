@@ -156,10 +156,10 @@ export default function LandingPage() {
 
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
           <Link
-            href="/login?mode=signup"
+            href="/onboarding"
             className="flex h-12 w-52 items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
           >
-            Créer un compte
+            Commencer
           </Link>
           <Link
             href="/login"
