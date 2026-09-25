@@ -11,7 +11,7 @@ type Question = {
 const QUESTIONS: Question[] = [
   {
     question: "En quelle année es-tu ?",
-    options: ["Lycée", "Bac+1 / Bac+2", "Bac+3 (Licence)", "Bac+4 / Bac+5 (Master)", "Autre"],
+    options: ["Lycée", "BTS / BUT", "Prépa", "Licence", "Master", "Doctorat", "Autre"],
   },
   {
     question: "Qu'est-ce que tu étudies ?",
