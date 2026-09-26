@@ -177,11 +177,13 @@ export default function OnboardingPage() {
             </p>
           </div>
 
-          <div className="mb-4 rounded-lg border border-[#2a3552] bg-[#0b1120] p-4">
-            <p className="mb-1.5 text-sm font-semibold tracking-wide text-[#c3cbdc] uppercase">
+          <div className="mb-4 rounded-lg border border-[#2a3552] bg-[#0b1120] p-5">
+            <p className="mb-2 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
               Ta plus grosse galère
             </p>
-            <p className="text-sm font-medium text-[#e7ecf5]">{painPoint}</p>
+            <p className="text-balance text-lg leading-snug font-bold text-[#e7ecf5] sm:text-xl">
+              « {painPoint} »
+            </p>
           </div>
 
           <div className="mb-6 flex justify-center">
