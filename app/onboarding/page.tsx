@@ -166,7 +166,7 @@ export default function OnboardingPage() {
       ) : (
         <div className="fiche-enter w-full max-w-md rounded-lg border border-[#232d45] bg-[#141b2e] p-8">
           <div className="mb-6 text-center">
-            <span className="mb-3 inline-block rounded-full border border-[#2a3552] px-3 py-1 text-xs font-medium text-[#8b97b0]">
+            <span className="mb-3 inline-block rounded-full border border-[#2a3552] px-4 py-1.5 text-sm font-semibold text-[#e7ecf5]">
               Ton bilan personnalisé
             </span>
             <p className="text-sm text-[#8b97b0]">
@@ -178,7 +178,7 @@ export default function OnboardingPage() {
           </div>
 
           <div className="mb-4 rounded-lg border border-[#2a3552] bg-[#0b1120] p-4">
-            <p className="mb-1.5 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
+            <p className="mb-1.5 text-sm font-semibold tracking-wide text-[#c3cbdc] uppercase">
               Ta plus grosse galère
             </p>
             <p className="text-sm font-medium text-[#e7ecf5]">{painPoint}</p>
