@@ -181,7 +181,7 @@ export default function OnboardingPage() {
             <p className="mb-1.5 text-sm font-semibold tracking-wide text-[#c3cbdc] uppercase">
               Ta plus grosse galère
             </p>
-            <p className="text-xs font-medium text-[#e7ecf5]">{painPoint}</p>
+            <p className="text-[13px] font-medium text-[#e7ecf5]">{painPoint}</p>
           </div>
 
           <div className="mb-6 flex justify-center">
