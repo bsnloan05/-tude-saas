@@ -179,7 +179,7 @@ export default function OnboardingPage() {
 
           <div className="mb-4 rounded-lg border border-[#2a3552] bg-[#0b1120] p-4">
             <p className="mb-1.5 text-[17px] font-semibold tracking-wide text-[#8b97b0] uppercase">
-              Ta plus grosse galère
+              Ta plus grosse galère :
             </p>
             <p className="text-[16px] font-medium text-[#e7ecf5]">{painPoint}</p>
           </div>
@@ -192,7 +192,7 @@ export default function OnboardingPage() {
 
           <div className="mb-8 rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 p-4">
             <p className="mb-1.5 text-xs font-semibold tracking-wide text-[#7dd3fc] uppercase">
-              Ce que Memoflash change pour toi
+              Ce que Memoflash change pour toi :
             </p>
             <p className="text-sm font-medium text-[#e7ecf5]">
               {PAIN_POINT_RESPONSES[painPoint] ??
