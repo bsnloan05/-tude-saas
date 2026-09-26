@@ -100,8 +100,7 @@ export default function LandingPage() {
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-              <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
-              <path d="M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.93V20H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.07A7 7 0 0019 11z" />
+              <path d="M13 2L4 14h6l-1 8 10-13h-6l0-7z" />
             </svg>
           </span>
           <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
