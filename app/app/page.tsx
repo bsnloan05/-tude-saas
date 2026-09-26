@@ -49,6 +49,7 @@ const PLAN_LABELS: Record<string, string> = {
   free: "Gratuit",
   standard: "Standard",
   premium: "Premium",
+  lifetime: "À vie",
 };
 
 function formatDuration(totalSeconds: number): string {
@@ -72,7 +73,7 @@ export default function Home() {
   const [highlightMode, setHighlightMode] = useState(true);
   const [usage, setUsage] = useState<{
     usedSeconds: number;
-    quotaSeconds: number;
+    quotaSeconds: number | null;
     plan: string;
     email: string;
   } | null>(null);
@@ -592,7 +593,13 @@ export default function Home() {
             arrête-le à la fin : ta fiche est générée automatiquement.
           </p>
 
-          {usage && usage.quotaSeconds > 0 && (
+          {usage && usage.quotaSeconds === null && (
+            <p className="mt-2 text-xs text-[#8b97b0]">
+              Usage illimité — {formatDuration(usage.usedSeconds)} enregistrées ce mois-ci
+            </p>
+          )}
+
+          {usage && typeof usage.quotaSeconds === "number" && usage.quotaSeconds > 0 && (
             <div className="mt-2 flex w-full max-w-xs flex-col gap-1.5">
               <div className="flex items-center justify-between text-xs text-[#8b97b0]">
                 <span>
@@ -639,7 +646,7 @@ export default function Home() {
               onClick={() => {
                 if (status === "recording") {
                   stopRecording();
-                } else if (usage && usage.quotaSeconds > 0) {
+                } else if (usage && (usage.quotaSeconds === null || usage.quotaSeconds > 0)) {
                   startRecording();
                 } else {
                   // Pas de forfait confirmé (ou infos pas encore chargées) :

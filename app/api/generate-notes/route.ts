@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     0,
   );
 
-  if (usedSeconds + sessionDuration > quotaSeconds) {
+  if (quotaSeconds !== null && usedSeconds + sessionDuration > quotaSeconds) {
     const remainingMinutes = Math.max(0, Math.floor((quotaSeconds - usedSeconds) / 60));
     return NextResponse.json(
       {

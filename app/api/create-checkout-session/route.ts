@@ -6,13 +6,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 const PRICE_IDS: Record<string, string> = {
   standard: process.env.STRIPE_PRICE_STANDARD!,
-  premium: process.env.STRIPE_PRICE_PREMIUM!,
+  lifetime: process.env.STRIPE_PRICE_LIFETIME!,
 };
 
 export async function POST(request: NextRequest) {
   const { plan } = await request.json();
 
-  if (plan !== "standard" && plan !== "premium") {
+  if (plan !== "standard" && plan !== "lifetime") {
     return NextResponse.json({ error: "Forfait invalide." }, { status: 400 });
   }
 
@@ -27,11 +27,14 @@ export async function POST(request: NextRequest) {
 
   const origin = request.nextUrl.origin;
 
+  // "lifetime" est un paiement unique (pas d'abonnement), "standard" reste
+  // un abonnement mensuel classique.
   const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
+    mode: plan === "lifetime" ? "payment" : "subscription",
     line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
     client_reference_id: user.id,
     customer_email: user.email,
+    metadata: { plan },
     success_url: `${origin}/app?checkout=success`,
     cancel_url: `${origin}/pricing?checkout=cancelled`,
   });

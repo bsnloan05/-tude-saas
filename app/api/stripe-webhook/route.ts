@@ -32,8 +32,20 @@ export async function POST(request: NextRequest) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.client_reference_id;
-      if (!userId || !session.subscription) break;
+      if (!userId) break;
 
+      // "lifetime" est un paiement unique : pas d'abonnement Stripe associé,
+      // donc jamais touché par les events subscription.updated/deleted
+      // ci-dessous — le forfait reste actif pour toujours.
+      if (session.mode === "payment") {
+        await supabase
+          .from("profiles")
+          .update({ plan: "lifetime", stripe_customer_id: session.customer as string })
+          .eq("id", userId);
+        break;
+      }
+
+      if (!session.subscription) break;
       const subscription = await stripe.subscriptions.retrieve(
         session.subscription as string,
       );

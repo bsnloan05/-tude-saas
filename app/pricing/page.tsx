@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-type PlanKey = "standard" | "premium";
+type PlanKey = "standard" | "lifetime";
 
 const PLANS: Array<{
   key: PlanKey;
   name: string;
-  strikePrice?: string;
   price: string;
+  period: string;
   quota: string;
   cta: string;
   popular?: boolean;
@@ -18,18 +18,18 @@ const PLANS: Array<{
   {
     key: "standard",
     name: "Standard",
-    strikePrice: "14,99€",
     price: "11,99€",
-    quota: "40h de cours / mois",
+    period: "/mois",
+    quota: "Usage illimité",
     cta: "Passer à Standard",
   },
   {
-    key: "premium",
-    name: "Premium",
-    strikePrice: "19,99€",
-    price: "16,99€",
-    quota: "75h de cours / mois",
-    cta: "Passer à Premium",
+    key: "lifetime",
+    name: "À vie",
+    price: "59,99€",
+    period: "une fois",
+    quota: "Usage illimité, pour toujours",
+    cta: "Accès à vie",
     popular: true,
   },
 ];
@@ -147,13 +147,8 @@ export default function PricingPage() {
               {plan.name}
             </h2>
             <div className="mb-1 flex items-baseline gap-2">
-              {plan.strikePrice && (
-                <span className="text-lg text-[#8b97b0] line-through">
-                  {plan.strikePrice}
-                </span>
-              )}
               <span className="text-3xl font-bold text-[#e7ecf5]">{plan.price}</span>
-              <span className="text-sm text-[#8b97b0]">/mois</span>
+              <span className="text-sm text-[#8b97b0]">{plan.period}</span>
             </div>
             <p className="mb-6 text-sm text-[#8b97b0]">{plan.quota}</p>
 
