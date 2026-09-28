@@ -719,10 +719,17 @@ export default function Home() {
                   : "Démarrer"}
             </button>
             {status === "idle" && (
-              <p className="text-xs text-[#8b97b0]">
-                Sur iPhone/Mac, utilise Safari pour une meilleure fiabilité
-                (sinon Chrome fonctionne aussi)
-              </p>
+              <div className="flex max-w-xs flex-col items-center gap-1 text-center">
+                <p className="text-xs text-[#8b97b0]">
+                  Sur iPhone/Mac, utilise Safari pour une meilleure fiabilité
+                  (sinon Chrome fonctionne aussi)
+                </p>
+                <p className="text-xs text-[#8b97b0]">
+                  Dans une salle avec beaucoup de monde connecté, préfère un
+                  téléphone en 4G/5G à un ordinateur portable sur le wifi de
+                  la salle, souvent instable.
+                </p>
+              </div>
             )}
             {status === "generating" && (
               <div className="flex flex-col items-center gap-1.5">
