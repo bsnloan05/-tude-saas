@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ScrollFadeIn from "@/components/ScrollFadeIn";
 import LiveActivityBanner from "@/components/LiveActivityBanner";
+import TypewriterCycle from "@/components/TypewriterCycle";
 
 const STEPS = [
   {
@@ -129,7 +130,7 @@ export default function LandingPage() {
         </span>
 
         <h1 className="text-balance text-4xl font-bold tracking-tight text-[#e7ecf5] sm:text-5xl">
-          Transforme la voix de ton prof en{" "}
+          Transforme la voix de ton prof de <TypewriterCycle /> en{" "}
           <span className="relative inline-block">
             fiche de révision
             <svg
