@@ -45,6 +45,16 @@ declare global {
 
 type Status = "idle" | "recording" | "generating" | "done" | "error";
 
+const BACKUP_STORAGE_KEY = "memoflash_recording_backup";
+const BACKUP_SAVE_INTERVAL_MS = 15000;
+const BACKUP_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+
+interface RecordingBackup {
+  transcript: string;
+  startedAt: number;
+  savedAt: number;
+}
+
 const PLAN_LABELS: Record<string, string> = {
   free: "Gratuit",
   standard: "Standard",
@@ -90,6 +100,11 @@ export default function Home() {
   const [micSilent, setMicSilent] = useState(false);
   const networkErrorTimestampsRef = useRef<number[]>([]);
   const [networkUnstable, setNetworkUnstable] = useState(false);
+  const recordingStartTimeRef = useRef<number | null>(null);
+  const backupIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [recoveredSession, setRecoveredSession] = useState<RecordingBackup | null>(
+    null,
+  );
 
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -259,6 +274,34 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    // Si une session d'enregistrement a été sauvegardée automatiquement mais
+    // n'a jamais été finalisée (onglet fermé, crash, coupure de courant...),
+    // on propose de la récupérer plutôt que de perdre tout le cours.
+    try {
+      const raw = window.localStorage.getItem(BACKUP_STORAGE_KEY);
+      if (!raw) return;
+      const backup = JSON.parse(raw) as RecordingBackup;
+      const isFresh =
+        backup?.transcript?.trim() &&
+        Date.now() - backup.savedAt < BACKUP_MAX_AGE_MS;
+      if (isFresh) setRecoveredSession(backup);
+      else window.localStorage.removeItem(BACKUP_STORAGE_KEY);
+    } catch {
+      window.localStorage.removeItem(BACKUP_STORAGE_KEY);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (status !== "recording") return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [status]);
+
+  useEffect(() => {
     if (!profileOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -314,6 +357,7 @@ export default function Home() {
     return () => {
       stopWaveform();
       if (restartIntervalRef.current) clearInterval(restartIntervalRef.current);
+      if (backupIntervalRef.current) clearInterval(backupIntervalRef.current);
     };
   }, []);
 
@@ -363,6 +407,9 @@ export default function Home() {
     setMicSilent(false);
     networkErrorTimestampsRef.current = [];
     setNetworkUnstable(false);
+    setRecoveredSession(null);
+    window.localStorage.removeItem(BACKUP_STORAGE_KEY);
+    recordingStartTimeRef.current = Date.now();
     isRecordingRef.current = true;
     setStatus("recording");
     try {
@@ -381,6 +428,23 @@ export default function Home() {
     restartIntervalRef.current = setInterval(() => {
       if (isRecordingRef.current) recognitionRef.current?.stop();
     }, 100000);
+
+    // Sauvegarde régulière du texte déjà transcrit dans le navigateur, pour
+    // pouvoir le récupérer si l'onglet crashe ou se ferme avant la fin.
+    if (backupIntervalRef.current) clearInterval(backupIntervalRef.current);
+    backupIntervalRef.current = setInterval(() => {
+      if (!isRecordingRef.current || !latestTranscriptRef.current.trim()) return;
+      const backup: RecordingBackup = {
+        transcript: latestTranscriptRef.current,
+        startedAt: recordingStartTimeRef.current ?? Date.now(),
+        savedAt: Date.now(),
+      };
+      try {
+        window.localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(backup));
+      } catch {
+        // Stockage plein ou indisponible : pas grave, on retentera au prochain tick.
+      }
+    }, BACKUP_SAVE_INTERVAL_MS);
   };
 
   const generateFiche = async (transcript: string, durationSeconds: number) => {
@@ -427,6 +491,13 @@ export default function Home() {
       clearInterval(restartIntervalRef.current);
       restartIntervalRef.current = null;
     }
+    if (backupIntervalRef.current) {
+      clearInterval(backupIntervalRef.current);
+      backupIntervalRef.current = null;
+    }
+    // Le texte est maintenant géré normalement (avec réessai possible depuis
+    // la mémoire en cas d'échec) : plus besoin de la sauvegarde de secours.
+    window.localStorage.removeItem(BACKUP_STORAGE_KEY);
     recognitionRef.current.stop();
     stopWaveform();
     sessionDurationRef.current = recordingSeconds;
@@ -689,6 +760,43 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {recoveredSession && status === "idle" && (
+          <div className="flex w-full flex-col items-center gap-3 rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 p-4 text-center">
+            <p className="text-sm text-[#e7ecf5]">
+              Une session d&apos;enregistrement interrompue a été retrouvée
+              (non terminée la dernière fois). Veux-tu récupérer ce texte et
+              générer la fiche ?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  const backup = recoveredSession;
+                  const durationSeconds = Math.max(
+                    0,
+                    Math.round((backup.savedAt - backup.startedAt) / 1000),
+                  );
+                  sessionDurationRef.current = durationSeconds;
+                  setRecoveredSession(null);
+                  window.localStorage.removeItem(BACKUP_STORAGE_KEY);
+                  generateFiche(backup.transcript, durationSeconds);
+                }}
+                className="rounded-full bg-[#2563eb] px-4 py-1.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+              >
+                Récupérer et générer la fiche
+              </button>
+              <button
+                onClick={() => {
+                  setRecoveredSession(null);
+                  window.localStorage.removeItem(BACKUP_STORAGE_KEY);
+                }}
+                className="rounded-full border border-[#2a3552] px-4 py-1.5 text-sm font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
+              >
+                Ignorer
+              </button>
+            </div>
+          </div>
+        )}
 
         {!isSupported && (
           <p className="rounded-lg border border-amber-900/50 bg-amber-950/50 px-4 py-3 text-sm text-amber-200 print:hidden">
