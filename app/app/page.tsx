@@ -88,6 +88,8 @@ export default function Home() {
   const restartIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const [micSilent, setMicSilent] = useState(false);
+  const networkErrorTimestampsRef = useRef<number[]>([]);
+  const [networkUnstable, setNetworkUnstable] = useState(false);
 
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -190,6 +192,19 @@ export default function Home() {
         event.error === "aborted" ||
         event.error === "network"
       ) {
+        if (event.error === "network") {
+          // Une erreur réseau isolée est normale, mais si ça se répète en
+          // peu de temps, c'est le signe d'un wifi instable — utile à dire
+          // au client pour qu'il ne pense pas que le site est en cause.
+          const now = Date.now();
+          const WINDOW_MS = 2 * 60 * 1000;
+          const recent = networkErrorTimestampsRef.current.filter(
+            (t) => now - t < WINDOW_MS,
+          );
+          recent.push(now);
+          networkErrorTimestampsRef.current = recent;
+          setNetworkUnstable(recent.length >= 3);
+        }
         return;
       }
 
@@ -346,6 +361,8 @@ export default function Home() {
     setCopied(false);
     lastActivityRef.current = Date.now();
     setMicSilent(false);
+    networkErrorTimestampsRef.current = [];
+    setNetworkUnstable(false);
     isRecordingRef.current = true;
     setStatus("recording");
     try {
@@ -778,6 +795,12 @@ export default function Home() {
                   <p className="max-w-xs rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-center text-xs text-red-200">
                     Aucune voix détectée depuis un moment — vérifie que le
                     micro est bien autorisé et qu&apos;il capte le bon son.
+                  </p>
+                )}
+                {networkUnstable && (
+                  <p className="max-w-xs rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-center text-xs text-red-200">
+                    Connexion internet instable détectée — passe en 4G/5G si
+                    possible, la transcription peut perdre des mots.
                   </p>
                 )}
               </div>
