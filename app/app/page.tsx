@@ -86,6 +86,8 @@ export default function Home() {
   const sessionDurationRef = useRef(0);
   const isRecordingRef = useRef(false);
   const restartIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
+  const [micSilent, setMicSilent] = useState(false);
 
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -176,6 +178,8 @@ export default function Home() {
       // passage n'est parfois pas encore finalisé, et on ne veut pas le perdre.
       latestTranscriptRef.current = finalTranscriptRef.current + interim;
       setLiveTranscript(latestTranscriptRef.current);
+      lastActivityRef.current = Date.now();
+      setMicSilent(false);
     };
 
     recognition.onerror = (event) => {
@@ -276,6 +280,22 @@ export default function Home() {
   }, [status]);
 
   useEffect(() => {
+    if (status !== "recording") {
+      setMicSilent(false);
+      return;
+    }
+    // Si la reconnaissance vocale ne détecte plus aucune parole pendant un
+    // long moment, le micro est probablement mal configuré (mauvaise entrée
+    // sélectionnée, coupé...) — mieux vaut prévenir pendant le cours qu'à la
+    // fin avec une fiche vide.
+    const SILENCE_WARNING_MS = 45000;
+    const interval = setInterval(() => {
+      setMicSilent(Date.now() - lastActivityRef.current > SILENCE_WARNING_MS);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [status]);
+
+  useEffect(() => {
     return () => {
       stopWaveform();
       if (restartIntervalRef.current) clearInterval(restartIntervalRef.current);
@@ -324,6 +344,8 @@ export default function Home() {
     setLiveTranscript("");
     setNotes("");
     setCopied(false);
+    lastActivityRef.current = Date.now();
+    setMicSilent(false);
     isRecordingRef.current = true;
     setStatus("recording");
     try {
@@ -742,6 +764,12 @@ export default function Home() {
                   change pas d&apos;onglet ni d&apos;application), sinon le
                   navigateur peut perdre des mots.
                 </p>
+                {micSilent && (
+                  <p className="max-w-xs rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-center text-xs text-red-200">
+                    Aucune voix détectée depuis un moment — vérifie que le
+                    micro est bien autorisé et qu&apos;il capte le bon son.
+                  </p>
+                )}
               </div>
             )}
           </div>
