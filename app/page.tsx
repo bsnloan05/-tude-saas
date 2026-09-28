@@ -1,4 +1,6 @@
 import Link from "next/link";
+import ScrollFadeIn from "@/components/ScrollFadeIn";
+import LiveActivityBanner from "@/components/LiveActivityBanner";
 
 const STEPS = [
   {
@@ -175,18 +177,17 @@ export default function LandingPage() {
         </h2>
         <div className="grid gap-6 sm:grid-cols-3">
           {STEPS.map((step, index) => (
-            <div
-              key={step.title}
-              className="rounded-lg border border-[#232d45] bg-[#141b2e] p-6"
-            >
-              <span className="mb-4 flex h-8 w-8 items-center justify-center rounded-full bg-[#2563eb]/20 text-sm font-semibold text-[#38bdf8]">
-                {index + 1}
-              </span>
-              <h3 className="mb-2 text-base font-semibold text-[#e7ecf5]">
-                {step.title}
-              </h3>
-              <p className="text-sm text-[#8b97b0]">{step.text}</p>
-            </div>
+            <ScrollFadeIn key={step.title} delayMs={index * 120}>
+              <div className="rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
+                <span className="mb-4 flex h-8 w-8 items-center justify-center rounded-full bg-[#2563eb]/20 text-sm font-semibold text-[#38bdf8]">
+                  {index + 1}
+                </span>
+                <h3 className="mb-2 text-base font-semibold text-[#e7ecf5]">
+                  {step.title}
+                </h3>
+                <p className="text-sm text-[#8b97b0]">{step.text}</p>
+              </div>
+            </ScrollFadeIn>
           ))}
         </div>
       </section>
@@ -208,6 +209,8 @@ export default function LandingPage() {
           </Link>
         </div>
       </footer>
+
+      <LiveActivityBanner />
     </div>
   );
 }
