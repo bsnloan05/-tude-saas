@@ -7,7 +7,7 @@ self.onmessage = async (event: MessageEvent) => {
 
   if (type === "load") {
     const device: "webgpu" | "wasm" = event.data.device;
-    const dtype = device === "webgpu" ? "q4f16" : "q8";
+    const dtype = device === "webgpu" ? "fp16" : "q4";
     try {
       transcriber = (await pipeline(
         "automatic-speech-recognition",
