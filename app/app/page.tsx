@@ -380,7 +380,7 @@ export default function Home() {
     if (restartIntervalRef.current) clearInterval(restartIntervalRef.current);
     restartIntervalRef.current = setInterval(() => {
       if (isRecordingRef.current) recognitionRef.current?.stop();
-    }, 55000);
+    }, 100000);
   };
 
   const generateFiche = async (transcript: string, durationSeconds: number) => {
