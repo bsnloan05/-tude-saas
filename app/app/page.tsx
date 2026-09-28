@@ -676,7 +676,7 @@ export default function Home() {
         {!isSupported && (
           <p className="rounded-lg border border-amber-900/50 bg-amber-950/50 px-4 py-3 text-sm text-amber-200 print:hidden">
             Ton navigateur ne supporte pas la reconnaissance vocale. Utilise
-            Google Chrome pour tester ce prototype.
+            Safari (Mac/iPhone) ou Google Chrome.
           </p>
         )}
 
@@ -719,7 +719,10 @@ export default function Home() {
                   : "Démarrer"}
             </button>
             {status === "idle" && (
-              <p className="text-xs text-[#8b97b0]">Fonctionne avec Google Chrome</p>
+              <p className="text-xs text-[#8b97b0]">
+                Sur iPhone/Mac, utilise Safari pour une meilleure fiabilité
+                (sinon Chrome fonctionne aussi)
+              </p>
             )}
             {status === "generating" && (
               <div className="flex flex-col items-center gap-1.5">
