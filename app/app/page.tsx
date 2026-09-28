@@ -297,14 +297,32 @@ export default function Home() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
-  const startRecording = () => {
+  const startRecording = async () => {
     if (!recognitionRef.current) return;
+    setErrorMessage("");
+    setIsQuotaError(false);
+
+    // Empêche deux enregistrements simultanés sur le même compte (partage de
+    // compte entre plusieurs personnes en même temps).
+    try {
+      const response = await fetch("/api/recording/start", { method: "POST" });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setErrorMessage(
+          data.error ?? "Impossible de démarrer l'enregistrement pour le moment.",
+        );
+        setStatus("error");
+        return;
+      }
+    } catch {
+      // Si la vérification échoue (souci réseau...), on laisse démarrer plutôt
+      // que de bloquer l'utilisateur pour un problème indépendant.
+    }
+
     finalTranscriptRef.current = "";
     latestTranscriptRef.current = "";
     setLiveTranscript("");
     setNotes("");
-    setErrorMessage("");
-    setIsQuotaError(false);
     setCopied(false);
     isRecordingRef.current = true;
     setStatus("recording");
@@ -373,6 +391,7 @@ export default function Home() {
     recognitionRef.current.stop();
     stopWaveform();
     sessionDurationRef.current = recordingSeconds;
+    fetch("/api/recording/stop", { method: "POST" }).catch(() => {});
 
     const transcript = latestTranscriptRef.current.trim();
     if (!transcript) {
