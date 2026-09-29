@@ -15,10 +15,10 @@ export default function LiveDemoMockup() {
   }, []);
 
   return (
-    <div className="flex w-full max-w-md flex-col items-center">
+    <div className="relative isolate flex w-full max-w-md flex-col items-center">
       {/* Écran du Mac */}
-      <div className="relative w-full rounded-t-2xl border-[10px] border-b-0 border-[#3a3a3e] bg-black pt-3">
-        <div className="absolute top-0 left-1/2 h-2.5 w-14 -translate-x-1/2 rounded-b-lg bg-black" />
+      <div className="relative w-full rounded-t-xl border-[14px] border-b-0 border-[#2c2c2e] bg-black pt-2.5 shadow-2xl shadow-black/50">
+        <div className="absolute top-0 left-1/2 h-2 w-16 -translate-x-1/2 rounded-b-xl bg-black" />
 
         <div className="overflow-hidden rounded-t-sm bg-[#141b2e]">
           <div className="flex items-center gap-1.5 border-b border-[#232d45] bg-[#0f1729] px-4 py-2.5">
@@ -96,9 +96,13 @@ export default function LiveDemoMockup() {
         </div>
       </div>
 
-      {/* Base / clavier du Mac */}
-      <div className="h-3.5 w-[104%] rounded-b-2xl bg-gradient-to-b from-[#4a4a4e] to-[#2a2a2e] shadow-lg" />
-      <div className="h-1 w-20 rounded-b-md bg-[#1a1a1c]" />
+      {/* Base / clavier du Mac, en trapèze comme un vrai MacBook */}
+      <div
+        className="relative h-4 w-full bg-gradient-to-b from-[#5a5a5e] to-[#2c2c2e] shadow-lg"
+        style={{ clipPath: "polygon(0 0, 100% 0, 96% 100%, 4% 100%)" }}
+      >
+        <div className="absolute bottom-0 left-1/2 h-1 w-16 -translate-x-1/2 rounded-t-sm bg-[#1a1a1c]" />
+      </div>
     </div>
   );
 }
