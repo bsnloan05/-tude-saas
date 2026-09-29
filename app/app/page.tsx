@@ -266,8 +266,18 @@ export default function Home() {
           try {
             recognition.start();
           } catch {
-            // Toujours bloqué : on laisse tomber cette tentative, un prochain
-            // onend (ou le rafraîchissement périodique) réessaiera.
+            // Toujours bloqué après deux essais rapprochés : un dernier essai
+            // avec un délai plus long, au cas où le navigateur ait juste
+            // besoin de plus de temps pour libérer l'instance précédente.
+            setTimeout(() => {
+              if (!isRecordingRef.current) return;
+              try {
+                recognition.start();
+              } catch {
+                // Vraiment bloqué cette fois : le rafraîchissement périodique
+                // (toutes les 100s) ou un retour sur l'onglet retentera.
+              }
+            }, 1500);
           }
         }, 300);
       }
