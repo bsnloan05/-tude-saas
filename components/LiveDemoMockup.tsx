@@ -16,7 +16,7 @@ export default function LiveDemoMockup() {
 
   return (
     <div
-      className="relative isolate flex w-full max-w-md flex-col items-center"
+      className="relative isolate flex w-full max-w-xl flex-col items-center"
       style={{ perspective: "1400px" }}
     >
       <div
@@ -37,7 +37,7 @@ export default function LiveDemoMockup() {
             </span>
           </div>
 
-          <div className="relative h-72 p-5">
+          <div className="relative h-52 p-5">
             <div
               className={`absolute inset-0 flex flex-col items-center justify-center gap-4 p-5 transition-opacity duration-700 ${
                 showFiche ? "pointer-events-none opacity-0" : "opacity-100"
