@@ -110,6 +110,7 @@ export default function Home() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
   const waveformRafRef = useRef<number | null>(null);
+  const keepAliveOscillatorRef = useRef<OscillatorNode | null>(null);
 
   const BAR_COUNT = 5;
 
@@ -129,6 +130,17 @@ export default function Home() {
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 64;
       source.connect(analyser);
+
+      // Un son quasi inaudible joué en continu signale au navigateur que cet
+      // onglet est "actif" au niveau audio, ce qui réduit le risque qu'il le
+      // décharge de la mémoire en arrière-plan (perte totale de la session).
+      const oscillator = audioContext.createOscillator();
+      const silentGain = audioContext.createGain();
+      silentGain.gain.value = 0.0001;
+      oscillator.connect(silentGain);
+      silentGain.connect(audioContext.destination);
+      oscillator.start();
+      keepAliveOscillatorRef.current = oscillator;
 
       const data = new Uint8Array(analyser.frequencyBinCount);
       const groupSize = Math.floor(data.length / BAR_COUNT) || 1;
@@ -157,6 +169,12 @@ export default function Home() {
   const stopWaveform = () => {
     if (waveformRafRef.current) cancelAnimationFrame(waveformRafRef.current);
     waveformRafRef.current = null;
+    try {
+      keepAliveOscillatorRef.current?.stop();
+    } catch {
+      // Déjà arrêté ou contexte fermé : rien à faire.
+    }
+    keepAliveOscillatorRef.current = null;
     audioContextRef.current?.close();
     audioContextRef.current = null;
     micStreamRef.current?.getTracks().forEach((track) => track.stop());
