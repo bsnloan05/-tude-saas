@@ -157,3 +157,19 @@ body {
     animation: none;
   }
 }
+
+@keyframes waveform-bar {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="waveform-bar"] {
+    animation: none !important;
+  }
+}

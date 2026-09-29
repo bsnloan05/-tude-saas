@@ -2,6 +2,7 @@ import Link from "next/link";
 import ScrollFadeIn from "@/components/ScrollFadeIn";
 import LiveActivityBanner from "@/components/LiveActivityBanner";
 import TypewriterCycle from "@/components/TypewriterCycle";
+import LiveDemoMockup from "@/components/LiveDemoMockup";
 
 const STEPS = [
   {
@@ -124,58 +125,64 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="flex w-full max-w-3xl flex-col items-center py-16 text-center">
-        <span className="mb-5 rounded-full border border-[#2a3552] px-3 py-1 text-xs font-medium text-[#8b97b0]">
-          Fait pour les étudiants
-        </span>
-
-        <h1 className="text-balance text-4xl font-bold tracking-tight text-[#e7ecf5] sm:text-5xl">
-          Transforme la voix de ton prof en{" "}
-          <span className="relative inline-block">
-            fiche de révision
-            <svg
-              viewBox="0 0 200 12"
-              preserveAspectRatio="none"
-              className="absolute -bottom-1 left-0 h-2.5 w-full text-[#38bdf8]"
-            >
-              <path
-                d="M2 8c40-6 120-6 196 0"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="4"
-                strokeLinecap="round"
-                className="draw-underline"
-                pathLength={100}
-              />
-            </svg>
+      <main className="flex w-full max-w-5xl flex-col items-center gap-12 py-16 lg:flex-row lg:items-center lg:gap-8">
+        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+          <span className="mb-5 rounded-full border border-[#2a3552] px-3 py-1 text-xs font-medium text-[#8b97b0]">
+            Fait pour les étudiants
           </span>
-        </h1>
 
-        <p className="mt-6 max-w-2xl text-lg text-[#8b97b0] sm:text-xl">
-          Démarre l&apos;enregistrement pendant le cours et{" "}
-          <TypewriterCycle
-            words={[
-              "récupère une fiche claire en quelques minutes",
-              "concentre-toi sur ce que dit ton prof",
-              "révise sans avoir rien écrit toi-même",
-              "ne loupe plus aucune information importante",
-            ]}
-          />
-        </p>
+          <h1 className="text-balance text-4xl font-bold tracking-tight text-[#e7ecf5] sm:text-5xl">
+            Transforme la voix de ton prof en{" "}
+            <span className="relative inline-block">
+              fiche de révision
+              <svg
+                viewBox="0 0 200 12"
+                preserveAspectRatio="none"
+                className="absolute -bottom-1 left-0 h-2.5 w-full text-[#38bdf8]"
+              >
+                <path
+                  d="M2 8c40-6 120-6 196 0"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  className="draw-underline"
+                  pathLength={100}
+                />
+              </svg>
+            </span>
+          </h1>
 
-        <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
-          <Link
-            href="/onboarding"
-            className="flex h-12 w-52 items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
-          >
-            Commencer
-          </Link>
-          <Link
-            href="/login"
-            className="flex h-12 w-52 items-center justify-center rounded-full border border-[#2a3552] text-base font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#141b2e] active:scale-95"
-          >
-            Se connecter
-          </Link>
+          <p className="mt-6 max-w-xl text-lg text-[#8b97b0] sm:text-xl">
+            Démarre l&apos;enregistrement pendant le cours et{" "}
+            <TypewriterCycle
+              words={[
+                "récupère une fiche claire en quelques minutes",
+                "concentre-toi sur ce que dit ton prof",
+                "révise sans avoir rien écrit toi-même",
+                "ne loupe plus aucune information importante",
+              ]}
+            />
+          </p>
+
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
+            <Link
+              href="/onboarding"
+              className="flex h-12 w-52 items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+            >
+              Commencer
+            </Link>
+            <Link
+              href="/login"
+              className="flex h-12 w-52 items-center justify-center rounded-full border border-[#2a3552] text-base font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#141b2e] active:scale-95"
+            >
+              Se connecter
+            </Link>
+          </div>
+        </div>
+
+        <div className="flex w-full justify-center lg:w-auto lg:flex-1 lg:justify-end">
+          <LiveDemoMockup />
         </div>
       </main>
 
