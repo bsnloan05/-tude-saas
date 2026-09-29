@@ -15,19 +15,12 @@ export default function LiveDemoMockup() {
   }, []);
 
   return (
-    <div
-      className="relative isolate flex w-full max-w-xl flex-col items-center"
-      style={{ perspective: "1400px" }}
-    >
-      <div
-        className="flex w-full flex-col items-center transition-transform duration-500"
-        style={{ transform: "rotateY(-10deg) rotateX(4deg)" }}
-      >
-      {/* Écran du Mac */}
-      <div className="relative w-full rounded-t-xl border-[14px] border-b-0 border-[#2c2c2e] bg-black pt-2.5 shadow-2xl shadow-black/50">
-        <div className="absolute top-0 left-1/2 h-2 w-16 -translate-x-1/2 rounded-b-xl bg-black" />
+    <div className="relative isolate mx-auto w-full max-w-lg">
+      {/* Cadre de tablette, bien à plat */}
+      <div className="relative rounded-[1.75rem] border-[10px] border-[#2c2c2e] bg-black shadow-2xl shadow-black/50">
+        <span className="absolute top-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-[#1a1a1c]" />
 
-        <div className="overflow-hidden rounded-t-sm bg-[#141b2e]">
+        <div className="overflow-hidden rounded-[0.9rem] bg-[#141b2e]">
           <div className="flex items-center gap-1.5 border-b border-[#232d45] bg-[#0f1729] px-4 py-2.5">
             <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
@@ -37,7 +30,7 @@ export default function LiveDemoMockup() {
             </span>
           </div>
 
-          <div className="relative h-52 p-5">
+          <div className="relative h-60 p-5">
             <div
               className={`absolute inset-0 flex flex-col items-center justify-center gap-4 p-5 transition-opacity duration-700 ${
                 showFiche ? "pointer-events-none opacity-0" : "opacity-100"
@@ -92,24 +85,9 @@ export default function LiveDemoMockup() {
                 <li>Eau (H₂O) absorbée par les racines</li>
                 <li>Dioxyde de carbone (CO₂) capté dans l&apos;air</li>
               </ul>
-              <div className="rounded-r-lg border-l-4 border-emerald-500 bg-emerald-500/10 px-3 py-1.5">
-                <p className="text-xs text-emerald-200">
-                  <strong className="font-semibold">Stomates</strong> :
-                  petites ouvertures qui laissent entrer le CO₂
-                </p>
-              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Base / clavier du Mac, en trapèze comme un vrai MacBook */}
-      <div
-        className="relative h-4 w-full bg-gradient-to-b from-[#5a5a5e] to-[#2c2c2e] shadow-lg"
-        style={{ clipPath: "polygon(0 0, 100% 0, 96% 100%, 4% 100%)" }}
-      >
-        <div className="absolute bottom-0 left-1/2 h-1 w-16 -translate-x-1/2 rounded-t-sm bg-[#1a1a1c]" />
-      </div>
       </div>
     </div>
   );
