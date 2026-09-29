@@ -34,6 +34,31 @@ const PLANS: Array<{
   },
 ];
 
+const TESTIMONIALS = [
+  {
+    name: "Entela",
+    quote:
+      "Je comprends beaucoup mieux les cours : j'écoute le prof, et en rentrant, je relis directement ma fiche.",
+  },
+  {
+    name: "Chloé",
+    quote:
+      "Mes cours sont bien mieux structurés grâce à l'option où j'ai accès à toutes mes fiches.",
+  },
+  {
+    name: "Bilel",
+    quote: "Je gagne beaucoup de temps dans mes révisions.",
+  },
+  {
+    name: "Dounia",
+    quote: "Je comprends beaucoup mieux mes cours.",
+  },
+  {
+    name: "Clara",
+    quote: "Mes cours sont beaucoup plus structurés.",
+  },
+];
+
 const FAQ = [
   {
     question: "Puis-je annuler à tout moment ?",
@@ -173,6 +198,23 @@ export default function PricingPage() {
           <path d="M7 11V7a5 5 0 0110 0v4" />
         </svg>
         Paiement sécurisé par Stripe — aucune donnée bancaire stockée par Memoflash
+      </div>
+
+      <div className="mt-20 w-full max-w-4xl border-t border-[#232d45] pt-12">
+        <h2 className="mb-8 text-center text-xl font-bold text-[#e7ecf5]">
+          Ce qu&apos;en disent nos étudiants
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {TESTIMONIALS.map((t) => (
+            <div
+              key={t.name}
+              className="rounded-lg border border-[#232d45] bg-[#141b2e] p-5"
+            >
+              <p className="text-sm text-[#c3cbdc]">&laquo;&nbsp;{t.quote}&nbsp;&raquo;</p>
+              <p className="mt-3 text-sm font-semibold text-[#38bdf8]">{t.name}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="mt-20 w-full max-w-2xl border-t border-[#232d45] pt-12">
