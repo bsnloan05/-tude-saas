@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LiveDemoMockup from "@/components/LiveDemoMockup";
 import ScrollFadeIn from "@/components/ScrollFadeIn";
 import LiveActivityBanner from "@/components/LiveActivityBanner";
 import TypewriterCycle from "@/components/TypewriterCycle";
@@ -176,6 +177,10 @@ export default function LandingPage() {
           >
             Se connecter
           </Link>
+        </div>
+
+        <div className="mt-14 w-full">
+          <LiveDemoMockup />
         </div>
       </main>
 
