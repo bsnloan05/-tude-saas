@@ -151,7 +151,7 @@ export default function LandingPage() {
           </span>
         </h1>
 
-        <p className="mt-6 max-w-lg text-balance text-lg text-[#8b97b0] sm:text-xl">
+        <p className="mt-6 max-w-2xl text-lg text-[#8b97b0] sm:text-xl">
           Démarre l&apos;enregistrement pendant le cours et{" "}
           <TypewriterCycle
             words={[
