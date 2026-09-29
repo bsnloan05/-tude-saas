@@ -204,16 +204,20 @@ export default function PricingPage() {
         <h2 className="mb-8 text-center text-xl font-bold text-[#e7ecf5]">
           Ce qu&apos;en disent nos étudiants
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {TESTIMONIALS.map((t) => (
-            <div
-              key={t.name}
-              className="rounded-lg border border-[#232d45] bg-[#141b2e] p-5"
-            >
-              <p className="text-sm text-[#c3cbdc]">&laquo;&nbsp;{t.quote}&nbsp;&raquo;</p>
-              <p className="mt-3 text-sm font-semibold text-[#38bdf8]">{t.name}</p>
-            </div>
-          ))}
+        <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+          <div className="animate-marquee flex w-max gap-4">
+            {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
+              <div
+                key={i}
+                className="w-72 shrink-0 rounded-lg border border-[#232d45] bg-[#141b2e] p-5"
+              >
+                <p className="text-sm text-[#c3cbdc]">
+                  &laquo;&nbsp;{t.quote}&nbsp;&raquo;
+                </p>
+                <p className="mt-3 text-sm font-semibold text-[#38bdf8]">{t.name}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
