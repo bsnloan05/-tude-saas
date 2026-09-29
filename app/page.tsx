@@ -2,7 +2,6 @@ import Link from "next/link";
 import ScrollFadeIn from "@/components/ScrollFadeIn";
 import LiveActivityBanner from "@/components/LiveActivityBanner";
 import TypewriterCycle from "@/components/TypewriterCycle";
-import LiveDemoMockup from "@/components/LiveDemoMockup";
 
 const STEPS = [
   {
@@ -179,9 +178,6 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        <div className="mt-14 flex w-full justify-center">
-          <LiveDemoMockup />
-        </div>
       </main>
 
       <section className="w-full max-w-4xl border-t border-[#232d45] py-16">
