@@ -355,6 +355,19 @@ export default function Home() {
 
   useEffect(() => {
     return () => {
+      // Si on quitte la page (navigation vers une autre page du site) pendant
+      // un enregistrement, il faut bien tout arrêter et libérer le verrou
+      // anti-partage de compte — sinon le compte reste "bloqué en
+      // enregistrement" jusqu'à 6h alors que la personne n'enregistre plus.
+      if (isRecordingRef.current) {
+        isRecordingRef.current = false;
+        try {
+          recognitionRef.current?.stop();
+        } catch {
+          // Rien à faire si ça échoue, on quitte la page de toute façon.
+        }
+        fetch("/api/recording/stop", { method: "POST" }).catch(() => {});
+      }
       stopWaveform();
       if (restartIntervalRef.current) clearInterval(restartIntervalRef.current);
       if (backupIntervalRef.current) clearInterval(backupIntervalRef.current);
