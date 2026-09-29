@@ -196,8 +196,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ notes });
   } catch (error) {
     console.error("Erreur Groq API:", error);
+
+    // Un pic de demandes en même temps (plusieurs étudiants génèrent une
+    // fiche au même moment) déclenche une erreur 429 côté Groq. Ce n'est pas
+    // une panne : un message rassurant qui invite à réessayer est plus
+    // approprié qu'un message d'erreur technique qui fait peur.
+    const isRateLimited =
+      (error as { status?: number })?.status === 429 ||
+      (error instanceof Error && error.message.includes("429"));
+
     return NextResponse.json(
-      { error: "La génération de la fiche a échoué. Vérifie ta clé API." },
+      {
+        error: isRateLimited
+          ? "Beaucoup de monde utilise Memoflash en ce moment. Réessaie dans quelques instants, ta transcription est toujours là."
+          : "La génération a rencontré un petit souci. Réessaie, ta transcription est toujours là.",
+      },
       { status: 500 },
     );
   }
