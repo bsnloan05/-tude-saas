@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 
-const WORDS = ["droit", "médecine", "économie", "sciences", "lettres"];
-const TYPING_SPEED_MS = 80;
-const DELETING_SPEED_MS = 40;
-const PAUSE_AFTER_TYPING_MS = 1400;
+const DEFAULT_WORDS = ["droit", "médecine", "économie", "sciences", "lettres"];
+const TYPING_SPEED_MS = 40;
+const DELETING_SPEED_MS = 25;
+const PAUSE_AFTER_TYPING_MS = 1800;
 const PAUSE_AFTER_DELETING_MS = 300;
 
-export default function TypewriterCycle() {
+export default function TypewriterCycle({
+  words = DEFAULT_WORDS,
+}: {
+  words?: string[];
+}) {
   const [wordIndex, setWordIndex] = useState(0);
   const [displayed, setDisplayed] = useState("");
   const [phase, setPhase] = useState<"typing" | "pausing" | "deleting">("typing");
@@ -20,11 +24,11 @@ export default function TypewriterCycle() {
 
   useEffect(() => {
     if (reducedMotion) {
-      setDisplayed(WORDS[0]);
+      setDisplayed(words[0]);
       return;
     }
 
-    const currentWord = WORDS[wordIndex];
+    const currentWord = words[wordIndex];
     let timeout: ReturnType<typeof setTimeout>;
 
     if (phase === "typing") {
@@ -46,14 +50,14 @@ export default function TypewriterCycle() {
         );
       } else {
         timeout = setTimeout(() => {
-          setWordIndex((i) => (i + 1) % WORDS.length);
+          setWordIndex((i) => (i + 1) % words.length);
           setPhase("typing");
         }, PAUSE_AFTER_DELETING_MS);
       }
     }
 
     return () => clearTimeout(timeout);
-  }, [displayed, phase, wordIndex, reducedMotion]);
+  }, [displayed, phase, wordIndex, reducedMotion, words]);
 
   return (
     <span className="text-[#38bdf8]">

@@ -130,7 +130,7 @@ export default function LandingPage() {
         </span>
 
         <h1 className="text-balance text-4xl font-bold tracking-tight text-[#e7ecf5] sm:text-5xl">
-          Transforme la voix de ton prof de <TypewriterCycle /> en{" "}
+          Transforme la voix de ton prof en{" "}
           <span className="relative inline-block">
             fiche de révision
             <svg
@@ -151,9 +151,16 @@ export default function LandingPage() {
           </span>
         </h1>
 
-        <p className="mt-6 max-w-md text-balance text-[#8b97b0]">
-          Plus besoin d&apos;écrire pendant le cours. Démarre l&apos;enregistrement,
-          écoute, et récupère une fiche claire à la fin.
+        <p className="mt-6 max-w-lg text-balance text-lg text-[#8b97b0] sm:text-xl">
+          Démarre l&apos;enregistrement pendant le cours et{" "}
+          <TypewriterCycle
+            words={[
+              "récupère une fiche claire en quelques minutes",
+              "concentre-toi sur ce que dit ton prof",
+              "révise sans avoir rien écrit toi-même",
+              "ne loupe plus aucune information importante",
+            ]}
+          />
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
