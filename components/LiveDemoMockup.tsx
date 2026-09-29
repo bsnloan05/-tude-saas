@@ -15,7 +15,14 @@ export default function LiveDemoMockup() {
   }, []);
 
   return (
-    <div className="relative isolate flex w-full max-w-md flex-col items-center">
+    <div
+      className="relative isolate flex w-full max-w-md flex-col items-center"
+      style={{ perspective: "1400px" }}
+    >
+      <div
+        className="flex w-full flex-col items-center transition-transform duration-500"
+        style={{ transform: "rotateY(-10deg) rotateX(4deg)" }}
+      >
       {/* Écran du Mac */}
       <div className="relative w-full rounded-t-xl border-[14px] border-b-0 border-[#2c2c2e] bg-black pt-2.5 shadow-2xl shadow-black/50">
         <div className="absolute top-0 left-1/2 h-2 w-16 -translate-x-1/2 rounded-b-xl bg-black" />
@@ -102,6 +109,7 @@ export default function LiveDemoMockup() {
         style={{ clipPath: "polygon(0 0, 100% 0, 96% 100%, 4% 100%)" }}
       >
         <div className="absolute bottom-0 left-1/2 h-1 w-16 -translate-x-1/2 rounded-t-sm bg-[#1a1a1c]" />
+      </div>
       </div>
     </div>
   );
