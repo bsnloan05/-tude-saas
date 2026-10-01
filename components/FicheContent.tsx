@@ -1,4 +1,14 @@
+"use client";
+
 import ReactMarkdown from "react-markdown";
+import dynamic from "next/dynamic";
+
+const MermaidDiagram = dynamic(() => import("@/components/MermaidDiagram"), {
+  ssr: false,
+  loading: () => (
+    <div className="my-4 h-24 animate-pulse rounded-md bg-[#1b2440]" />
+  ),
+});
 
 export default function FicheContent({
   notes,
@@ -47,6 +57,17 @@ export default function FicheContent({
               {...props}
             />
           ),
+          code: ({ className, children, ...props }) => {
+            const isMermaid = /language-mermaid/.test(className ?? "");
+            if (isMermaid) {
+              return <MermaidDiagram code={String(children).replace(/\n$/, "")} />;
+            }
+            return (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
           blockquote: (props) => (
             <blockquote
               className={

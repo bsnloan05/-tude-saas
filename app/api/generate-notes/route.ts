@@ -20,23 +20,36 @@ const STRUCTURE_RULES = `Règles de structure (très important, à respecter str
 - À l'intérieur de chaque partie, utilise des listes à puces courtes plutôt que de longs paragraphes, pour que ce soit rapide à relire.
 - Chaque définition importante ou notion clé doit être écrite sous forme de citation Markdown (commence la ligne par ">"), au format : "> **Terme** : explication". N'utilise ce format que pour les vraies définitions, pas pour des phrases ordinaires.`;
 
-const FICHE_SYSTEM_PROMPT = `Tu es un assistant qui transforme la transcription brute d'un cours oral en une fiche de révision claire et bien structurée pour un étudiant.
+// Fonctionnalité réservée au forfait "À vie" : des schémas Mermaid quand le
+// sujet s'y prête, sinon un exemple concret. Appliquée uniquement via les
+// fonctions build...Prompt ci-dessous, jamais sur les prompts par défaut, pour
+// ne rien changer au comportement existant des autres forfaits.
+const DIAGRAM_RULES = `Schémas (fonctionnalité exclusive à ce forfait, à utiliser avec parcimonie) :
+- Si une notion se prête vraiment à une représentation visuelle (un processus en plusieurs étapes, un cycle, une hiérarchie, une chronologie, des relations entre éléments), tu peux ajouter un schéma au format Mermaid dans un bloc de code \`\`\`mermaid, juste après la notion concernée. Utilise un type simple et syntaxiquement correct (flowchart TD ou mindmap de préférence).
+- N'ajoute JAMAIS de schéma si le sujet ne s'y prête pas naturellement : donne plutôt un exemple concret dans le texte pour mieux faire comprendre la notion.
+- Au maximum un schéma par fiche, uniquement si c'est vraiment pertinent. Ne force jamais un schéma artificiel.`;
+
+function buildFicheSystemPrompt(enableDiagrams: boolean): string {
+  return `Tu es un assistant qui transforme la transcription brute d'un cours oral en une fiche de révision claire et bien structurée pour un étudiant.
 
 ${STRUCTURE_RULES}
 - Écris dans la même langue que la transcription.
 - Sois complet : garde tous les exemples, chiffres, dates et détails concrets donnés par le prof, une fiche trop courte n'aide pas à réviser. Ne résume pas à l'excès.
 - Corrige les hésitations, répétitions et tournures orales du prof pour obtenir un texte écrit propre.
 - Ne rajoute aucune information qui n'est pas dans la transcription.
-- Si la transcription est trop courte ou peu compréhensible, fais de ton mieux et signale-le en une phrase à la fin.`;
+- Si la transcription est trop courte ou peu compréhensible, fais de ton mieux et signale-le en une phrase à la fin.${enableDiagrams ? `\n\n${DIAGRAM_RULES}` : ""}`;
+}
 
 const CONDENSE_SYSTEM_PROMPT = `Tu reçois un extrait d'une transcription de cours oral (ce n'est qu'une partie du cours complet, pas la totalité). Liste en détail toutes les informations importantes de cet extrait : notions, définitions, exemples concrets, dates, chiffres. Sois complet et précis, ne résume pas à l'excès : il vaut mieux une liste un peu longue qu'une liste qui perd des informations utiles pour réviser. Pas de mise en forme complexe, juste des puces simples. Ne fais aucun commentaire sur le fait que c'est un extrait.`;
 
-const FICHE_FROM_NOTES_SYSTEM_PROMPT = `Tu es un assistant qui transforme des notes condensées d'un cours oral en une fiche de révision claire et bien structurée pour un étudiant. On te donne plusieurs extraits successifs du même cours, dans l'ordre chronologique, séparés par "---".
+function buildFicheFromNotesSystemPrompt(enableDiagrams: boolean): string {
+  return `Tu es un assistant qui transforme des notes condensées d'un cours oral en une fiche de révision claire et bien structurée pour un étudiant. On te donne plusieurs extraits successifs du même cours, dans l'ordre chronologique, séparés par "---".
 
 ${STRUCTURE_RULES}
 - Écris dans la même langue que les notes fournies.
 - Fusionne les extraits en un seul document cohérent, sans répéter les informations redondantes, mais sans en perdre le contenu : regrouper des notions proches sous une même partie ne veut pas dire les résumer à l'excès.
-- Ne rajoute aucune information qui n'est pas dans les notes fournies.`;
+- Ne rajoute aucune information qui n'est pas dans les notes fournies.${enableDiagrams ? `\n\n${DIAGRAM_RULES}` : ""}`;
+}
 
 function splitIntoChunks(text: string, maxChars: number): string[] {
   const words = text.split(" ");
@@ -99,6 +112,7 @@ export async function POST(request: NextRequest) {
     .single();
 
   const quotaSeconds = getQuotaSeconds(profile?.plan);
+  const enableDiagrams = profile?.plan === "lifetime";
 
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -135,7 +149,7 @@ export async function POST(request: NextRequest) {
         model: "openai/gpt-oss-120b",
         max_tokens: maxOutputTokensFor(cleanTranscript, 2000, 4500),
         messages: [
-          { role: "system", content: FICHE_SYSTEM_PROMPT },
+          { role: "system", content: buildFicheSystemPrompt(enableDiagrams) },
           { role: "user", content: cleanTranscript },
         ],
       });
@@ -179,7 +193,7 @@ export async function POST(request: NextRequest) {
       model: "openai/gpt-oss-120b",
       max_tokens: maxOutputTokensFor(condensedText, 1500, 4096),
       messages: [
-        { role: "system", content: FICHE_FROM_NOTES_SYSTEM_PROMPT },
+        { role: "system", content: buildFicheFromNotesSystemPrompt(enableDiagrams) },
         { role: "user", content: condensedText },
       ],
     });
