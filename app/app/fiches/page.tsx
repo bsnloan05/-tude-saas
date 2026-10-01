@@ -30,6 +30,7 @@ function formatDate(iso: string): string {
 export default function FichesPage() {
   const [fiches, setFiches] = useState<Fiche[] | null>(null);
   const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -45,6 +46,19 @@ export default function FichesPage() {
         setFiches(data ?? []);
       });
   }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Supprimer définitivement cette fiche ?")) return;
+    setDeletingId(id);
+    const supabase = createClient();
+    const { error } = await supabase.from("fiches").delete().eq("id", id);
+    setDeletingId(null);
+    if (error) {
+      setError("Impossible de supprimer cette fiche.");
+      return;
+    }
+    setFiches((prev) => prev?.filter((f) => f.id !== id) ?? null);
+  };
 
   return (
     <div className="dot-grid flex min-h-screen flex-col items-center bg-[#0b1120] px-4 py-12">
@@ -89,10 +103,10 @@ export default function FichesPage() {
         {!error && fiches !== null && fiches.length > 0 && (
           <ul className="flex flex-col gap-3">
             {fiches.map((fiche) => (
-              <li key={fiche.id}>
+              <li key={fiche.id} className="relative">
                 <Link
                   href={`/app/fiches/${fiche.id}`}
-                  className="block rounded-lg border border-[#232d45] bg-[#141b2e] p-4 transition-colors transition-transform duration-150 hover:border-[#2a3552] hover:bg-[#1b2440] active:scale-[0.99]"
+                  className="block rounded-lg border border-[#232d45] bg-[#141b2e] p-4 pr-12 transition-colors transition-transform duration-150 hover:border-[#2a3552] hover:bg-[#1b2440] active:scale-[0.99]"
                 >
                   <p className="truncate text-sm font-medium text-[#e7ecf5]">
                     {ficheTitle(fiche.content)}
@@ -101,6 +115,16 @@ export default function FichesPage() {
                     {formatDate(fiche.created_at)}
                   </p>
                 </Link>
+                <button
+                  onClick={() => handleDelete(fiche.id)}
+                  disabled={deletingId === fiche.id}
+                  aria-label="Supprimer la fiche"
+                  className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-full text-[#6b7690] transition-colors transition-transform duration-150 hover:bg-red-950/50 hover:text-red-300 active:scale-90 disabled:opacity-50"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                    <path d="M4 7h16M9 7V4h6v3m-8 0 1 13a1 1 0 001 1h6a1 1 0 001-1l1-13" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
               </li>
             ))}
           </ul>
