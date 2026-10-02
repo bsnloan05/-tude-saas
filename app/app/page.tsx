@@ -885,9 +885,16 @@ export default function Home() {
                   : "Démarrer"}
             </button>
             {status === "idle" && (
-              <p className="max-w-xs text-center text-xs text-[#8b97b0]">
-                Google Chrome conseillé pour une transcription fiable, et
-                4G/5G plutôt que le wifi en salle bondée
+              <p className="flex items-center gap-1.5 text-sm font-medium text-[#38bdf8]">
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                  <circle cx="12" cy="12" r="4" />
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 016.93 4H12a4 4 0 00-3.46 2L5.07 6.34A7.96 7.96 0 0112 4zM4 12c0-1.17.28-2.27.78-3.25l3.47 6.01A4 4 0 0012 16l-3.46 5.98A8 8 0 014 12zm8 8a7.96 7.96 0 01-2.78-.5l3.47-6.01A4 4 0 0016 10h4.22A8 8 0 0112 20z"
+                  />
+                </svg>
+                À utiliser sur Google Chrome
               </p>
             )}
             {status === "generating" && (
