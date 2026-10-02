@@ -886,8 +886,8 @@ export default function Home() {
             </button>
             {status === "idle" && (
               <p className="max-w-xs text-center text-xs text-[#8b97b0]">
-                Safari conseillé sur iPhone/Mac, et 4G/5G plutôt que le wifi
-                en salle bondée
+                Google Chrome conseillé pour une transcription fiable, et
+                4G/5G plutôt que le wifi en salle bondée
               </p>
             )}
             {status === "generating" && (
