@@ -945,9 +945,9 @@ export default function Home() {
                 </p>
                 {showStartTip && (
                   <p className="max-w-xs rounded-md border border-[#38bdf8]/40 bg-[#38bdf8]/10 px-3 py-2 text-center text-sm font-medium text-[#7dd3fc]">
-                    Si la transcription ne marche pas sur Safari, utilise{" "}
-                    <strong className="font-bold">Google Chrome</strong>. Et si
-                    ça ne marche pas sur Chrome, utilise Safari.
+                    Nous te conseillons{" "}
+                    <strong className="font-bold">Google Chrome</strong> pour
+                    une meilleure transcription.
                   </p>
                 )}
                 {micSilent && (
