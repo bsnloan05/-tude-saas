@@ -338,7 +338,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (status !== "recording") return;
+    // On avertit aussi pendant "generating"/"error" : la fiche n'est pas
+    // encore générée avec succès, même si le texte est maintenant sauvegardé
+    // et récupérable au prochain chargement.
+    if (status !== "recording" && status !== "generating" && status !== "error") return;
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = "";
@@ -525,6 +528,7 @@ export default function Home() {
       const data = await response.json();
       setNotes(data.notes);
       setStatus("done");
+      window.localStorage.removeItem(BACKUP_STORAGE_KEY);
       fetchUsage();
     } catch (error) {
       setStatus("error");
@@ -559,9 +563,9 @@ export default function Home() {
       clearInterval(backupIntervalRef.current);
       backupIntervalRef.current = null;
     }
-    // Le texte est maintenant géré normalement (avec réessai possible depuis
-    // la mémoire en cas d'échec) : plus besoin de la sauvegarde de secours.
-    window.localStorage.removeItem(BACKUP_STORAGE_KEY);
+    // On garde la sauvegarde jusqu'à ce que la fiche soit générée avec
+    // succès (voir generateFiche) : si l'onglet est fermé pendant une
+    // génération en attente (ex. pic de trafic), le texte reste récupérable.
     recognitionRef.current.stop();
     stopWaveform();
     sessionDurationRef.current = recordingSeconds;
@@ -571,7 +575,27 @@ export default function Home() {
     if (!transcript) {
       setStatus("error");
       setErrorMessage("Aucune parole n'a été détectée.");
+      window.localStorage.removeItem(BACKUP_STORAGE_KEY);
       return;
+    }
+
+    // Sauvegarde finale avec le texte complet (l'intervalle de sauvegarde
+    // vient d'être arrêté, il peut donc manquer les toutes dernières
+    // secondes) : si la génération échoue et que l'onglet est fermé avant
+    // de réessayer, ce texte reste récupérable au prochain chargement.
+    try {
+      window.localStorage.setItem(
+        BACKUP_STORAGE_KEY,
+        JSON.stringify({
+          transcript,
+          startedAt: recordingStartTimeRef.current ?? Date.now(),
+          savedAt: Date.now(),
+        } satisfies RecordingBackup),
+      );
+    } catch {
+      // Stockage plein ou indisponible : la fiche peut quand même être
+      // générée tout de suite, seule la récupération après fermeture
+      // d'onglet ne sera pas possible dans ce cas.
     }
 
     await generateFiche(transcript, sessionDurationRef.current);
@@ -842,7 +866,9 @@ export default function Home() {
                   );
                   sessionDurationRef.current = durationSeconds;
                   setRecoveredSession(null);
-                  window.localStorage.removeItem(BACKUP_STORAGE_KEY);
+                  // On garde la sauvegarde : si cette tentative échoue aussi
+                  // (pic de trafic) et que l'onglet est fermé, le texte reste
+                  // récupérable. generateFiche l'efface lui-même en cas de succès.
                   generateFiche(backup.transcript, durationSeconds);
                 }}
                 className="rounded-full bg-[#2563eb] px-4 py-1.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
