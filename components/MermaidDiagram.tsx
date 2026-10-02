@@ -11,6 +11,15 @@ function ensureInitialized() {
     theme: "dark",
     securityLevel: "strict",
     suppressErrorRendering: true,
+    themeVariables: {
+      primaryColor: "#1b2440",
+      primaryBorderColor: "#38bdf8",
+      primaryTextColor: "#e7ecf5",
+      lineColor: "#38bdf8",
+      secondaryColor: "#1b2440",
+      tertiaryColor: "#1b2440",
+      background: "#0b1120",
+    },
   });
   initialized = true;
 }
