@@ -25,6 +25,7 @@ const STANDARD_FEATURES: Feature[] = [
 const PLANS: Array<{
   key: PlanKey;
   name: string;
+  nameColor: string;
   price: string;
   period: string;
   quota: string;
@@ -35,6 +36,7 @@ const PLANS: Array<{
   {
     key: "standard",
     name: "Standard",
+    nameColor: "text-[#c3cbdc]",
     price: "11,99€",
     period: "/mois",
     quota: "Usage illimité",
@@ -44,6 +46,7 @@ const PLANS: Array<{
   {
     key: "trimestriel",
     name: "Pro",
+    nameColor: "text-[#38bdf8]",
     price: "29,99€",
     period: "/3 mois",
     quota: "Usage illimité",
@@ -57,6 +60,7 @@ const PLANS: Array<{
   {
     key: "lifetime",
     name: "À vie",
+    nameColor: "text-amber-400",
     price: "59,99€",
     period: "une fois",
     quota: "Usage illimité, pour toujours",
@@ -205,8 +209,12 @@ export default function PricingPage() {
                 Le plus populaire
               </span>
             )}
-            <h2 className="mb-4 text-sm font-semibold tracking-wide text-[#8b97b0] uppercase">
-              {plan.name}
+            <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase">
+              <span
+                className={`name-glow inline-block rounded-full px-3 py-1 ${plan.nameColor}`}
+              >
+                {plan.name}
+              </span>
             </h2>
             <div className="mb-1 flex items-baseline gap-2">
               <span className="text-3xl font-bold text-[#e7ecf5]">{plan.price}</span>

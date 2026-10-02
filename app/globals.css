@@ -240,3 +240,29 @@ body {
     animation: none;
   }
 }
+
+/* Pastille animée pour le nom de chaque forfait sur la page tarifs. Utilise
+   currentColor (via color-mix) pour que la même animation s'adapte
+   automatiquement à la couleur de texte propre à chaque forfait, sans
+   dupliquer un keyframe par couleur. */
+@keyframes name-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 45%, transparent);
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 0%, transparent);
+    background-color: color-mix(in srgb, currentColor 22%, transparent);
+  }
+}
+
+.name-glow {
+  animation: name-glow 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .name-glow {
+    animation: none;
+  }
+}
