@@ -944,10 +944,10 @@ export default function Home() {
                   navigateur peut perdre des mots.
                 </p>
                 {showStartTip && (
-                  <p className="max-w-xs rounded-md border border-[#2a3552] bg-[#1b2440] px-3 py-2 text-center text-xs text-[#8b97b0]">
-                    Astuce : si la transcription ne marche pas sur Safari,
-                    utilise Google Chrome. Et si ça ne marche pas sur Chrome,
-                    utilise Safari.
+                  <p className="max-w-xs rounded-md border border-[#38bdf8]/40 bg-[#38bdf8]/10 px-3 py-2 text-center text-sm font-medium text-[#7dd3fc]">
+                    Si la transcription ne marche pas sur Safari, utilise{" "}
+                    <strong className="font-bold">Google Chrome</strong>. Et si
+                    ça ne marche pas sur Chrome, utilise Safari.
                   </p>
                 )}
                 {micSilent && (
