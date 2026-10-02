@@ -99,6 +99,7 @@ export default function Home() {
   const lastActivityRef = useRef<number>(Date.now());
   const [micSilent, setMicSilent] = useState(false);
   const [showStartTip, setShowStartTip] = useState(false);
+  const [needsChromeHint, setNeedsChromeHint] = useState(false);
   const networkErrorTimestampsRef = useRef<number[]>([]);
   const [networkUnstable, setNetworkUnstable] = useState(false);
   const recordingStartTimeRef = useRef<number | null>(null);
@@ -184,6 +185,17 @@ export default function Home() {
       if (bar) bar.style.height = "15%";
     });
   };
+
+  useEffect(() => {
+    // Sur iPhone/iPad, Apple oblige tous les navigateurs (même l'appli
+    // "Chrome") à utiliser en coulisses le même moteur que Safari : y
+    // recommander Chrome ne changerait rien, donc on ne montre l'astuce que
+    // sur Mac/Windows/Android quand le navigateur détecté n'est pas Chrome.
+    const ua = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+    const isChrome = /Chrome/.test(ua) && !/Edg|OPR/.test(ua);
+    setNeedsChromeHint(!isIOS && !isChrome);
+  }, []);
 
   useEffect(() => {
     const SpeechRecognitionCtor =
@@ -855,7 +867,7 @@ export default function Home() {
                 if (status === "recording") {
                   stopRecording();
                 } else if (usage && (usage.quotaSeconds === null || usage.quotaSeconds > 0)) {
-                  setShowStartTip(true);
+                  if (needsChromeHint) setShowStartTip(true);
                   startRecording();
                 } else {
                   // Pas de forfait confirmé (ou infos pas encore chargées) :
@@ -887,7 +899,7 @@ export default function Home() {
                   ? "Génération..."
                   : "Démarrer"}
             </button>
-            {status === "idle" && (
+            {status === "idle" && needsChromeHint && (
               <p className="flex items-center gap-1.5 text-sm font-medium text-[#38bdf8]">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
                   <circle cx="12" cy="12" r="4" />
@@ -897,7 +909,8 @@ export default function Home() {
                     d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 016.93 4H12a4 4 0 00-3.46 2L5.07 6.34A7.96 7.96 0 0112 4zM4 12c0-1.17.28-2.27.78-3.25l3.47 6.01A4 4 0 0012 16l-3.46 5.98A8 8 0 014 12zm8 8a7.96 7.96 0 01-2.78-.5l3.47-6.01A4 4 0 0016 10h4.22A8 8 0 0112 20z"
                   />
                 </svg>
-                À utiliser sur Google Chrome
+                Nous te conseillons Google Chrome pour une meilleure
+                transcription
               </p>
             )}
             {status === "generating" && (
