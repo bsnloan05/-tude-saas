@@ -529,6 +529,7 @@ export default function Home() {
   const stopRecording = async () => {
     if (!recognitionRef.current) return;
     isRecordingRef.current = false;
+    setShowStartTip(false);
     if (restartIntervalRef.current) {
       clearInterval(restartIntervalRef.current);
       restartIntervalRef.current = null;
@@ -855,7 +856,6 @@ export default function Home() {
                   stopRecording();
                 } else if (usage && (usage.quotaSeconds === null || usage.quotaSeconds > 0)) {
                   setShowStartTip(true);
-                  setTimeout(() => setShowStartTip(false), 8000);
                   startRecording();
                 } else {
                   // Pas de forfait confirmé (ou infos pas encore chargées) :
