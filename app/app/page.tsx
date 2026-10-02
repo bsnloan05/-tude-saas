@@ -900,8 +900,8 @@ export default function Home() {
                   : "Démarrer"}
             </button>
             {status === "idle" && needsChromeHint && (
-              <p className="flex items-center gap-1.5 text-sm font-medium text-[#38bdf8]">
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+              <p className="flex items-center gap-1.5 rounded-md border border-amber-900/50 bg-amber-950/50 px-3 py-2 text-sm font-medium text-amber-200">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="currentColor">
                   <circle cx="12" cy="12" r="4" />
                   <path
                     fillRule="evenodd"
@@ -957,7 +957,7 @@ export default function Home() {
                   navigateur peut perdre des mots.
                 </p>
                 {showStartTip && (
-                  <p className="max-w-xs rounded-md border border-[#38bdf8]/40 bg-[#38bdf8]/10 px-3 py-2 text-center text-sm font-medium text-[#7dd3fc]">
+                  <p className="max-w-xs rounded-md border border-amber-900/50 bg-amber-950/50 px-3 py-2 text-center text-sm font-medium text-amber-200">
                     Nous te conseillons{" "}
                     <strong className="font-bold">Google Chrome</strong> pour
                     une meilleure transcription.
