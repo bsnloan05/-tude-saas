@@ -100,6 +100,8 @@ export default function Home() {
   const [micSilent, setMicSilent] = useState(false);
   const [showStartTip, setShowStartTip] = useState(false);
   const [needsChromeHint, setNeedsChromeHint] = useState(false);
+  const isIPadRef = useRef(false);
+  const chromeTipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const networkErrorTimestampsRef = useRef<number[]>([]);
   const [networkUnstable, setNetworkUnstable] = useState(false);
   const recordingStartTimeRef = useRef<number | null>(null);
@@ -194,6 +196,10 @@ export default function Home() {
     const isIPhone = /iPhone|iPod/.test(ua);
     const isChrome = /Chrome/.test(ua) && !/Edg|OPR/.test(ua);
     setNeedsChromeHint(!isIPhone && !isChrome);
+    // iPadOS se fait souvent passer pour un Mac dans le user-agent (depuis
+    // iPadOS 13) : on le détecte aussi via le tactile, absent sur un vrai Mac.
+    isIPadRef.current =
+      /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
   }, []);
 
   useEffect(() => {
@@ -541,6 +547,10 @@ export default function Home() {
     if (!recognitionRef.current) return;
     isRecordingRef.current = false;
     setShowStartTip(false);
+    if (chromeTipTimeoutRef.current) {
+      clearTimeout(chromeTipTimeoutRef.current);
+      chromeTipTimeoutRef.current = null;
+    }
     if (restartIntervalRef.current) {
       clearInterval(restartIntervalRef.current);
       restartIntervalRef.current = null;
@@ -866,7 +876,17 @@ export default function Home() {
                 if (status === "recording") {
                   stopRecording();
                 } else if (usage && (usage.quotaSeconds === null || usage.quotaSeconds > 0)) {
-                  if (needsChromeHint) setShowStartTip(true);
+                  if (needsChromeHint) {
+                    setShowStartTip(true);
+                    // Sur iPad, l'astuce se masque après 3 min pour ne pas
+                    // gêner un long cours ; sur Mac/Windows/Android elle
+                    // reste affichée sans limite, jusqu'à l'arrêt.
+                    if (isIPadRef.current) {
+                      chromeTipTimeoutRef.current = setTimeout(() => {
+                        setShowStartTip(false);
+                      }, 3 * 60 * 1000);
+                    }
+                  }
                   startRecording();
                 } else {
                   // Pas de forfait confirmé (ou infos pas encore chargées) :
