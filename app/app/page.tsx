@@ -114,6 +114,7 @@ export default function Home() {
 
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
   const pdfInputRef = useRef<HTMLInputElement | null>(null);
+  const audioInputRef = useRef<HTMLInputElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
   const waveformRafRef = useRef<number | null>(null);
@@ -532,6 +533,54 @@ export default function Home() {
       setNotes(data.notes);
       setStatus("done");
       window.localStorage.removeItem(BACKUP_STORAGE_KEY);
+      fetchUsage();
+    } catch (error) {
+      setStatus("error");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Une erreur est survenue.",
+      );
+    }
+  };
+
+  const importAudio = async (file: File) => {
+    setStatus("generating");
+    setIsQuotaError(false);
+    setNotes("");
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      const extension = file.name.includes(".") ? file.name.split(".").pop() : "audio";
+      const path = `${user.id}/${crypto.randomUUID()}.${extension}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("audio-imports")
+        .upload(path, file, { contentType: file.type || undefined });
+      if (uploadError) {
+        throw new Error("L'envoi du fichier audio a échoué.");
+      }
+
+      const response = await fetch("/api/import-audio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        if (data.code === "plan_required") setIsQuotaError(true);
+        throw new Error(data.error || "L'import a échoué.");
+      }
+
+      const data = await response.json();
+      setNotes(data.notes);
+      setStatus("done");
       fetchUsage();
     } catch (error) {
       setStatus("error");
@@ -992,7 +1041,7 @@ export default function Home() {
               </p>
             )}
             {(status === "idle" || status === "done") && (
-              <>
+              <div className="flex flex-wrap items-center justify-center gap-4">
                 <input
                   ref={pdfInputRef}
                   type="file"
@@ -1031,7 +1080,46 @@ export default function Home() {
                     </span>
                   )}
                 </button>
-              </>
+
+                <input
+                  ref={audioInputRef}
+                  type="file"
+                  accept="audio/*"
+                  className="hidden"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (!file) return;
+                    if (file.size > 25 * 1024 * 1024) {
+                      setStatus("error");
+                      setErrorMessage("Ce fichier audio est trop lourd (25 Mo maximum).");
+                      return;
+                    }
+                    importAudio(file);
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    if (!usage || hasImportAccess(usage.plan)) {
+                      audioInputRef.current?.click();
+                    } else {
+                      router.push("/pricing");
+                    }
+                  }}
+                  className="flex items-center gap-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#c3cbdc]"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                    <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
+                    <path d="M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.93V20H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.07A7 7 0 0019 11z" />
+                  </svg>
+                  Importer un audio
+                  {usage && !hasImportAccess(usage.plan) && (
+                    <span className="rounded-full bg-[#2a3552] px-2 py-0.5 text-xs font-semibold text-[#8b97b0]">
+                      Trimestriel / À vie
+                    </span>
+                  )}
+                </button>
+              </div>
             )}
             {status === "generating" && (
               <div className="flex flex-col items-center gap-1.5">
