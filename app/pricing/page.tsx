@@ -220,7 +220,7 @@ export default function PricingPage() {
                     key={feature.text}
                     className={`flex items-center gap-1.5 text-sm ${
                       feature.highlighted
-                        ? "font-semibold text-[#7dd3fc]"
+                        ? "highlight-glow font-semibold text-[#7dd3fc]"
                         : "text-[#c3cbdc]"
                     }`}
                   >
