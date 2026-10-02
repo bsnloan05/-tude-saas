@@ -6,13 +6,21 @@ import Link from "next/link";
 
 type PlanKey = "standard" | "trimestriel" | "lifetime";
 
+// Chaque forfait supérieur inclut toujours les fonctionnalités du précédent :
+// on part de la base Standard et on ajoute les avantages propres à chaque palier.
+const STANDARD_FEATURES = [
+  "Transcription vocale en direct",
+  "Historique de tes fiches (Mes fiches)",
+  "Export et copie en un clic",
+];
+
 const PLANS: Array<{
   key: PlanKey;
   name: string;
   price: string;
   period: string;
   quota: string;
-  features?: string[];
+  features: string[];
   cta: string;
   popular?: boolean;
 }> = [
@@ -22,6 +30,7 @@ const PLANS: Array<{
     price: "11,99€",
     period: "/mois",
     quota: "Usage illimité",
+    features: STANDARD_FEATURES,
     cta: "Passer à Standard",
   },
   {
@@ -30,7 +39,7 @@ const PLANS: Array<{
     price: "29,99€",
     period: "/3 mois",
     quota: "Usage illimité",
-    features: ["Import de PDF", "Import de fichier audio"],
+    features: [...STANDARD_FEATURES, "Import de PDF", "Import de fichier audio"],
     cta: "Passer à Trimestriel",
   },
   {
@@ -39,7 +48,12 @@ const PLANS: Array<{
     price: "59,99€",
     period: "une fois",
     quota: "Usage illimité, pour toujours",
-    features: ["Import de PDF", "Import de fichier audio", "Schémas générés par IA"],
+    features: [
+      ...STANDARD_FEATURES,
+      "Import de PDF",
+      "Import de fichier audio",
+      "Schémas générés par IA",
+    ],
     cta: "Accès à vie",
     popular: true,
   },
