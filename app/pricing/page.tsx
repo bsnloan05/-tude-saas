@@ -218,9 +218,9 @@ export default function PricingPage() {
                 {plan.features.map((feature) => (
                   <li
                     key={feature.text}
-                    className={`flex items-center gap-1.5 text-sm ${
+                    className={`flex items-center gap-1.5 rounded-md text-sm ${
                       feature.highlighted
-                        ? "highlight-glow font-semibold text-[#7dd3fc]"
+                        ? "highlight-glow -mx-1.5 px-1.5 py-0.5 font-semibold text-[#7dd3fc]"
                         : "text-[#c3cbdc]"
                     }`}
                   >
