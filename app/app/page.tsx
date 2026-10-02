@@ -187,14 +187,13 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // Sur iPhone/iPad, Apple oblige tous les navigateurs (même l'appli
-    // "Chrome") à utiliser en coulisses le même moteur que Safari : y
-    // recommander Chrome ne changerait rien, donc on ne montre l'astuce que
-    // sur Mac/Windows/Android quand le navigateur détecté n'est pas Chrome.
+    // Sur iPhone, Apple oblige tous les navigateurs (même l'appli "Chrome")
+    // à utiliser en coulisses le même moteur que Safari : y recommander
+    // Chrome ne changerait rien, donc on exclut l'iPhone de l'astuce.
     const ua = navigator.userAgent;
-    const isIOS = /iPad|iPhone|iPod/.test(ua);
+    const isIPhone = /iPhone|iPod/.test(ua);
     const isChrome = /Chrome/.test(ua) && !/Edg|OPR/.test(ua);
-    setNeedsChromeHint(!isIOS && !isChrome);
+    setNeedsChromeHint(!isIPhone && !isChrome);
   }, []);
 
   useEffect(() => {
