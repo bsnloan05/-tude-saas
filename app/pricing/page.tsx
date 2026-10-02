@@ -6,12 +6,20 @@ import Link from "next/link";
 
 type PlanKey = "standard" | "trimestriel" | "lifetime";
 
+interface Feature {
+  text: string;
+  // Met en évidence ce qui est en plus par rapport au forfait juste en
+  // dessous (Trimestriel vs Standard, À vie vs Trimestriel), plutôt que de
+  // re-souligner des avantages déjà acquis à un palier inférieur.
+  highlighted?: boolean;
+}
+
 // Chaque forfait supérieur inclut toujours les fonctionnalités du précédent :
 // on part de la base Standard et on ajoute les avantages propres à chaque palier.
-const STANDARD_FEATURES = [
-  "Transcription vocale en direct",
-  "Historique de tes fiches (Mes fiches)",
-  "Export et copie en un clic",
+const STANDARD_FEATURES: Feature[] = [
+  { text: "Transcription vocale en direct" },
+  { text: "Historique de tes fiches (Mes fiches)" },
+  { text: "Export et copie en un clic" },
 ];
 
 const PLANS: Array<{
@@ -20,7 +28,7 @@ const PLANS: Array<{
   price: string;
   period: string;
   quota: string;
-  features: string[];
+  features: Feature[];
   cta: string;
   popular?: boolean;
 }> = [
@@ -39,7 +47,11 @@ const PLANS: Array<{
     price: "29,99€",
     period: "/3 mois",
     quota: "Usage illimité",
-    features: [...STANDARD_FEATURES, "Import de PDF", "Import de fichier audio"],
+    features: [
+      ...STANDARD_FEATURES,
+      { text: "Import de PDF", highlighted: true },
+      { text: "Import de fichier audio", highlighted: true },
+    ],
     cta: "Passer à Trimestriel",
   },
   {
@@ -50,9 +62,9 @@ const PLANS: Array<{
     quota: "Usage illimité, pour toujours",
     features: [
       ...STANDARD_FEATURES,
-      "Import de PDF",
-      "Import de fichier audio",
-      "Schémas générés par IA",
+      { text: "Import de PDF" },
+      { text: "Import de fichier audio" },
+      { text: "Schémas générés par IA", highlighted: true },
     ],
     cta: "Accès à vie",
     popular: true,
@@ -205,19 +217,25 @@ export default function PricingPage() {
               <ul className="mb-6 flex flex-col gap-1.5">
                 {plan.features.map((feature) => (
                   <li
-                    key={feature}
-                    className="flex items-center gap-1.5 text-sm text-[#c3cbdc]"
+                    key={feature.text}
+                    className={`flex items-center gap-1.5 text-sm ${
+                      feature.highlighted
+                        ? "font-semibold text-[#7dd3fc]"
+                        : "text-[#c3cbdc]"
+                    }`}
                   >
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
-                      className="h-3.5 w-3.5 shrink-0 text-[#38bdf8]"
+                      className={`h-3.5 w-3.5 shrink-0 ${
+                        feature.highlighted ? "text-[#7dd3fc]" : "text-[#38bdf8]"
+                      }`}
                     >
                       <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    {feature}
+                    {feature.text}
                   </li>
                 ))}
               </ul>
