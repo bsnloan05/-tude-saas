@@ -98,6 +98,7 @@ export default function Home() {
   const restartIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const [micSilent, setMicSilent] = useState(false);
+  const [showStartTip, setShowStartTip] = useState(false);
   const networkErrorTimestampsRef = useRef<number[]>([]);
   const [networkUnstable, setNetworkUnstable] = useState(false);
   const recordingStartTimeRef = useRef<number | null>(null);
@@ -853,6 +854,8 @@ export default function Home() {
                 if (status === "recording") {
                   stopRecording();
                 } else if (usage && (usage.quotaSeconds === null || usage.quotaSeconds > 0)) {
+                  setShowStartTip(true);
+                  setTimeout(() => setShowStartTip(false), 8000);
                   startRecording();
                 } else {
                   // Pas de forfait confirmé (ou infos pas encore chargées) :
@@ -940,6 +943,13 @@ export default function Home() {
                   change pas d&apos;onglet ni d&apos;application), sinon le
                   navigateur peut perdre des mots.
                 </p>
+                {showStartTip && (
+                  <p className="max-w-xs rounded-md border border-[#2a3552] bg-[#1b2440] px-3 py-2 text-center text-xs text-[#8b97b0]">
+                    Astuce : si la transcription ne marche pas sur Safari,
+                    utilise Google Chrome. Et si ça ne marche pas sur Chrome,
+                    utilise Safari.
+                  </p>
+                )}
                 {micSilent && (
                   <p className="max-w-xs rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-center text-xs text-red-200">
                     Aucune voix détectée depuis un moment — vérifie que le
