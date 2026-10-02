@@ -4,9 +4,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-function mapPriceToPlan(priceId: string | undefined): "standard" | "premium" | "free" {
+function mapPriceToPlan(
+  priceId: string | undefined,
+): "standard" | "premium" | "trimestriel" | "free" {
   if (priceId === process.env.STRIPE_PRICE_STANDARD) return "standard";
   if (priceId === process.env.STRIPE_PRICE_PREMIUM) return "premium";
+  if (priceId === process.env.STRIPE_PRICE_TRIMESTRIEL) return "trimestriel";
   return "free";
 }
 

@@ -1,4 +1,4 @@
-export type PlanId = "free" | "standard" | "premium" | "lifetime";
+export type PlanId = "free" | "standard" | "premium" | "trimestriel" | "lifetime";
 
 // Quotas mensuels par forfait, en secondes. `null` = usage illimité.
 // "premium" est conservé uniquement pour la cliente existante sur ce forfait
@@ -8,6 +8,7 @@ export const PLAN_QUOTA_SECONDS: Record<PlanId, number | null> = {
   free: 0,
   standard: null,
   premium: 75 * 3600,
+  trimestriel: null,
   lifetime: null,
 };
 
@@ -16,4 +17,11 @@ export function getQuotaSeconds(plan: string | null | undefined): number | null 
     return PLAN_QUOTA_SECONDS[plan as PlanId];
   }
   return PLAN_QUOTA_SECONDS.free;
+}
+
+// Import PDF / audio : réservé aux forfaits Trimestriel et À vie.
+const IMPORT_PLANS: ReadonlySet<string> = new Set(["trimestriel", "lifetime"]);
+
+export function hasImportAccess(plan: string | null | undefined): boolean {
+  return !!plan && IMPORT_PLANS.has(plan);
 }

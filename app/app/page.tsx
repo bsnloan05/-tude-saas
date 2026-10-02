@@ -59,6 +59,7 @@ const PLAN_LABELS: Record<string, string> = {
   free: "Gratuit",
   standard: "Standard",
   premium: "Premium",
+  trimestriel: "Trimestriel",
   lifetime: "À vie",
 };
 

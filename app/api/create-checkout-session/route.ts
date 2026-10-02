@@ -6,13 +6,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 const PRICE_IDS: Record<string, string> = {
   standard: process.env.STRIPE_PRICE_STANDARD!,
+  trimestriel: process.env.STRIPE_PRICE_TRIMESTRIEL!,
   lifetime: process.env.STRIPE_PRICE_LIFETIME!,
 };
 
 export async function POST(request: NextRequest) {
   const { plan } = await request.json();
 
-  if (plan !== "standard" && plan !== "lifetime") {
+  if (plan !== "standard" && plan !== "trimestriel" && plan !== "lifetime") {
     return NextResponse.json({ error: "Forfait invalide." }, { status: 400 });
   }
 
