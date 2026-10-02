@@ -9,8 +9,8 @@ type PlanKey = "standard" | "trimestriel" | "lifetime";
 interface Feature {
   text: string;
   // Met en évidence ce qui est en plus par rapport au forfait juste en
-  // dessous (Trimestriel vs Standard, À vie vs Trimestriel), plutôt que de
-  // re-souligner des avantages déjà acquis à un palier inférieur.
+  // dessous (Pro vs Standard, À vie vs Pro), plutôt que de re-souligner des
+  // avantages déjà acquis à un palier inférieur.
   highlighted?: boolean;
 }
 
@@ -43,7 +43,7 @@ const PLANS: Array<{
   },
   {
     key: "trimestriel",
-    name: "Trimestriel",
+    name: "Pro",
     price: "29,99€",
     period: "/3 mois",
     quota: "Usage illimité",
@@ -52,7 +52,7 @@ const PLANS: Array<{
       { text: "Import de PDF", highlighted: true },
       { text: "Import de fichier audio", highlighted: true },
     ],
-    cta: "Passer à Trimestriel",
+    cta: "Passer à Pro",
   },
   {
     key: "lifetime",

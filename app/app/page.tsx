@@ -60,7 +60,7 @@ const PLAN_LABELS: Record<string, string> = {
   free: "Gratuit",
   standard: "Standard",
   premium: "Premium",
-  trimestriel: "Trimestriel",
+  trimestriel: "Pro",
   lifetime: "À vie",
 };
 
@@ -1076,7 +1076,7 @@ export default function Home() {
                   Importer un PDF
                   {usage && !hasImportAccess(usage.plan) && (
                     <span className="rounded-full bg-[#2a3552] px-2 py-0.5 text-xs font-semibold text-[#8b97b0]">
-                      Trimestriel / À vie
+                      Pro / À vie
                     </span>
                   )}
                 </button>
@@ -1115,7 +1115,7 @@ export default function Home() {
                   Importer un audio
                   {usage && !hasImportAccess(usage.plan) && (
                     <span className="rounded-full bg-[#2a3552] px-2 py-0.5 text-xs font-semibold text-[#8b97b0]">
-                      Trimestriel / À vie
+                      Pro / À vie
                     </span>
                   )}
                 </button>

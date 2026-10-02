@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   if (!hasImportAccess(profile?.plan)) {
     return NextResponse.json(
       {
-        error: "L'import audio est réservé aux forfaits Trimestriel et À vie.",
+        error: "L'import audio est réservé aux forfaits Pro et À vie.",
         code: "plan_required",
       },
       { status: 403 },
