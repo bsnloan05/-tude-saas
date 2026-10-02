@@ -19,7 +19,7 @@ interface Feature {
 const STANDARD_FEATURES: Feature[] = [
   { text: "Transcription vocale en direct" },
   { text: "Historique de tes fiches (Mes fiches)" },
-  { text: "Export et copie en un clic" },
+  { text: "Téléchargement et copie en un clic" },
 ];
 
 const PLANS: Array<{
