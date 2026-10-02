@@ -1,90 +1,13 @@
-import Groq from "groq-sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getQuotaSeconds } from "@/lib/plans";
-
-const client = new Groq();
-
-// Le tier gratuit de Groq limite chaque requête à 8000 tokens (entrée + sortie
-// cumulées) par minute. Une transcription de cours dépasse vite cette limite,
-// donc on découpe les longues transcriptions en morceaux traités un par un,
-// avec une pause entre chaque appel le temps que le quota se réinitialise.
-const SINGLE_CALL_MAX_CHARS = 12000; // ~30-35 min de cours, tient en un seul appel
-const CHUNK_CHAR_SIZE = 20000;
-const DELAY_BETWEEN_CALLS_MS = 60000;
-
-const STRUCTURE_RULES = `Règles de structure (très important, à respecter strictement) :
-- Regroupe le contenu en 4 à 7 grandes parties maximum, chacune avec un titre ## qui nomme un vrai thème du cours (pas un par notion isolée).
-- N'écris JAMAIS de numéro dans un titre (pas de "1.", "2.", "I.", etc.) : le titre seul suffit.
-- N'utilise un sous-titre ### que si une partie ## contient plusieurs sous-thèmes clairement distincts ; sinon reste directement en liste à puces sous le titre ##.
-- À l'intérieur de chaque partie, utilise des listes à puces courtes plutôt que de longs paragraphes, pour que ce soit rapide à relire.
-- Chaque définition importante ou notion clé doit être écrite sous forme de citation Markdown (commence la ligne par ">"), au format : "> **Terme** : explication". N'utilise ce format que pour les vraies définitions, pas pour des phrases ordinaires.`;
-
-// Fonctionnalité réservée au forfait "À vie" : des schémas Mermaid quand le
-// sujet s'y prête, sinon un exemple concret. Appliquée uniquement via les
-// fonctions build...Prompt ci-dessous, jamais sur les prompts par défaut, pour
-// ne rien changer au comportement existant des autres forfaits.
-const DIAGRAM_RULES = `Schémas (fonctionnalité exclusive à ce forfait, à utiliser avec parcimonie) :
-- Si une notion se prête vraiment à une représentation visuelle (un processus en plusieurs étapes, un cycle, une hiérarchie, une chronologie, des relations entre éléments), tu peux ajouter un schéma au format Mermaid dans un bloc de code \`\`\`mermaid, juste après la notion concernée. Utilise un type simple et syntaxiquement correct (flowchart TD ou mindmap de préférence).
-- N'ajoute JAMAIS de schéma si le sujet ne s'y prête pas naturellement : donne plutôt un exemple concret dans le texte pour mieux faire comprendre la notion.
-- Au maximum un schéma par fiche, uniquement si c'est vraiment pertinent. Ne force jamais un schéma artificiel.`;
-
-function buildFicheSystemPrompt(enableDiagrams: boolean): string {
-  return `Tu es un assistant qui transforme la transcription brute d'un cours oral en une fiche de révision claire et bien structurée pour un étudiant.
-
-${STRUCTURE_RULES}
-- Écris dans la même langue que la transcription.
-- Sois complet : garde tous les exemples, chiffres, dates et détails concrets donnés par le prof, une fiche trop courte n'aide pas à réviser. Ne résume pas à l'excès.
-- Corrige les hésitations, répétitions et tournures orales du prof pour obtenir un texte écrit propre.
-- Ne rajoute aucune information qui n'est pas dans la transcription.
-- Si la transcription est trop courte ou peu compréhensible, fais de ton mieux et signale-le en une phrase à la fin.${enableDiagrams ? `\n\n${DIAGRAM_RULES}` : ""}`;
-}
-
-const CONDENSE_SYSTEM_PROMPT = `Tu reçois un extrait d'une transcription de cours oral (ce n'est qu'une partie du cours complet, pas la totalité). Liste en détail toutes les informations importantes de cet extrait : notions, définitions, exemples concrets, dates, chiffres. Sois complet et précis, ne résume pas à l'excès : il vaut mieux une liste un peu longue qu'une liste qui perd des informations utiles pour réviser. Pas de mise en forme complexe, juste des puces simples. Ne fais aucun commentaire sur le fait que c'est un extrait.`;
-
-function buildFicheFromNotesSystemPrompt(enableDiagrams: boolean): string {
-  return `Tu es un assistant qui transforme des notes condensées d'un cours oral en une fiche de révision claire et bien structurée pour un étudiant. On te donne plusieurs extraits successifs du même cours, dans l'ordre chronologique, séparés par "---".
-
-${STRUCTURE_RULES}
-- Écris dans la même langue que les notes fournies.
-- Fusionne les extraits en un seul document cohérent, sans répéter les informations redondantes, mais sans en perdre le contenu : regrouper des notions proches sous une même partie ne veut pas dire les résumer à l'excès.
-- Ne rajoute aucune information qui n'est pas dans les notes fournies.${enableDiagrams ? `\n\n${DIAGRAM_RULES}` : ""}`;
-}
-
-function splitIntoChunks(text: string, maxChars: number): string[] {
-  const words = text.split(" ");
-  const chunks: string[] = [];
-  let current = "";
-
-  for (const word of words) {
-    if (current.length + word.length + 1 > maxChars && current.length > 0) {
-      chunks.push(current.trim());
-      current = word;
-    } else {
-      current = current ? `${current} ${word}` : word;
-    }
-  }
-  if (current.trim()) chunks.push(current.trim());
-
-  return chunks;
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Estimation grossière (~4 caractères par token) utilisée pour rester sous la
-// limite de 8000 tokens/minute du tier gratuit de Groq sur chaque appel :
-// on calcule combien de tokens de sortie on peut encore se permettre une fois
-// le texte d'entrée compté, avec une marge de sécurité.
-const GROQ_TPM_BUDGET = 7500;
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
-}
-function maxOutputTokensFor(inputText: string, floor: number, ceiling: number): number {
-  const available = GROQ_TPM_BUDGET - estimateTokens(inputText);
-  return Math.max(floor, Math.min(ceiling, available));
-}
+import {
+  buildFicheSystemPrompt,
+  buildFicheFromNotesSystemPrompt,
+  CONDENSE_SYSTEM_PROMPT,
+  generateFicheFromText,
+  isGroqRateLimitError,
+} from "@/lib/fiche-generation";
 
 export async function POST(request: NextRequest) {
   const { transcript, durationSeconds } = await request.json();
@@ -143,62 +66,12 @@ export async function POST(request: NextRequest) {
   const cleanTranscript = transcript.trim();
 
   try {
-    // Transcription courte : un seul appel direct, comme avant.
-    if (cleanTranscript.length <= SINGLE_CALL_MAX_CHARS) {
-      const response = await client.chat.completions.create({
-        model: "openai/gpt-oss-120b",
-        max_tokens: maxOutputTokensFor(cleanTranscript, 2000, 4500),
-        messages: [
-          { role: "system", content: buildFicheSystemPrompt(enableDiagrams) },
-          { role: "user", content: cleanTranscript },
-        ],
-      });
-
-      const notes = response.choices[0]?.message?.content ?? "";
-      if (sessionDuration > 0) {
-        await supabase
-          .from("usage_sessions")
-          .insert({ user_id: user.id, duration_seconds: sessionDuration });
-      }
-      if (notes.trim()) {
-        await supabase.from("fiches").insert({ user_id: user.id, content: notes });
-      }
-      return NextResponse.json({ notes });
-    }
-
-    // Transcription longue : on découpe, on condense chaque morceau,
-    // puis on fusionne le tout en une fiche finale.
-    const chunks = splitIntoChunks(cleanTranscript, CHUNK_CHAR_SIZE);
-    const condensed: string[] = [];
-
-    for (let i = 0; i < chunks.length; i++) {
-      if (i > 0) await sleep(DELAY_BETWEEN_CALLS_MS);
-
-      const response = await client.chat.completions.create({
-        model: "openai/gpt-oss-120b",
-        max_tokens: maxOutputTokensFor(chunks[i], 1200, 1500),
-        messages: [
-          { role: "system", content: CONDENSE_SYSTEM_PROMPT },
-          { role: "user", content: chunks[i] },
-        ],
-      });
-
-      condensed.push(response.choices[0]?.message?.content ?? "");
-    }
-
-    await sleep(DELAY_BETWEEN_CALLS_MS);
-
-    const condensedText = condensed.join("\n\n---\n\n");
-    const finalResponse = await client.chat.completions.create({
-      model: "openai/gpt-oss-120b",
-      max_tokens: maxOutputTokensFor(condensedText, 1500, 4096),
-      messages: [
-        { role: "system", content: buildFicheFromNotesSystemPrompt(enableDiagrams) },
-        { role: "user", content: condensedText },
-      ],
+    const notes = await generateFicheFromText(cleanTranscript, {
+      singleCallSystemPrompt: buildFicheSystemPrompt(enableDiagrams),
+      condenseSystemPrompt: CONDENSE_SYSTEM_PROMPT,
+      chunkedSystemPrompt: buildFicheFromNotesSystemPrompt(enableDiagrams),
     });
 
-    const notes = finalResponse.choices[0]?.message?.content ?? "";
     if (sessionDuration > 0) {
       await supabase
         .from("usage_sessions")
@@ -215,13 +88,9 @@ export async function POST(request: NextRequest) {
     // fiche au même moment) déclenche une erreur 429 côté Groq. Ce n'est pas
     // une panne : un message rassurant qui invite à réessayer est plus
     // approprié qu'un message d'erreur technique qui fait peur.
-    const isRateLimited =
-      (error as { status?: number })?.status === 429 ||
-      (error instanceof Error && error.message.includes("429"));
-
     return NextResponse.json(
       {
-        error: isRateLimited
+        error: isGroqRateLimitError(error)
           ? "Beaucoup de monde utilise Memoflash en ce moment. Attends quelques minutes puis réessaie : ta transcription est bien enregistrée, tu ne perdras rien."
           : "La génération a rencontré un petit souci. Réessaie, ta transcription est toujours là.",
       },
