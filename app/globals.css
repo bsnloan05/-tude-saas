@@ -192,3 +192,26 @@ body {
     animation: none;
   }
 }
+
+/* Respiration douce de l'encart "conseil Google Chrome" pour attirer l'œil
+   sans être agressif : seule la bordure/ombre pulse, le texte reste
+   parfaitement lisible en continu. */
+@keyframes tip-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(217, 119, 6, 0);
+  }
+}
+
+.tip-pulse {
+  animation: tip-pulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tip-pulse {
+    animation: none;
+  }
+}
