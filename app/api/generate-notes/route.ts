@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: isRateLimited
-          ? "Beaucoup de monde utilise Memoflash en ce moment. Réessaie dans quelques instants, ta transcription est toujours là."
+          ? "Beaucoup de monde utilise Memoflash en ce moment. Attends quelques minutes puis réessaie : ta transcription est bien enregistrée, tu ne perdras rien."
           : "La génération a rencontré un petit souci. Réessaie, ta transcription est toujours là.",
       },
       { status: 500 },
