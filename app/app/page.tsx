@@ -7,6 +7,7 @@ import { marked } from "marked";
 import { createClient } from "@/lib/supabase/client";
 import FicheContent from "@/components/FicheContent";
 import { downloadFichePdf } from "@/lib/downloadFichePdf";
+import { hasImportAccess } from "@/lib/plans";
 
 // L'API de reconnaissance vocale du navigateur n'est pas encore standardisée
 // dans les types TypeScript officiels, donc on la déclare nous-mêmes ici.
@@ -112,6 +113,7 @@ export default function Home() {
   );
 
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const pdfInputRef = useRef<HTMLInputElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
   const waveformRafRef = useRef<number | null>(null);
@@ -548,6 +550,36 @@ export default function Home() {
     generateFiche(transcript, sessionDurationRef.current);
   };
 
+  const importPdf = async (file: File) => {
+    setStatus("generating");
+    setIsQuotaError(false);
+    setNotes("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/import-pdf", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        if (data.code === "plan_required") setIsQuotaError(true);
+        throw new Error(data.error || "L'import a échoué.");
+      }
+
+      const data = await response.json();
+      setNotes(data.notes);
+      setStatus("done");
+      fetchUsage();
+    } catch (error) {
+      setStatus("error");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Une erreur est survenue.",
+      );
+    }
+  };
+
   const stopRecording = async () => {
     if (!recognitionRef.current) return;
     isRecordingRef.current = false;
@@ -958,6 +990,48 @@ export default function Home() {
                 Nous te conseillons Google Chrome pour une meilleure
                 transcription
               </p>
+            )}
+            {(status === "idle" || status === "done") && (
+              <>
+                <input
+                  ref={pdfInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (!file) return;
+                    if (file.size > 4 * 1024 * 1024) {
+                      setStatus("error");
+                      setErrorMessage("Ce PDF est trop lourd (4 Mo maximum).");
+                      return;
+                    }
+                    importPdf(file);
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    if (!usage || hasImportAccess(usage.plan)) {
+                      pdfInputRef.current?.click();
+                    } else {
+                      router.push("/pricing");
+                    }
+                  }}
+                  className="flex items-center gap-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#c3cbdc]"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                    <path d="M14 3v4a1 1 0 001 1h4" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M6 21h12a1 1 0 001-1V7l-5-5H6a1 1 0 00-1 1v17a1 1 0 001 1z" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Importer un PDF
+                  {usage && !hasImportAccess(usage.plan) && (
+                    <span className="rounded-full bg-[#2a3552] px-2 py-0.5 text-xs font-semibold text-[#8b97b0]">
+                      Trimestriel / À vie
+                    </span>
+                  )}
+                </button>
+              </>
             )}
             {status === "generating" && (
               <div className="flex flex-col items-center gap-1.5">
