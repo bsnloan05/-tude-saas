@@ -23,6 +23,7 @@ export const STRUCTURE_RULES = `Règles de structure (très important, à respec
 // ne rien changer au comportement existant des autres forfaits.
 export const DIAGRAM_RULES = `Schémas (fonctionnalité exclusive à ce forfait, à utiliser avec parcimonie) :
 - Si une notion se prête vraiment à une représentation visuelle (un processus en plusieurs étapes, un cycle, une hiérarchie, une chronologie, des relations entre éléments), tu peux ajouter un schéma au format Mermaid dans un bloc de code \`\`\`mermaid, juste après la notion concernée. Utilise un type simple et syntaxiquement correct (flowchart TD ou mindmap de préférence).
+- Écris tous les textes à l'intérieur du schéma (titres des nœuds, étiquettes des flèches) dans la même langue que le reste de la fiche. N'utilise jamais l'anglais si la fiche est dans une autre langue.
 - N'ajoute JAMAIS de schéma si le sujet ne s'y prête pas naturellement : donne plutôt un exemple concret dans le texte pour mieux faire comprendre la notion.
 - Au maximum un schéma par fiche, uniquement si c'est vraiment pertinent. Ne force jamais un schéma artificiel.`;
 
