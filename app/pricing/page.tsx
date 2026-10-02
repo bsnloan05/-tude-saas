@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-type PlanKey = "standard" | "lifetime";
+type PlanKey = "standard" | "trimestriel" | "lifetime";
 
 const PLANS: Array<{
   key: PlanKey;
@@ -12,6 +12,7 @@ const PLANS: Array<{
   price: string;
   period: string;
   quota: string;
+  features?: string[];
   cta: string;
   popular?: boolean;
 }> = [
@@ -24,11 +25,21 @@ const PLANS: Array<{
     cta: "Passer à Standard",
   },
   {
+    key: "trimestriel",
+    name: "Trimestriel",
+    price: "29,99€",
+    period: "/3 mois",
+    quota: "Usage illimité",
+    features: ["Import de PDF", "Import de fichier audio"],
+    cta: "Passer à Trimestriel",
+  },
+  {
     key: "lifetime",
     name: "À vie",
     price: "59,99€",
     period: "une fois",
     quota: "Usage illimité, pour toujours",
+    features: ["Import de PDF", "Import de fichier audio", "Schémas générés par IA"],
     cta: "Accès à vie",
     popular: true,
   },
@@ -153,7 +164,7 @@ export default function PricingPage() {
         </p>
       )}
 
-      <div className="grid w-full max-w-2xl gap-6 sm:grid-cols-2">
+      <div className="grid w-full max-w-4xl gap-6 sm:grid-cols-3">
         {PLANS.map((plan) => (
           <div
             key={plan.key}
@@ -175,7 +186,28 @@ export default function PricingPage() {
               <span className="text-3xl font-bold text-[#e7ecf5]">{plan.price}</span>
               <span className="text-sm text-[#8b97b0]">{plan.period}</span>
             </div>
-            <p className="mb-6 text-sm text-[#8b97b0]">{plan.quota}</p>
+            <p className="mb-3 text-sm text-[#8b97b0]">{plan.quota}</p>
+            {plan.features && (
+              <ul className="mb-6 flex flex-col gap-1.5">
+                {plan.features.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-center gap-1.5 text-sm text-[#c3cbdc]"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="h-3.5 w-3.5 shrink-0 text-[#38bdf8]"
+                    >
+                      <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            )}
 
             <button
               onClick={() => handleUpgrade(plan.key)}
