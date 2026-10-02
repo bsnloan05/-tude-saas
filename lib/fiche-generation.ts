@@ -24,6 +24,12 @@ export const STRUCTURE_RULES = `Règles de structure (très important, à respec
 export const DIAGRAM_RULES = `Schémas (fonctionnalité exclusive à ce forfait, à utiliser avec parcimonie) :
 - Si une notion se prête vraiment à une représentation visuelle (un processus en plusieurs étapes, un cycle, une hiérarchie, une chronologie, des relations entre éléments), tu peux ajouter un schéma au format Mermaid dans un bloc de code \`\`\`mermaid, juste après la notion concernée. Utilise un type simple et syntaxiquement correct (flowchart TD ou mindmap de préférence).
 - Écris tous les textes à l'intérieur du schéma (titres des nœuds, étiquettes des flèches) dans la même langue que le reste de la fiche. N'utilise jamais l'anglais si la fiche est dans une autre langue.
+- Couleurs intelligentes (uniquement si ça a du sens) : si plusieurs nœuds appartiennent à une même catégorie logique (ex : plusieurs causes, plusieurs acteurs du même type, plusieurs étapes d'une même phase), donne-leur la même couleur pour rendre ce lien visuellement évident, avec au maximum 3 catégories de couleur et ce format exact (recopie les styles tels quels, n'invente pas d'autres couleurs) :
+  classDef groupeA fill:#1e3a5f,stroke:#38bdf8,color:#e7ecf5
+  classDef groupeB fill:#1e3a2e,stroke:#34d399,color:#e7ecf5
+  classDef groupeC fill:#3a2e1e,stroke:#fbbf24,color:#e7ecf5
+  class NomDuNoeud1,NomDuNoeud2 groupeA
+  Si aucun regroupement logique n'existe entre les nœuds, n'utilise aucune couleur (laisse le style par défaut) : la couleur doit représenter une vraie catégorie, jamais être décorative.
 - N'ajoute JAMAIS de schéma si le sujet ne s'y prête pas naturellement : donne plutôt un exemple concret dans le texte pour mieux faire comprendre la notion.
 - Au maximum un schéma par fiche, uniquement si c'est vraiment pertinent. Ne force jamais un schéma artificiel.`;
 
