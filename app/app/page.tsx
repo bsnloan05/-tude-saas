@@ -1067,7 +1067,7 @@ export default function Home() {
                       router.push("/pricing");
                     }
                   }}
-                  className="name-glow flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-[#38bdf8] transition-colors duration-150 hover:text-[#7dd3fc]"
+                  className="name-glow flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#c3cbdc]"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
                     <path d="M14 3v4a1 1 0 001 1h4" strokeLinecap="round" strokeLinejoin="round" />
@@ -1106,7 +1106,7 @@ export default function Home() {
                       router.push("/pricing");
                     }
                   }}
-                  className="name-glow flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-[#38bdf8] transition-colors duration-150 hover:text-[#7dd3fc]"
+                  className="name-glow flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#c3cbdc]"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
                     <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
