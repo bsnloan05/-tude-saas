@@ -56,8 +56,9 @@ function buildEmailHtml(unsubscribeUrl: string): string {
 }
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const authHeader = request.headers.get("authorization")?.trim();
+  const expected = `Bearer ${process.env.CRON_SECRET?.trim()}`;
+  if (authHeader !== expected) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
   }
 
