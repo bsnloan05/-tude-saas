@@ -3,22 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { ficheTitle } from "@/lib/ficheTitle";
 
 interface Fiche {
   id: string;
   content: string;
   created_at: string;
   subject: string | null;
+  title: string | null;
 }
 
 const NO_SUBJECT_LABEL = "Sans matière";
-
-function ficheTitle(content: string): string {
-  const firstHeading = content.match(/^##\s+(.+)$/m);
-  if (firstHeading) return firstHeading[1].trim();
-  const firstLine = content.split("\n").find((line) => line.trim().length > 0);
-  return firstLine?.trim() ?? "Fiche de révision";
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -39,7 +34,7 @@ export default function FichesPage() {
     const supabase = createClient();
     supabase
       .from("fiches")
-      .select("id, content, created_at, subject")
+      .select("id, content, created_at, subject, title")
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
         if (error) {
@@ -138,7 +133,7 @@ export default function FichesPage() {
                         className="block rounded-lg border border-[#232d45] bg-[#141b2e] p-4 pr-12 transition-colors transition-transform duration-150 hover:border-[#2a3552] hover:bg-[#1b2440] active:scale-[0.99]"
                       >
                         <p className="truncate text-sm font-medium text-[#e7ecf5]">
-                          {ficheTitle(fiche.content)}
+                          {ficheTitle(fiche.title, fiche.content)}
                         </p>
                         <p className="mt-1 text-xs text-[#8b97b0]">
                           {formatDate(fiche.created_at)}

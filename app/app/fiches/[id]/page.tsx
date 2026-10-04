@@ -7,6 +7,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import FicheContent from "@/components/FicheContent";
 import { downloadFichePdf } from "@/lib/downloadFichePdf";
+import { ficheTitle } from "@/lib/ficheTitle";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -22,6 +23,8 @@ export default function FicheDetailPage() {
   const params = useParams<{ id: string }>();
   const [notes, setNotes] = useState<string | null>(null);
   const [createdAt, setCreatedAt] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [savingTitle, setSavingTitle] = useState(false);
   const [subject, setSubject] = useState("");
   const [savingSubject, setSavingSubject] = useState(false);
   const [error, setError] = useState("");
@@ -32,7 +35,7 @@ export default function FicheDetailPage() {
     const supabase = createClient();
     supabase
       .from("fiches")
-      .select("content, created_at, subject")
+      .select("content, created_at, subject, title")
       .eq("id", params.id)
       .single()
       .then(({ data, error }) => {
@@ -43,8 +46,19 @@ export default function FicheDetailPage() {
         setNotes(data.content);
         setCreatedAt(data.created_at);
         setSubject(data.subject ?? "");
+        setTitle(data.title ?? ficheTitle(null, data.content));
       });
   }, [params.id]);
+
+  const saveTitle = async () => {
+    setSavingTitle(true);
+    const supabase = createClient();
+    await supabase
+      .from("fiches")
+      .update({ title: title.trim() || null })
+      .eq("id", params.id);
+    setSavingTitle(false);
+  };
 
   const saveSubject = async () => {
     setSavingSubject(true);
@@ -82,6 +96,19 @@ export default function FicheDetailPage() {
         {!error && notes !== null && (
           <div className="fiche-enter rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
             <div className="mb-5 flex flex-col gap-3 border-b border-[#232d45] pb-4">
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  onBlur={saveTitle}
+                  placeholder="Nom de la fiche"
+                  className="w-full rounded-md border border-transparent bg-transparent px-1 text-lg font-semibold text-[#e7ecf5] placeholder:text-[#6b7690] focus:border-[#38bdf8] focus:bg-[#0b1120] focus:px-3 focus:py-1.5 focus:outline-none"
+                />
+                {savingTitle && (
+                  <span className="shrink-0 text-xs text-[#6b7690]">...</span>
+                )}
+              </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 {createdAt && (
                   <p className="text-xs text-[#8b97b0]">{formatDate(createdAt)}</p>
