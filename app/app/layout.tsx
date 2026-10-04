@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { NO_SUBJECT_LABEL, subjectColorClass } from "@/lib/subjectColor";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Gratuit",
@@ -13,11 +15,33 @@ const PLAN_LABELS: Record<string, string> = {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [usage, setUsage] = useState<{ plan: string; email: string } | null>(null);
+  const [subjects, setSubjects] = useState<Array<[string, number]> | null>(null);
 
   useEffect(() => {
     fetch("/api/usage")
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => data && setUsage(data));
+
+    // Liste des matières pour la barre latérale : uniquement sur grand écran
+    // (comme chez Woka), toujours sous la navigation principale.
+    const supabase = createClient();
+    supabase
+      .from("fiches")
+      .select("subject")
+      .then(({ data, error }) => {
+        if (error || !data) return;
+        const counts = new Map<string, number>();
+        for (const row of data as Array<{ subject: string | null }>) {
+          const key = row.subject?.trim() || NO_SUBJECT_LABEL;
+          counts.set(key, (counts.get(key) ?? 0) + 1);
+        }
+        const sorted = Array.from(counts.entries()).sort(([a], [b]) => {
+          if (a === NO_SUBJECT_LABEL) return 1;
+          if (b === NO_SUBJECT_LABEL) return -1;
+          return a.localeCompare(b, "fr");
+        });
+        setSubjects(sorted);
+      });
   }, []);
 
   return (
@@ -74,6 +98,32 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             Réglages
           </Link>
         </nav>
+
+        {subjects && subjects.length > 0 && (
+          <div className="mt-6 flex flex-col gap-1 overflow-y-auto">
+            <p className="px-3 text-xs font-semibold tracking-wide text-[#6b7690] uppercase">
+              Matières
+            </p>
+            {subjects.map(([subject, count]) => (
+              <Link
+                key={subject}
+                href={`/app/fiches#${encodeURIComponent(subject)}`}
+                className="flex items-center justify-between rounded-md px-3 py-1.5 text-sm text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <span
+                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                      subject === NO_SUBJECT_LABEL ? "bg-[#6b7690]" : subjectColorClass(subject)
+                    }`}
+                    style={{ backgroundColor: "currentColor" }}
+                  />
+                  <span className="truncate">{subject}</span>
+                </span>
+                <span className="shrink-0 text-xs text-[#6b7690]">{count}</span>
+              </Link>
+            ))}
+          </div>
+        )}
 
         <Link
           href="/app/settings"

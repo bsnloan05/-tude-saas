@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ficheTitle } from "@/lib/ficheTitle";
+import { NO_SUBJECT_LABEL, subjectColorClass } from "@/lib/subjectColor";
 
 interface Fiche {
   id: string;
@@ -11,29 +12,6 @@ interface Fiche {
   created_at: string;
   subject: string | null;
   title: string | null;
-}
-
-const NO_SUBJECT_LABEL = "Sans matière";
-
-// Couleur stable par matière (même nom = même couleur à chaque chargement),
-// choisie parmi une palette fixe plutôt que générée au hasard.
-const SUBJECT_COLORS = [
-  "text-[#38bdf8]", // bleu
-  "text-emerald-400",
-  "text-amber-400",
-  "text-violet-400",
-  "text-rose-400",
-  "text-teal-400",
-  "text-orange-400",
-  "text-sky-400",
-];
-
-function subjectColorClass(subject: string): string {
-  let hash = 0;
-  for (let i = 0; i < subject.length; i++) {
-    hash = (hash * 31 + subject.charCodeAt(i)) | 0;
-  }
-  return SUBJECT_COLORS[Math.abs(hash) % SUBJECT_COLORS.length];
 }
 
 function formatDate(iso: string): string {
@@ -129,7 +107,7 @@ export default function FichesPage() {
         {!error && fiches !== null && fiches.length > 0 && (
           <div className="flex flex-col gap-8">
             {groups.map(([subject, subjectFiches]) => (
-              <div key={subject}>
+              <div key={subject} id={encodeURIComponent(subject)} className="scroll-mt-6">
                 <h2 className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
                   {subject === NO_SUBJECT_LABEL ? (
                     <span className="text-[#8b97b0]">{subject}</span>
