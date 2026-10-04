@@ -112,7 +112,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Barre de navigation du bas, visible uniquement sur mobile/fenêtre
           étroite : équivalent en icônes de la barre latérale. */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-10 flex items-center justify-around border-t border-[#232d45] bg-[#0b1120] py-2 lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-10 flex items-center justify-around border-t border-[#232d45] bg-[#0b1120] py-2 pr-16 pl-2 lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         <Link
