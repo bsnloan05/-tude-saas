@@ -266,3 +266,19 @@ body {
     animation: none;
   }
 }
+
+/* Remonte la bulle Crisp : l'API JS de Crisp n'offre aucune commande
+   officielle pour l'offset (seulement position:reverse et z-index), donc on
+   cible leur conteneur stable (#crisp-client) directement en CSS. En dessous
+   de 1024px, la barre de navigation fixe en bas de /app chevauche sinon la
+   bulle (qui apparaît par défaut en bas à droite, comme notre icône
+   Réglages). */
+#crisp-client {
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1023px) {
+  #crisp-client {
+    margin-bottom: 76px;
+  }
+}
