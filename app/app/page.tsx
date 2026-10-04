@@ -89,8 +89,6 @@ export default function Home() {
     plan: string;
     email: string;
   } | null>(null);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalTranscriptRef = useRef("");
@@ -353,20 +351,6 @@ export default function Home() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [status]);
-
-  useEffect(() => {
-    if (!profileOpen) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target as Node)
-      ) {
-        setProfileOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [profileOpen]);
 
   useEffect(() => {
     if (status !== "generating") {
@@ -683,13 +667,6 @@ export default function Home() {
     await generateFiche(transcript, sessionDurationRef.current);
   };
 
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  };
-
   // On génère un PDF via une page toute neuve, indépendante, déjà stylée en
   // clair dès sa création — plutôt que de faire basculer la page actuelle en
   // clair puis d'imprimer (ce qui dépend du support de "@media print" du
@@ -703,11 +680,61 @@ export default function Home() {
   };
 
   return (
-    <div className="dot-grid relative isolate flex min-h-screen flex-col items-center overflow-hidden bg-[#0b1120] px-4 py-16">
-      <div
-        aria-hidden
-        className="-z-10 pointer-events-none absolute -top-32 left-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-[#2563eb]/25 blur-[100px]"
-      />
+    <div className="flex min-h-screen bg-[#0b1120]">
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-[#232d45] px-4 py-6 sm:flex">
+        <div className="flex items-center gap-2 px-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+              <path d="M13 2L4 14h6l-1 8 10-13h-6l0-7z" />
+            </svg>
+          </span>
+          <span className="text-base font-semibold text-[#e7ecf5]">Memoflash</span>
+        </div>
+
+        <nav className="mt-8 flex flex-col gap-1">
+          <Link
+            href="/app/fiches"
+            className="rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+          >
+            Mes fiches
+          </Link>
+          <Link
+            href="/pricing"
+            className="rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+          >
+            Tarifs
+          </Link>
+          <Link
+            href="/app/settings"
+            className="rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+          >
+            Réglages
+          </Link>
+        </nav>
+
+        <Link
+          href="/app/settings"
+          className="mt-auto flex items-center gap-2 rounded-md px-2 py-2 transition-colors duration-150 hover:bg-[#1b2440]"
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#2a3552] text-xs font-semibold text-[#c3cbdc]">
+            {usage?.email?.[0]?.toUpperCase() ?? "?"}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium text-[#e7ecf5]">
+              {usage?.email ?? "Profil"}
+            </span>
+            <span className="block text-xs text-[#8b97b0]">
+              {usage ? (PLAN_LABELS[usage.plan] ?? usage.plan) : "..."}
+            </span>
+          </span>
+        </Link>
+      </aside>
+
+      <div className="dot-grid relative isolate flex min-h-screen flex-1 flex-col items-center overflow-hidden px-4 py-16">
+        <div
+          aria-hidden
+          className="-z-10 pointer-events-none absolute -top-32 left-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-[#2563eb]/25 blur-[100px]"
+        />
 
       {/* Grande icône signature qui dérive autour du centre de l'écran, sur
           un trajet irrégulier qui visite plusieurs zones (pas juste une
@@ -790,77 +817,33 @@ export default function Home() {
         </svg>
       </div>
 
-      <header className="relative mb-12 flex w-full max-w-5xl flex-wrap items-center justify-between gap-y-2">
-        <div className="flex items-center gap-2">
+      {/* Barre lâche visible uniquement sur mobile : la barre latérale est
+          cachée en dessous de sm, donc on garde un accès aux mêmes liens. */}
+      <div className="relative mb-6 flex w-full max-w-2xl flex-wrap items-center justify-between gap-y-2 sm:hidden">
+        <span className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
               <path d="M13 2L4 14h6l-1 8 10-13h-6l0-7z" />
             </svg>
           </span>
           <span className="text-base font-semibold text-[#e7ecf5]">Memoflash</span>
-        </div>
-        <div className="ml-auto flex items-center gap-3">
-          <span className="rounded-full border border-[#2a3552] px-3 py-1 text-sm font-medium text-[#8b97b0]">
-            Bêta
-          </span>
-          <Link
-            href="/pricing"
-            className="rounded-full bg-[#2563eb]/15 px-3.5 py-1.5 text-base font-semibold text-[#38bdf8] transition-colors transition-transform duration-150 hover:bg-[#2563eb]/25 active:scale-95"
-          >
+        </span>
+        <div className="flex items-center gap-3 text-sm font-medium text-[#8b97b0]">
+          <Link href="/app/fiches" className="hover:text-[#e7ecf5]">
+            Mes fiches
+          </Link>
+          <Link href="/pricing" className="hover:text-[#e7ecf5]">
             Tarifs
           </Link>
-          <div className="relative" ref={profileMenuRef}>
-            <button
-              onClick={() => setProfileOpen((open) => !open)}
-              className="flex items-center gap-1.5 text-base font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-                <path d="M12 12a4.5 4.5 0 100-9 4.5 4.5 0 000 9z" />
-                <path d="M4 20a8 8 0 0116 0 1 1 0 01-1 1H5a1 1 0 01-1-1z" />
-              </svg>
-              Profil
-            </button>
-
-            {profileOpen && (
-              <div className="absolute top-full right-0 z-10 mt-2 w-64 rounded-lg border border-[#232d45] bg-[#141b2e] p-4 shadow-lg">
-                {usage ? (
-                  <>
-                    <p className="truncate text-sm font-medium text-[#e7ecf5]">
-                      {usage.email}
-                    </p>
-                    <p className="mt-1 text-xs text-[#8b97b0]">
-                      Forfait :{" "}
-                      <span className="font-semibold text-[#38bdf8]">
-                        {PLAN_LABELS[usage.plan] ?? usage.plan}
-                      </span>
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-[#8b97b0]">Chargement...</p>
-                )}
-                <Link
-                  href="/app/fiches"
-                  className="mt-3 block rounded-full border border-[#2a3552] px-3 py-1.5 text-center text-sm font-medium text-[#c3cbdc] transition-colors hover:bg-[#1b2440]"
-                >
-                  Mes fiches
-                </Link>
-                <Link
-                  href="/pricing"
-                  className="mt-2 block rounded-full border border-[#2a3552] px-3 py-1.5 text-center text-sm font-medium text-[#c3cbdc] transition-colors hover:bg-[#1b2440]"
-                >
-                  Gérer mon forfait
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="mt-2 w-full rounded-full px-3 py-1.5 text-center text-sm font-medium text-[#8b97b0] transition-colors hover:bg-[#1b2440] hover:text-[#e7ecf5]"
-                >
-                  Se déconnecter
-                </button>
-              </div>
-            )}
-          </div>
+          <Link href="/app/settings" className="hover:text-[#e7ecf5]">
+            Réglages
+          </Link>
         </div>
-      </header>
+      </div>
+
+      <span className="relative mb-8 hidden self-start rounded-full border border-[#2a3552] px-3 py-1 text-sm font-medium text-[#8b97b0] sm:inline-block">
+        Bêta
+      </span>
 
       <main className="flex w-full max-w-2xl flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-3 text-center">
@@ -1281,6 +1264,7 @@ export default function Home() {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 }
