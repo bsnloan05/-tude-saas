@@ -693,21 +693,43 @@ export default function Home() {
 
         <nav className="mt-8 flex flex-col gap-1">
           <Link
-            href="/app/fiches"
-            className="rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+            href="/app"
+            className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
           >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0">
+              <path d="M3 11l9-8 9 8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Accueil
+          </Link>
+          <Link
+            href="/app/fiches"
+            className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0">
+              <path d="M4 5a2 2 0 012-2h11a1 1 0 011 1v15a1 1 0 01-1 1H6a2 2 0 00-2 2V5z" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M4 19.5A2 2 0 016 18h12" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
             Mes fiches
           </Link>
           <Link
             href="/pricing"
-            className="rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+            className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
           >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0">
+              <path d="M20.6 12.3L12 20.9a2 2 0 01-2.8 0l-7-7a2 2 0 010-2.8L10.8 2.5a2 2 0 011.4-.6H19a2 2 0 012 2v6.6a2 2 0 01-.4 1.2z" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="15.5" cy="7.5" r="1.3" />
+            </svg>
             Tarifs
           </Link>
           <Link
             href="/app/settings"
-            className="rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+            className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
           >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
             Réglages
           </Link>
         </nav>
