@@ -272,13 +272,14 @@ body {
    cible leur conteneur stable (#crisp-client) directement en CSS. En dessous
    de 1024px, la barre de navigation fixe en bas de /app chevauche sinon la
    bulle (qui apparaît par défaut en bas à droite, comme notre icône
-   Réglages). */
+   Réglages). "!important" est nécessaire : Crisp réapplique sa propre
+   position en style inline via JS, qui l'emporte sinon sur notre CSS. */
 #crisp-client {
-  margin-bottom: 16px;
+  margin-bottom: 16px !important;
 }
 
 @media (max-width: 1023px) {
   #crisp-client {
-    margin-bottom: 76px;
+    margin-bottom: 76px !important;
   }
 }
