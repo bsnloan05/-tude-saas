@@ -22,7 +22,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-[#0b1120]">
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-[#232d45] px-4 py-6 sm:flex">
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-[#232d45] px-4 py-6 md:flex">
         <div className="flex items-center gap-2 px-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
@@ -97,7 +97,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Barre visible uniquement sur mobile/fenêtre étroite : la barre
             latérale est cachée en dessous de sm, donc on garde un accès au
             logo ici et la navigation dans la barre du bas. */}
-        <div className="flex w-full items-center gap-2 border-b border-[#232d45] px-4 py-3 sm:hidden">
+        <div className="flex w-full items-center gap-2 border-b border-[#232d45] px-4 py-3 md:hidden">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
               <path d="M13 2L4 14h6l-1 8 10-13h-6l0-7z" />
@@ -106,13 +106,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <span className="text-base font-semibold text-[#e7ecf5]">Memoflash</span>
         </div>
 
-        <div className="flex-1 pb-20 sm:pb-0">{children}</div>
+        <div className="flex-1 pb-20 md:pb-0">{children}</div>
       </div>
 
       {/* Barre de navigation du bas, visible uniquement sur mobile/fenêtre
           étroite : équivalent en icônes de la barre latérale. */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-10 flex items-center justify-around border-t border-[#232d45] bg-[#0b1120] py-2 sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-10 flex items-center justify-around border-t border-[#232d45] bg-[#0b1120] py-2 md:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         <Link
