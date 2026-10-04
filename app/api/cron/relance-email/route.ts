@@ -59,7 +59,22 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization")?.trim();
   const expected = `Bearer ${process.env.CRON_SECRET?.trim()}`;
   if (authHeader !== expected) {
-    return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
+    // Diagnostic temporaire (aucune valeur secrète exposée, juste des
+    // longueurs et préfixes) pour comprendre un 401 inattendu — à retirer
+    // une fois le problème identifié.
+    return NextResponse.json(
+      {
+        error: "Non autorisé.",
+        debug: {
+          hasCronSecretEnv: !!process.env.CRON_SECRET,
+          envSecretLength: process.env.CRON_SECRET?.length ?? 0,
+          receivedHeaderLength: authHeader?.length ?? 0,
+          receivedPrefix: authHeader?.slice(0, 10) ?? null,
+          expectedPrefix: expected.slice(0, 10),
+        },
+      },
+      { status: 401 },
+    );
   }
 
   const supabase = createAdminClient();
