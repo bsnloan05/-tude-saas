@@ -95,14 +95,22 @@ export async function GET(request: NextRequest) {
 
   let sent = 0;
   let failed = 0;
+  let firstErrorDebug: unknown = null;
 
-  for (const candidate of candidates ?? []) {
+  // Diagnostic temporaire : ?debug=1 limite le traitement à 1 seule
+  // personne et renvoie le détail brut de la première erreur, pour ne pas
+  // marteler l'API Resend en boucle pendant le dépannage.
+  const isDebug = request.nextUrl.searchParams.get("debug") === "1";
+  const pool = isDebug ? (candidates ?? []).slice(0, 1) : (candidates ?? []);
+
+  for (const candidate of pool) {
     const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
       candidate.id,
     );
     const email = userData?.user?.email;
     if (userError || !email) {
       failed++;
+      if (isDebug) firstErrorDebug = { stage: "getUserById", userError, email };
       continue;
     }
 
@@ -126,7 +134,16 @@ export async function GET(request: NextRequest) {
 
       if (!response.ok) {
         failed++;
-        console.error("Erreur envoi Resend:", await response.text());
+        const bodyText = await response.text();
+        console.error("Erreur envoi Resend:", bodyText);
+        if (isDebug) {
+          firstErrorDebug = {
+            stage: "resend",
+            status: response.status,
+            body: bodyText,
+            hasApiKey: !!process.env.RESEND_API_KEY,
+          };
+        }
         continue;
       }
 
@@ -141,5 +158,10 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ sent, failed, total: candidates?.length ?? 0 });
+  return NextResponse.json({
+    sent,
+    failed,
+    total: candidates?.length ?? 0,
+    ...(isDebug ? { firstErrorDebug } : {}),
+  });
 }
