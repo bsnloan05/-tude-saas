@@ -1,7 +1,17 @@
 "use client";
 
+import { type ReactNode, isValidElement } from "react";
 import ReactMarkdown from "react-markdown";
 import dynamic from "next/dynamic";
+
+function extractText(node: ReactNode): string {
+  if (typeof node === "string") return node;
+  if (Array.isArray(node)) return node.map(extractText).join("");
+  if (isValidElement(node)) {
+    return extractText((node.props as { children?: ReactNode }).children);
+  }
+  return "";
+}
 
 const MermaidDiagram = dynamic(() => import("@/components/MermaidDiagram"), {
   ssr: false,
@@ -68,16 +78,41 @@ export default function FicheContent({
               </code>
             );
           },
-          blockquote: (props) => (
-            <blockquote
-              className={
-                highlightMode
-                  ? "my-4 rounded-r-lg border-l-4 border-emerald-500 bg-emerald-500/10 py-2.5 pr-3 pl-4 text-emerald-200 [&>p]:mb-0"
-                  : "my-4 border-l-2 border-[#2a3552] pl-4 text-[#8b97b0] [&>p]:mb-0"
-              }
-              {...props}
-            />
-          ),
+          blockquote: ({ children, ...props }) => {
+            const text = extractText(children);
+            if (text.includes("⚠️")) {
+              return (
+                <blockquote
+                  className="my-4 rounded-r-lg border-l-4 border-amber-500 bg-amber-500/10 py-2.5 pr-3 pl-4 text-amber-200 [&>p]:mb-0"
+                  {...props}
+                >
+                  {children}
+                </blockquote>
+              );
+            }
+            if (text.trimStart().startsWith("L'essentiel")) {
+              return (
+                <blockquote
+                  className="my-4 rounded-r-lg border-l-4 border-[#38bdf8] bg-[#38bdf8]/10 py-2.5 pr-3 pl-4 text-[#7dd3fc] [&>p]:mb-0"
+                  {...props}
+                >
+                  {children}
+                </blockquote>
+              );
+            }
+            return (
+              <blockquote
+                className={
+                  highlightMode
+                    ? "my-4 rounded-r-lg border-l-4 border-emerald-500 bg-emerald-500/10 py-2.5 pr-3 pl-4 text-emerald-200 [&>p]:mb-0"
+                    : "my-4 border-l-2 border-[#2a3552] pl-4 text-[#8b97b0] [&>p]:mb-0"
+                }
+                {...props}
+              >
+                {children}
+              </blockquote>
+            );
+          },
         }}
       >
         {notes}

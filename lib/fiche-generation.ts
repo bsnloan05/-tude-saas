@@ -11,11 +11,13 @@ export const CHUNK_CHAR_SIZE = 20000;
 export const DELAY_BETWEEN_CALLS_MS = 60000;
 
 export const STRUCTURE_RULES = `Règles de structure (très important, à respecter strictement) :
-- Regroupe le contenu en 4 à 7 grandes parties maximum, chacune avec un titre ## qui nomme un vrai thème du cours (pas un par notion isolée).
+- Tout au début de la fiche, avant la première partie ##, ajoute une seule citation Markdown "L'essentiel" qui résume les 2 à 4 points les plus importants du cours en une phrase courte par point, séparés par des points-virgules, au format : "> **L'essentiel** : point 1 ; point 2 ; point 3". Une seule fois par fiche, jamais répétée dans chaque partie.
+- Regroupe le reste du contenu en 4 à 7 grandes parties maximum, chacune avec un titre ## qui nomme un vrai thème du cours (pas un par notion isolée).
 - N'écris JAMAIS de numéro dans un titre (pas de "1.", "2.", "I.", etc.) : le titre seul suffit.
 - N'utilise un sous-titre ### que si une partie ## contient plusieurs sous-thèmes clairement distincts ; sinon reste directement en liste à puces sous le titre ##.
 - À l'intérieur de chaque partie, utilise des listes à puces courtes plutôt que de longs paragraphes, pour que ce soit rapide à relire.
-- Chaque définition importante ou notion clé doit être écrite sous forme de citation Markdown (commence la ligne par ">"), au format : "> **Terme** : explication". N'utilise ce format que pour les vraies définitions, pas pour des phrases ordinaires.`;
+- Chaque définition importante ou notion clé doit être écrite sous forme de citation Markdown (commence la ligne par ">"), au format : "> **Terme** : explication". N'utilise ce format que pour les vraies définitions, pas pour des phrases ordinaires.
+- Si une notion a un piège fréquent ou une confusion courante chez les étudiants (ex : une exception, une nuance importante, une erreur classique), tu peux ajouter une citation Markdown distincte juste après, au format : "> ⚠️ **Attention** : explication". N'utilise ce format que pour un vrai piège, jamais pour une remarque anodine, et pas plus d'une ou deux fois par fiche au total.`;
 
 // Fonctionnalité réservée au forfait "À vie" : des schémas Mermaid quand le
 // sujet s'y prête, sinon un exemple concret. Appliquée uniquement via les
