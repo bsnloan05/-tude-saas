@@ -71,15 +71,14 @@ export default function FicheDetailPage() {
   };
 
   return (
-    <div className="dot-grid flex min-h-screen flex-col items-center bg-[#0b1120] px-4 py-12">
-      <div className="mb-10 flex w-full max-w-2xl items-center justify-between">
+    <div className="flex flex-col items-center px-4 py-12">
+      <div className="mb-10 w-full max-w-2xl">
         <Link
           href="/app/fiches"
           className="text-sm font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
         >
           ← Mes fiches
         </Link>
-        <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
       </div>
 
       <div className="w-full max-w-2xl">
