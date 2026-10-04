@@ -59,22 +59,7 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization")?.trim();
   const expected = `Bearer ${process.env.CRON_SECRET?.trim()}`;
   if (authHeader !== expected) {
-    // Diagnostic temporaire (aucune valeur secrète exposée, juste des
-    // longueurs et préfixes) pour comprendre un 401 inattendu — à retirer
-    // une fois le problème identifié.
-    return NextResponse.json(
-      {
-        error: "Non autorisé.",
-        debug: {
-          hasCronSecretEnv: !!process.env.CRON_SECRET,
-          envSecretLength: process.env.CRON_SECRET?.length ?? 0,
-          receivedHeaderLength: authHeader?.length ?? 0,
-          receivedPrefix: authHeader?.slice(0, 10) ?? null,
-          expectedPrefix: expected.slice(0, 10),
-        },
-      },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
   }
 
   const supabase = createAdminClient();
@@ -95,22 +80,14 @@ export async function GET(request: NextRequest) {
 
   let sent = 0;
   let failed = 0;
-  let firstErrorDebug: unknown = null;
 
-  // Diagnostic temporaire : ?debug=1 limite le traitement à 1 seule
-  // personne et renvoie le détail brut de la première erreur, pour ne pas
-  // marteler l'API Resend en boucle pendant le dépannage.
-  const isDebug = request.nextUrl.searchParams.get("debug") === "1";
-  const pool = isDebug ? (candidates ?? []).slice(0, 1) : (candidates ?? []);
-
-  for (const candidate of pool) {
+  for (const candidate of candidates ?? []) {
     const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
       candidate.id,
     );
     const email = userData?.user?.email;
     if (userError || !email) {
       failed++;
-      if (isDebug) firstErrorDebug = { stage: "getUserById", userError, email };
       continue;
     }
 
@@ -134,16 +111,7 @@ export async function GET(request: NextRequest) {
 
       if (!response.ok) {
         failed++;
-        const bodyText = await response.text();
-        console.error("Erreur envoi Resend:", bodyText);
-        if (isDebug) {
-          firstErrorDebug = {
-            stage: "resend",
-            status: response.status,
-            body: bodyText,
-            hasApiKey: !!process.env.RESEND_API_KEY,
-          };
-        }
+        console.error("Erreur envoi Resend:", await response.text());
         continue;
       }
 
@@ -158,10 +126,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({
-    sent,
-    failed,
-    total: candidates?.length ?? 0,
-    ...(isDebug ? { firstErrorDebug } : {}),
-  });
+  return NextResponse.json({ sent, failed, total: candidates?.length ?? 0 });
 }
