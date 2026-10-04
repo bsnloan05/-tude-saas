@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -8,7 +8,10 @@ interface Fiche {
   id: string;
   content: string;
   created_at: string;
+  subject: string | null;
 }
+
+const NO_SUBJECT_LABEL = "Sans matière";
 
 function ficheTitle(content: string): string {
   const firstHeading = content.match(/^##\s+(.+)$/m);
@@ -36,7 +39,7 @@ export default function FichesPage() {
     const supabase = createClient();
     supabase
       .from("fiches")
-      .select("id, content, created_at")
+      .select("id, content, created_at, subject")
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
         if (error) {
@@ -59,6 +62,23 @@ export default function FichesPage() {
     }
     setFiches((prev) => prev?.filter((f) => f.id !== id) ?? null);
   };
+
+  // Regroupe les fiches par matière, "Sans matière" toujours en dernier,
+  // les autres triées alphabétiquement.
+  const groups = useMemo(() => {
+    if (!fiches) return [];
+    const map = new Map<string, Fiche[]>();
+    for (const fiche of fiches) {
+      const key = fiche.subject?.trim() || NO_SUBJECT_LABEL;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(fiche);
+    }
+    return Array.from(map.entries()).sort(([a], [b]) => {
+      if (a === NO_SUBJECT_LABEL) return 1;
+      if (b === NO_SUBJECT_LABEL) return -1;
+      return a.localeCompare(b, "fr");
+    });
+  }, [fiches]);
 
   return (
     <div className="dot-grid flex min-h-screen flex-col items-center bg-[#0b1120] px-4 py-12">
@@ -101,33 +121,45 @@ export default function FichesPage() {
         )}
 
         {!error && fiches !== null && fiches.length > 0 && (
-          <ul className="flex flex-col gap-3">
-            {fiches.map((fiche) => (
-              <li key={fiche.id} className="relative">
-                <Link
-                  href={`/app/fiches/${fiche.id}`}
-                  className="block rounded-lg border border-[#232d45] bg-[#141b2e] p-4 pr-12 transition-colors transition-transform duration-150 hover:border-[#2a3552] hover:bg-[#1b2440] active:scale-[0.99]"
-                >
-                  <p className="truncate text-sm font-medium text-[#e7ecf5]">
-                    {ficheTitle(fiche.content)}
-                  </p>
-                  <p className="mt-1 text-xs text-[#8b97b0]">
-                    {formatDate(fiche.created_at)}
-                  </p>
-                </Link>
-                <button
-                  onClick={() => handleDelete(fiche.id)}
-                  disabled={deletingId === fiche.id}
-                  aria-label="Supprimer la fiche"
-                  className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-full text-[#6b7690] transition-colors transition-transform duration-150 hover:bg-red-950/50 hover:text-red-300 active:scale-90 disabled:opacity-50"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-                    <path d="M4 7h16M9 7V4h6v3m-8 0 1 13a1 1 0 001 1h6a1 1 0 001-1l1-13" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              </li>
+          <div className="flex flex-col gap-8">
+            {groups.map(([subject, subjectFiches]) => (
+              <div key={subject}>
+                <h2 className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
+                  {subject}
+                  <span className="rounded-full bg-[#232d45] px-2 py-0.5 text-[#8b97b0]">
+                    {subjectFiches.length}
+                  </span>
+                </h2>
+                <ul className="flex flex-col gap-3">
+                  {subjectFiches.map((fiche) => (
+                    <li key={fiche.id} className="relative">
+                      <Link
+                        href={`/app/fiches/${fiche.id}`}
+                        className="block rounded-lg border border-[#232d45] bg-[#141b2e] p-4 pr-12 transition-colors transition-transform duration-150 hover:border-[#2a3552] hover:bg-[#1b2440] active:scale-[0.99]"
+                      >
+                        <p className="truncate text-sm font-medium text-[#e7ecf5]">
+                          {ficheTitle(fiche.content)}
+                        </p>
+                        <p className="mt-1 text-xs text-[#8b97b0]">
+                          {formatDate(fiche.created_at)}
+                        </p>
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(fiche.id)}
+                        disabled={deletingId === fiche.id}
+                        aria-label="Supprimer la fiche"
+                        className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-full text-[#6b7690] transition-colors transition-transform duration-150 hover:bg-red-950/50 hover:text-red-300 active:scale-90 disabled:opacity-50"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                          <path d="M4 7h16M9 7V4h6v3m-8 0 1 13a1 1 0 001 1h6a1 1 0 001-1l1-13" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>

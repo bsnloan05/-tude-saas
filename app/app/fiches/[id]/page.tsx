@@ -22,6 +22,8 @@ export default function FicheDetailPage() {
   const params = useParams<{ id: string }>();
   const [notes, setNotes] = useState<string | null>(null);
   const [createdAt, setCreatedAt] = useState<string | null>(null);
+  const [subject, setSubject] = useState("");
+  const [savingSubject, setSavingSubject] = useState(false);
   const [error, setError] = useState("");
   const [highlightMode, setHighlightMode] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -30,7 +32,7 @@ export default function FicheDetailPage() {
     const supabase = createClient();
     supabase
       .from("fiches")
-      .select("content, created_at")
+      .select("content, created_at, subject")
       .eq("id", params.id)
       .single()
       .then(({ data, error }) => {
@@ -40,8 +42,19 @@ export default function FicheDetailPage() {
         }
         setNotes(data.content);
         setCreatedAt(data.created_at);
+        setSubject(data.subject ?? "");
       });
   }, [params.id]);
+
+  const saveSubject = async () => {
+    setSavingSubject(true);
+    const supabase = createClient();
+    await supabase
+      .from("fiches")
+      .update({ subject: subject.trim() || null })
+      .eq("id", params.id);
+    setSavingSubject(false);
+  };
 
   return (
     <div className="dot-grid flex min-h-screen flex-col items-center bg-[#0b1120] px-4 py-12">
@@ -68,10 +81,25 @@ export default function FicheDetailPage() {
 
         {!error && notes !== null && (
           <div className="fiche-enter rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
-            <div className="mb-5 flex flex-col gap-3 border-b border-[#232d45] pb-4 sm:flex-row sm:items-center sm:justify-between">
-              {createdAt && (
-                <p className="text-xs text-[#8b97b0]">{formatDate(createdAt)}</p>
-              )}
+            <div className="mb-5 flex flex-col gap-3 border-b border-[#232d45] pb-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                {createdAt && (
+                  <p className="text-xs text-[#8b97b0]">{formatDate(createdAt)}</p>
+                )}
+                <div className="flex items-center gap-2 sm:w-56">
+                  <input
+                    type="text"
+                    value={subject}
+                    onChange={(event) => setSubject(event.target.value)}
+                    onBlur={saveSubject}
+                    placeholder="Ajouter une matière (ex : Histoire)"
+                    className="w-full rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-1.5 text-sm text-[#e7ecf5] placeholder:text-[#6b7690] focus:border-[#38bdf8] focus:outline-none"
+                  />
+                  {savingSubject && (
+                    <span className="shrink-0 text-xs text-[#6b7690]">...</span>
+                  )}
+                </div>
+              </div>
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex items-center gap-1 rounded-full bg-[#0b1120] p-1 text-xs font-medium">
                   <button
