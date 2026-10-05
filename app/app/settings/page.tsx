@@ -33,6 +33,12 @@ export default function SettingsPage() {
     quotaSeconds: number | null;
   } | null>(null);
   const [memberSince, setMemberSince] = useState<string | null>(null);
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
     fetch("/api/usage")
@@ -42,6 +48,11 @@ export default function SettingsPage() {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
+      // Un compte créé via Google n'a pas de méthode "email" (mot de passe)
+      // tant qu'on ne lui en ajoute pas une explicitement.
+      setHasPassword(
+        (user.identities ?? []).some((identity) => identity.provider === "email"),
+      );
       supabase
         .from("profiles")
         .select("created_at")
@@ -52,6 +63,36 @@ export default function SettingsPage() {
         });
     });
   }, []);
+
+  const handleSetPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (newPassword.length < 6) {
+      setPasswordError("Le mot de passe doit contenir au moins 6 caractères.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Les deux mots de passe ne correspondent pas.");
+      return;
+    }
+
+    setSavingPassword(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setSavingPassword(false);
+
+    if (error) {
+      setPasswordError(error.message);
+      return;
+    }
+
+    setHasPassword(true);
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordSuccess("Mot de passe enregistré.");
+  };
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -141,6 +182,65 @@ export default function SettingsPage() {
             </div>
           )}
         </div>
+
+        {/* Mot de passe */}
+        {hasPassword !== null && (
+          <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
+            <h2 className="mb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
+              Sécurité
+            </h2>
+            <p className="mb-4 text-sm text-[#8b97b0]">
+              {hasPassword
+                ? "Change le mot de passe de ton compte."
+                : "Ton compte a été créé avec Google : ajoute un mot de passe si tu veux aussi pouvoir te connecter avec ton email."}
+            </p>
+            <form onSubmit={handleSetPassword} className="flex flex-col gap-3">
+              <input
+                type="password"
+                required
+                minLength={6}
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Nouveau mot de passe (6 caractères min.)"
+                className="w-full rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5] outline-none placeholder:text-[#6b7690] focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
+              />
+              <input
+                type="password"
+                required
+                minLength={6}
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirme le mot de passe"
+                className="w-full rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5] outline-none placeholder:text-[#6b7690] focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
+              />
+
+              {passwordError && (
+                <p className="rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-sm text-red-200">
+                  {passwordError}
+                </p>
+              )}
+              {passwordSuccess && (
+                <p className="rounded-md border border-emerald-900/50 bg-emerald-950/50 px-3 py-2 text-sm text-emerald-200">
+                  {passwordSuccess}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={savingPassword}
+                className="self-start rounded-full bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {savingPassword
+                  ? "Enregistrement..."
+                  : hasPassword
+                    ? "Modifier le mot de passe"
+                    : "Ajouter un mot de passe"}
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Compte */}
         <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
