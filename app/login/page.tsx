@@ -27,7 +27,7 @@ function LoginForm() {
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState(searchParams.get("error") ?? "");
   const [infoMessage, setInfoMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
