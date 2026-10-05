@@ -65,6 +65,14 @@ function LoginForm() {
     setLoading(false);
   };
 
+  const handleGoogleLogin = async () => {
+    const supabase = createClient();
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  };
+
   return (
     <div className="dot-grid isolate relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0b1120] px-4">
       <div
@@ -160,6 +168,38 @@ function LoginForm() {
             ? "Connecte-toi pour accéder à tes fiches."
             : "Crée un compte pour commencer à générer tes fiches."}
         </p>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-[#2a3552] bg-[#0b1120] px-4 py-2.5 text-sm font-medium text-[#e7ecf5] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4">
+            <path
+              fill="#4285F4"
+              d="M23.49 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h6.47a5.54 5.54 0 01-2.4 3.64v3h3.88c2.27-2.09 3.54-5.17 3.54-8.67z"
+            />
+            <path
+              fill="#34A853"
+              d="M12 24c3.24 0 5.95-1.07 7.93-2.9l-3.88-3a7.4 7.4 0 01-11-3.9H1.08v3.1A12 12 0 0012 24z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M5.05 14.2a7.2 7.2 0 010-4.4v-3.1H1.08a12 12 0 000 10.6l3.97-3.1z"
+            />
+            <path
+              fill="#EA4335"
+              d="M12 4.75c1.76 0 3.34.6 4.58 1.79l3.44-3.44C17.94 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.08 6.7l3.97 3.1A7.18 7.18 0 0112 4.75z"
+            />
+          </svg>
+          Continuer avec Google
+        </button>
+
+        <div className="my-5 flex items-center gap-3">
+          <div className="h-px flex-1 bg-[#232d45]" />
+          <span className="text-xs text-[#6b7690]">ou</span>
+          <div className="h-px flex-1 bg-[#232d45]" />
+        </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
