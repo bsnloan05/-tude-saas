@@ -259,7 +259,11 @@ export default function PricingPage() {
                     >
                       <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    {feature.text}
+                    {feature.text === "Transcription vocale en direct" ? (
+                      <strong className="font-bold">{feature.text}</strong>
+                    ) : (
+                      feature.text
+                    )}
                   </li>
                 ))}
               </ul>
@@ -280,12 +284,21 @@ export default function PricingPage() {
         ))}
       </div>
 
-      <div className="mt-8 flex items-center gap-2 text-xs text-[#6b7690]">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-          <rect x="3" y="11" width="18" height="10" rx="2" />
-          <path d="M7 11V7a5 5 0 0110 0v4" />
-        </svg>
-        Paiement sécurisé par Stripe — aucune donnée bancaire stockée par Memoflash
+      <div className="mt-8 flex flex-col items-center gap-2 text-xs text-[#6b7690] sm:flex-row sm:gap-5">
+        <div className="flex items-center gap-2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+            <rect x="3" y="11" width="18" height="10" rx="2" />
+            <path d="M7 11V7a5 5 0 0110 0v4" />
+          </svg>
+          Paiement sécurisé par Stripe — aucune donnée bancaire stockée par Memoflash
+        </div>
+        <div className="flex items-center gap-2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+            <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="12" cy="12" r="9" />
+          </svg>
+          Satisfait ou remboursé
+        </div>
       </div>
 
       <div className="mt-20 w-full max-w-4xl border-t border-[#232d45] pt-12">
