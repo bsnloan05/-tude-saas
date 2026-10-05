@@ -40,10 +40,16 @@ function LoginForm() {
     const supabase = createClient();
 
     if (mode === "signup") {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
         setErrorMessage(translateAuthError(error.message));
       } else {
+        if (data.user) {
+          await supabase
+            .from("profiles")
+            .update({ has_password: true })
+            .eq("id", data.user.id);
+        }
         setInfoMessage(
           "Compte créé. Vérifie ta boîte mail si une confirmation est demandée, sinon tu peux te connecter directement.",
         );

@@ -48,18 +48,14 @@ export default function SettingsPage() {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
-      // Un compte créé via Google n'a pas de méthode "email" (mot de passe)
-      // tant qu'on ne lui en ajoute pas une explicitement.
-      setHasPassword(
-        (user.identities ?? []).some((identity) => identity.provider === "email"),
-      );
       supabase
         .from("profiles")
-        .select("created_at")
+        .select("created_at, has_password")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
           if (data?.created_at) setMemberSince(data.created_at);
+          setHasPassword(data?.has_password ?? false);
         });
     });
   }, []);
@@ -80,12 +76,19 @@ export default function SettingsPage() {
 
     setSavingPassword(true);
     const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
     setSavingPassword(false);
 
     if (error) {
       setPasswordError(error.message);
       return;
+    }
+
+    if (data.user) {
+      // Supabase ne crée pas d'identity "email" distincte quand on ajoute
+      // juste un mot de passe à un compte Google : on garde nous-mêmes la
+      // trace pour savoir quel libellé afficher la prochaine fois.
+      await supabase.from("profiles").update({ has_password: true }).eq("id", data.user.id);
     }
 
     setHasPassword(true);
