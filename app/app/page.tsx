@@ -656,6 +656,16 @@ export default function Home() {
       // d'onglet ne sera pas possible dans ce cas.
     }
 
+    // Le mur de paiement n'arrive qu'ici, au moment de générer la fiche
+    // (pas avant, pour laisser essayer la transcription gratuitement) : la
+    // transcription reste sauvegardée (voir plus haut), donc rien n'est
+    // perdu, et le bandeau de récupération sur /app la proposera après
+    // qu'il ait choisi un forfait.
+    if (usage?.plan === "free") {
+      router.push("/pricing?from=transcription");
+      return;
+    }
+
     await generateFiche(transcript, sessionDurationRef.current);
   };
 
@@ -884,7 +894,10 @@ export default function Home() {
               onClick={() => {
                 if (status === "recording") {
                   stopRecording();
-                } else if (usage && (usage.quotaSeconds === null || usage.quotaSeconds > 0)) {
+                } else {
+                  // Tout le monde peut transcrire gratuitement, même sans
+                  // forfait : le mur de paiement n'arrive qu'au moment de
+                  // générer la fiche (voir stopRecording), pas avant.
                   if (needsChromeHint) {
                     setShowStartTip(true);
                     // Sur iPad, l'astuce se masque après 3 min pour ne pas
@@ -897,11 +910,6 @@ export default function Home() {
                     }
                   }
                   startRecording();
-                } else {
-                  // Pas de forfait confirmé (ou infos pas encore chargées) :
-                  // on envoie vers les tarifs plutôt que de risquer de
-                  // laisser démarrer un enregistrement sans quota.
-                  router.push("/pricing");
                 }
               }}
               disabled={status === "generating"}

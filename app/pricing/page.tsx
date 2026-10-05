@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -122,6 +122,16 @@ export default function PricingPage() {
   const router = useRouter();
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [fromTranscription, setFromTranscription] = useState(false);
+
+  useEffect(() => {
+    // Lu via window.location plutôt que useSearchParams() pour ne pas avoir
+    // besoin d'un Suspense boundary : purement cosmétique, pas critique au
+    // premier rendu.
+    setFromTranscription(
+      new URLSearchParams(window.location.search).get("from") === "transcription",
+    );
+  }, []);
 
   const handleUpgrade = async (plan: PlanKey) => {
     setErrorMessage("");
@@ -187,6 +197,12 @@ export default function PricingPage() {
       <p className="mb-10 text-center text-[#8b97b0]">
         Sans engagement, résiliable à tout moment.
       </p>
+
+      {fromTranscription && (
+        <p className="mb-6 rounded-md border border-[#2563eb]/40 bg-[#2563eb]/10 px-3 py-2 text-center text-sm text-[#7dd3fc]">
+          Ton cours est bien enregistré — choisis un forfait pour générer ta fiche, rien n&apos;est perdu.
+        </p>
+      )}
 
       {errorMessage && (
         <p className="mb-6 rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-sm text-red-200">
