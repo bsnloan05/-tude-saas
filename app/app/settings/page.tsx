@@ -257,7 +257,7 @@ export default function SettingsPage() {
             </div>
             <button
               onClick={handleLogout}
-              className="rounded-full border border-[#2a3552] px-4 py-2 text-sm font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
+              className="rounded-full border border-red-900/50 px-4 py-2 text-sm font-medium text-red-300 transition-colors transition-transform duration-150 hover:bg-red-950/50 active:scale-95"
             >
               Se déconnecter
             </button>
