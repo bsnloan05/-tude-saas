@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import SocialStatsPanel from "./SocialStatsPanel";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -42,6 +43,41 @@ function startOfMonthParis(): string {
   shifted.setUTCDate(1);
   shifted.setUTCHours(0, 0, 0, 0);
   return new Date(shifted.getTime() - offsetMin * 60000).toISOString();
+}
+
+// "en-CA" donne directement un format YYYY-MM-DD, pratique pour regrouper
+// les ventes Stripe par jour en heure de Paris (pas en UTC).
+function parisDateKey(date: Date): string {
+  return date.toLocaleDateString("en-CA", { timeZone: "Europe/Paris" });
+}
+
+// Nombre de ventes par jour : une "vente" = une session Stripe Checkout
+// payée (abonnement ou paiement unique confondus), regroupée par jour réel
+// (heure de Paris). Limité aux 100 dernières sessions, largement suffisant
+// au volume actuel.
+async function getDailySales(): Promise<{
+  today: number;
+  days: { date: string; count: number }[];
+}> {
+  const sessions = await stripe.checkout.sessions.list({ limit: 100 });
+  const paid = sessions.data.filter((s) => s.payment_status === "paid");
+
+  const dayCounts = new Map<string, number>();
+  for (const session of paid) {
+    const key = parisDateKey(new Date(session.created * 1000));
+    dayCounts.set(key, (dayCounts.get(key) ?? 0) + 1);
+  }
+
+  const days: { date: string; count: number }[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() - i);
+    const key = parisDateKey(d);
+    days.push({ date: key, count: dayCounts.get(key) ?? 0 });
+  }
+
+  const todayKey = parisDateKey(new Date());
+  return { today: dayCounts.get(todayKey) ?? 0, days };
 }
 
 // Revenu récurrent mensuel réel : lit les abonnements actifs directement
@@ -102,6 +138,7 @@ export default async function AdminPage() {
     { count: fichesToday },
     mrrCents,
     lifetimeRevenueCents,
+    dailySales,
   ] = await Promise.all([
     admin.from("profiles").select("plan, created_at"),
     admin.from("fiches").select("*", { count: "exact", head: true }),
@@ -111,6 +148,7 @@ export default async function AdminPage() {
       .gte("created_at", startOfDayParis()),
     getRealMrrCents(),
     getRealLifetimeRevenueCents(),
+    getDailySales(),
   ]);
 
   const rows = profiles ?? [];
@@ -210,6 +248,40 @@ export default async function AdminPage() {
             </div>
           </div>
         </div>
+
+        <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
+          <h2 className="mb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
+            Ventes par jour (Stripe)
+          </h2>
+          <p className="mb-4 text-2xl font-bold text-[#e7ecf5]">
+            {dailySales.today}{" "}
+            <span className="text-xs font-normal text-[#8b97b0]">aujourd&apos;hui</span>
+          </p>
+          <div className="flex items-end gap-1.5">
+            {dailySales.days.map((d) => {
+              const max = Math.max(1, ...dailySales.days.map((x) => x.count));
+              const heightPercent = (d.count / max) * 100;
+              const label = new Date(`${d.date}T12:00:00`).toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+              });
+              return (
+                <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
+                  <div className="flex h-16 w-full items-end">
+                    <div
+                      className="w-full rounded-sm bg-[#38bdf8]"
+                      style={{ height: `${Math.max(heightPercent, d.count > 0 ? 8 : 2)}%` }}
+                      title={`${label} : ${d.count} vente(s)`}
+                    />
+                  </div>
+                  <span className="text-[9px] text-[#6b7690]">{label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <SocialStatsPanel />
 
         <p className="mt-6 text-xs text-[#6b7690]">
           Revenus lus en direct sur Stripe (abonnements actifs + paiements
