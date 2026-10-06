@@ -51,6 +51,11 @@ function parisDateKey(date: Date): string {
   return date.toLocaleDateString("en-CA", { timeZone: "Europe/Paris" });
 }
 
+// Première vente connue : le graphique part de ce jour-là plutôt que de
+// glisser sur une fenêtre de X jours, pour toujours voir tout l'historique
+// depuis le début.
+const SALES_START_DATE = "2025-09-23";
+
 // Nombre de ventes par jour : une "vente" = une session Stripe Checkout
 // payée (abonnement ou paiement unique confondus), regroupée par jour réel
 // (heure de Paris). Limité aux 100 dernières sessions, largement suffisant
@@ -68,15 +73,16 @@ async function getDailySales(): Promise<{
     dayCounts.set(key, (dayCounts.get(key) ?? 0) + 1);
   }
 
+  const todayKey = parisDateKey(new Date());
   const days: { date: string; count: number }[] = [];
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date();
-    d.setUTCDate(d.getUTCDate() - i);
-    const key = parisDateKey(d);
+  const cursor = new Date(`${SALES_START_DATE}T12:00:00Z`);
+  const end = new Date(`${todayKey}T12:00:00Z`);
+  while (cursor.getTime() <= end.getTime()) {
+    const key = parisDateKey(cursor);
     days.push({ date: key, count: dayCounts.get(key) ?? 0 });
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
 
-  const todayKey = parisDateKey(new Date());
   return { today: dayCounts.get(todayKey) ?? 0, days };
 }
 
