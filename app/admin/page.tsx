@@ -69,7 +69,7 @@ async function getDailySales(): Promise<{
   }
 
   const days: { date: string; count: number }[] = [];
-  for (let i = 13; i >= 0; i--) {
+  for (let i = 29; i >= 0; i--) {
     const d = new Date();
     d.setUTCDate(d.getUTCDate() - i);
     const key = parisDateKey(d);
