@@ -103,27 +103,54 @@ export default function SocialStatsPanel() {
       </form>
 
       {stats.length > 0 && (
-        <div className="flex flex-col gap-2">
-          {stats.map((row) => (
-            <div
-              key={row.date}
-              className="flex items-center justify-between border-b border-[#232d45] pb-1.5 text-sm last:border-0"
-            >
-              <span className="text-[#8b97b0]">
-                {new Date(`${row.date}T12:00:00`).toLocaleDateString("fr-FR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                })}
-              </span>
-              <span className="text-[#c3cbdc]">
-                Insta : <strong className="text-[#e7ecf5]">{row.instagram_views}</strong>
-              </span>
-              <span className="text-[#c3cbdc]">
-                TikTok : <strong className="text-[#e7ecf5]">{row.tiktok_views}</strong>
-              </span>
-            </div>
-          ))}
-        </div>
+        <>
+          {(() => {
+            const totalInstagram = stats.reduce((sum, r) => sum + r.instagram_views, 0);
+            const totalTiktok = stats.reduce((sum, r) => sum + r.tiktok_views, 0);
+            const totalCombined = totalInstagram + totalTiktok;
+            return (
+              <div className="mb-4 grid grid-cols-3 gap-3">
+                <div className="rounded-md border border-[#232d45] bg-[#0b1120] p-3">
+                  <p className="text-xs text-[#8b97b0]">Total Instagram</p>
+                  <p className="mt-1 text-lg font-bold text-[#e7ecf5]">{totalInstagram}</p>
+                </div>
+                <div className="rounded-md border border-[#232d45] bg-[#0b1120] p-3">
+                  <p className="text-xs text-[#8b97b0]">Total TikTok</p>
+                  <p className="mt-1 text-lg font-bold text-[#e7ecf5]">{totalTiktok}</p>
+                </div>
+                <div className="rounded-md border border-[#2563eb]/40 bg-[#2563eb]/10 p-3">
+                  <p className="text-xs text-[#7dd3fc]">Total combiné</p>
+                  <p className="mt-1 text-lg font-bold text-[#e7ecf5]">{totalCombined}</p>
+                </div>
+              </div>
+            );
+          })()}
+
+          <div className="flex flex-col gap-2">
+            {stats.map((row) => (
+              <div
+                key={row.date}
+                className="flex items-center justify-between border-b border-[#232d45] pb-1.5 text-sm last:border-0"
+              >
+                <span className="text-[#8b97b0]">
+                  {new Date(`${row.date}T12:00:00`).toLocaleDateString("fr-FR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  })}
+                </span>
+                <span className="text-[#c3cbdc]">
+                  Insta : <strong className="text-[#e7ecf5]">{row.instagram_views}</strong>
+                </span>
+                <span className="text-[#c3cbdc]">
+                  TikTok : <strong className="text-[#e7ecf5]">{row.tiktok_views}</strong>
+                </span>
+                <span className="text-[#7dd3fc]">
+                  Total : <strong>{row.instagram_views + row.tiktok_views}</strong>
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
