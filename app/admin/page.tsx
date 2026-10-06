@@ -1,5 +1,8 @@
+import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 // Seul le propriétaire du SaaS voit ce tableau de bord : pas de système de
 // rôles complexe nécessaire pour un produit avec un seul administrateur.
@@ -13,30 +16,68 @@ const PLAN_LABELS: Record<string, string> = {
   lifetime: "À vie",
 };
 
-// Prix mensuels normalisés pour l'estimation du revenu récurrent (le
-// forfait Pro est facturé tous les 3 mois, donc divisé par 3 ici).
-const MONTHLY_PRICE: Partial<Record<string, number>> = {
-  standard: 11.99,
-  premium: 0, // forfait legacy, plus vendu, exclu du calcul de revenu
-  trimestriel: 29.99 / 3,
-};
-const LIFETIME_PRICE = 59.99;
+// Le serveur (Vercel) tourne en UTC, mais "aujourd'hui" doit correspondre à
+// la journée en heure de Paris, pas à la journée UTC (qui ne change pas à
+// minuit heure française) — sinon le compteur du jour inclut encore une
+// bonne partie de la veille après minuit (ou l'inverse selon l'heure).
+function parisOffsetMinutes(date: Date): number {
+  const utc = new Date(date.toLocaleString("en-US", { timeZone: "UTC" }));
+  const paris = new Date(date.toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+  return (paris.getTime() - utc.getTime()) / 60000;
+}
 
-function startOfDay(): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
+function startOfDayParis(daysAgo = 0): string {
+  const now = new Date();
+  const offsetMin = parisOffsetMinutes(now);
+  const shifted = new Date(now.getTime() + offsetMin * 60000);
+  shifted.setUTCDate(shifted.getUTCDate() - daysAgo);
+  shifted.setUTCHours(0, 0, 0, 0);
+  return new Date(shifted.getTime() - offsetMin * 60000).toISOString();
 }
-function startOfWeek(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 7);
-  return d.toISOString();
+
+function startOfMonthParis(): string {
+  const now = new Date();
+  const offsetMin = parisOffsetMinutes(now);
+  const shifted = new Date(now.getTime() + offsetMin * 60000);
+  shifted.setUTCDate(1);
+  shifted.setUTCHours(0, 0, 0, 0);
+  return new Date(shifted.getTime() - offsetMin * 60000).toISOString();
 }
-function startOfMonth(): string {
-  const d = new Date();
-  d.setDate(1);
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
+
+// Revenu récurrent mensuel réel : lit les abonnements actifs directement
+// sur Stripe (vrai prix payé par chaque client, pas une estimation basée
+// sur le prix affiché aujourd'hui) et normalise tout en équivalent mensuel.
+async function getRealMrrCents(): Promise<number> {
+  const subscriptions = await stripe.subscriptions.list({
+    status: "active",
+    limit: 100,
+  });
+
+  let mrrCents = 0;
+  for (const sub of subscriptions.data) {
+    for (const item of sub.items.data) {
+      const amount = item.price.unit_amount ?? 0;
+      const quantity = item.quantity ?? 1;
+      const interval = item.price.recurring?.interval;
+      const intervalCount = item.price.recurring?.interval_count ?? 1;
+      const total = amount * quantity;
+
+      if (interval === "month") mrrCents += total / intervalCount;
+      else if (interval === "year") mrrCents += total / (intervalCount * 12);
+      else if (interval === "week") mrrCents += (total * 52) / (12 * intervalCount);
+      else if (interval === "day") mrrCents += (total * 365) / (12 * intervalCount);
+    }
+  }
+  return mrrCents;
+}
+
+// Revenu à vie réel : somme des paiements uniques (mode "payment", pas
+// abonnement) réussis sur Stripe.
+async function getRealLifetimeRevenueCents(): Promise<number> {
+  const paymentIntents = await stripe.paymentIntents.list({ limit: 100 });
+  return paymentIntents.data
+    .filter((pi) => pi.status === "succeeded")
+    .reduce((sum, pi) => sum + pi.amount_received, 0);
 }
 
 export default async function AdminPage() {
@@ -55,15 +96,22 @@ export default async function AdminPage() {
 
   const admin = createAdminClient();
 
-  const [{ data: profiles }, { count: fichesTotal }, { count: fichesToday }] =
-    await Promise.all([
-      admin.from("profiles").select("plan, created_at"),
-      admin.from("fiches").select("*", { count: "exact", head: true }),
-      admin
-        .from("fiches")
-        .select("*", { count: "exact", head: true })
-        .gte("created_at", startOfDay()),
-    ]);
+  const [
+    { data: profiles },
+    { count: fichesTotal },
+    { count: fichesToday },
+    mrrCents,
+    lifetimeRevenueCents,
+  ] = await Promise.all([
+    admin.from("profiles").select("plan, created_at"),
+    admin.from("fiches").select("*", { count: "exact", head: true }),
+    admin
+      .from("fiches")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", startOfDayParis()),
+    getRealMrrCents(),
+    getRealLifetimeRevenueCents(),
+  ]);
 
   const rows = profiles ?? [];
   const totalSignups = rows.length;
@@ -74,19 +122,20 @@ export default async function AdminPage() {
     planCounts.set(plan, (planCounts.get(plan) ?? 0) + 1);
   }
 
-  const signupsToday = rows.filter((r) => r.created_at >= startOfDay()).length;
-  const signupsWeek = rows.filter((r) => r.created_at >= startOfWeek()).length;
-  const signupsMonth = rows.filter((r) => r.created_at >= startOfMonth()).length;
+  const todayStart = startOfDayParis();
+  const weekStart = startOfDayParis(7);
+  const monthStart = startOfMonthParis();
+
+  const signupsToday = rows.filter((r) => r.created_at >= todayStart).length;
+  const signupsWeek = rows.filter((r) => r.created_at >= weekStart).length;
+  const signupsMonth = rows.filter((r) => r.created_at >= monthStart).length;
 
   const payingPlans = ["standard", "premium", "trimestriel", "lifetime"];
   const payingCount = payingPlans.reduce((sum, p) => sum + (planCounts.get(p) ?? 0), 0);
   const conversionRate = totalSignups > 0 ? (payingCount / totalSignups) * 100 : 0;
 
-  const mrr = Object.entries(MONTHLY_PRICE).reduce(
-    (sum, [plan, price]) => sum + (planCounts.get(plan) ?? 0) * (price ?? 0),
-    0,
-  );
-  const lifetimeRevenue = (planCounts.get("lifetime") ?? 0) * LIFETIME_PRICE;
+  const mrr = mrrCents / 100;
+  const lifetimeRevenue = lifetimeRevenueCents / 100;
 
   const planOrder = ["free", "standard", "trimestriel", "lifetime", "premium"];
 
@@ -103,7 +152,7 @@ export default async function AdminPage() {
             value={`${conversionRate.toFixed(2)}%`}
           />
           <StatCard
-            label="Revenu récurrent / mois"
+            label="Revenu récurrent / mois (Stripe)"
             value={`${mrr.toFixed(2)}€`}
           />
         </div>
@@ -112,7 +161,10 @@ export default async function AdminPage() {
           <StatCard label="Inscriptions aujourd'hui" value={signupsToday.toString()} />
           <StatCard label="Inscriptions cette semaine" value={signupsWeek.toString()} />
           <StatCard label="Inscriptions ce mois-ci" value={signupsMonth.toString()} />
-          <StatCard label="Revenu à vie encaissé" value={`${lifetimeRevenue.toFixed(2)}€`} />
+          <StatCard
+            label="Revenu à vie encaissé (Stripe)"
+            value={`${lifetimeRevenue.toFixed(2)}€`}
+          />
         </div>
 
         <div className="mt-8 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
@@ -160,9 +212,11 @@ export default async function AdminPage() {
         </div>
 
         <p className="mt-6 text-xs text-[#6b7690]">
-          Le taux de désabonnement (churn) n&apos;est pas encore suivi dans le
-          temps — seul le forfait actuel de chaque compte est connu, pas son
-          historique.
+          Revenus lus en direct sur Stripe (abonnements actifs + paiements
+          uniques réussis) — limité aux 100 premiers éléments de chaque liste,
+          largement suffisant au volume actuel. Le taux de désabonnement
+          (churn) n&apos;est pas encore suivi dans le temps — seul le forfait
+          actuel de chaque compte est connu, pas son historique.
         </p>
       </div>
     </div>
