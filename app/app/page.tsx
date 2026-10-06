@@ -68,6 +68,7 @@ export default function Home() {
   const [status, setStatus] = useState<Status>("idle");
   const [liveTranscript, setLiveTranscript] = useState("");
   const [notes, setNotes] = useState("");
+  const [showFreePreview, setShowFreePreview] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isQuotaError, setIsQuotaError] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
@@ -422,6 +423,7 @@ export default function Home() {
     if (!recognitionRef.current) return;
     setErrorMessage("");
     setIsQuotaError(false);
+    setShowFreePreview(false);
 
     // Empêche deux enregistrements simultanés sur le même compte (partage de
     // compte entre plusieurs personnes en même temps).
@@ -491,6 +493,7 @@ export default function Home() {
 
   const generateFiche = async (transcript: string, durationSeconds: number) => {
     setStatus("generating");
+    setShowFreePreview(false);
     setIsQuotaError(false);
     try {
       const response = await fetch("/api/generate-notes", {
@@ -520,13 +523,20 @@ export default function Home() {
 
   // Mur de paiement commun à tous les points d'entrée qui génèrent une
   // fiche à partir d'une transcription déjà enregistrée (arrêt normal,
-  // récupération après crash/fermeture) : un compte gratuit est renvoyé
-  // vers les tarifs plutôt que d'atteindre l'API et se heurter au quota
-  // serveur (qui donnerait un message de quota technique, pas un vrai mur
-  // de paiement).
+  // récupération après crash/fermeture) : un compte gratuit voit un faux
+  // aperçu flouté (aucun appel IA, donc aucun coût) avec un bouton qui
+  // l'envoie vers les tarifs au clic, plutôt que d'atteindre l'API et se
+  // heurter au quota serveur (qui donnerait un message de quota technique,
+  // pas un vrai mur de paiement).
   const generateFicheOrPaywall = (transcript: string, durationSeconds: number) => {
     if (usage?.plan === "free") {
-      router.push("/pricing?from=transcription");
+      // Court passage par "generating" avant l'aperçu flouté, pour que ça ne
+      // s'affiche pas de façon instantanée et artificielle.
+      setStatus("generating");
+      setTimeout(() => {
+        setShowFreePreview(true);
+        setStatus("done");
+      }, 1500);
       return;
     }
     generateFiche(transcript, durationSeconds);
@@ -1138,7 +1148,38 @@ export default function Home() {
           </div>
         )}
 
-        {status === "done" && (
+        {status === "done" && showFreePreview && (
+          <div className="fiche-enter relative w-full overflow-hidden rounded-lg border border-[#232d45] bg-[#141b2e] p-5 shadow-sm">
+            <div aria-hidden className="pointer-events-none blur-sm select-none">
+              <div className="mb-5 h-5 w-2/3 rounded bg-[#232d45]" />
+              <div className="mb-6 rounded-r-lg border-l-4 border-[#38bdf8] bg-[#38bdf8]/10 py-2.5 pr-3 pl-4">
+                <div className="mb-1.5 h-3 w-1/4 rounded bg-[#38bdf8]/30" />
+                <div className="h-3 w-5/6 rounded bg-[#38bdf8]/20" />
+              </div>
+              <div className="mb-3 h-4 w-1/3 rounded bg-[#232d45]" />
+              <div className="mb-2 h-3 w-full rounded bg-[#1b2440]" />
+              <div className="mb-2 h-3 w-11/12 rounded bg-[#1b2440]" />
+              <div className="mb-5 h-3 w-4/5 rounded bg-[#1b2440]" />
+              <div className="mb-3 h-4 w-2/5 rounded bg-[#232d45]" />
+              <div className="mb-2 h-3 w-full rounded bg-[#1b2440]" />
+              <div className="h-3 w-3/4 rounded bg-[#1b2440]" />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-[#0b1120]/50">
+              <button
+                onClick={() => router.push("/pricing?from=transcription")}
+                className="flex items-center gap-2 rounded-full bg-[#2563eb] px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                  <rect x="4" y="11" width="16" height="9" rx="2" />
+                  <path d="M8 11V7a4 4 0 118 0v4" strokeLinecap="round" />
+                </svg>
+                Accéder à la fiche
+              </button>
+            </div>
+          </div>
+        )}
+
+        {status === "done" && !showFreePreview && (
           <div className="fiche-enter w-full rounded-lg border border-[#232d45] bg-[#141b2e] p-5 shadow-sm">
             <div className="mb-5 flex flex-col gap-3 border-b border-[#232d45] px-2 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <span className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
