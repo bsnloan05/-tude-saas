@@ -1263,8 +1263,8 @@ export default function Home() {
               />
             </svg>
             <p className="mb-6 text-base font-medium text-amber-200">
-              Si la transcription rencontre des problèmes, passe sur Google
-              Chrome.
+              Si la transcription rencontre des problèmes, nous te conseillons
+              Google Chrome pour une meilleure transcription.
             </p>
             <button
               onClick={confirmChromeWarningAndStart}
