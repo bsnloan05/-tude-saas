@@ -43,17 +43,22 @@ function LoginForm() {
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
         setErrorMessage(translateAuthError(error.message));
-      } else {
-        if (data.user) {
-          await supabase
-            .from("profiles")
-            .update({ has_password: true })
-            .eq("id", data.user.id);
+      } else if (data.user) {
+        await supabase
+          .from("profiles")
+          .update({ has_password: true })
+          .eq("id", data.user.id);
+
+        if (data.session) {
+          // Confirmation par email désactivée : le compte est déjà actif,
+          // on connecte directement plutôt que de renvoyer vers un message
+          // qui parlerait d'un email de confirmation qui n'existe pas.
+          router.push("/app");
+          router.refresh();
+        } else {
+          setInfoMessage("Compte créé. Vérifie ta boîte mail pour confirmer ton adresse.");
+          setMode("signin");
         }
-        setInfoMessage(
-          "Compte créé. Vérifie ta boîte mail si une confirmation est demandée, sinon tu peux te connecter directement.",
-        );
-        setMode("signin");
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({
