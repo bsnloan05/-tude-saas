@@ -518,6 +518,20 @@ export default function Home() {
     }
   };
 
+  // Mur de paiement commun à tous les points d'entrée qui génèrent une
+  // fiche à partir d'une transcription déjà enregistrée (arrêt normal,
+  // récupération après crash/fermeture) : un compte gratuit est renvoyé
+  // vers les tarifs plutôt que d'atteindre l'API et se heurter au quota
+  // serveur (qui donnerait un message de quota technique, pas un vrai mur
+  // de paiement).
+  const generateFicheOrPaywall = (transcript: string, durationSeconds: number) => {
+    if (usage?.plan === "free") {
+      router.push("/pricing?from=transcription");
+      return;
+    }
+    generateFiche(transcript, durationSeconds);
+  };
+
   const importAudio = async (file: File) => {
     setStatus("generating");
     setIsQuotaError(false);
@@ -661,12 +675,7 @@ export default function Home() {
     // transcription reste sauvegardée (voir plus haut), donc rien n'est
     // perdu, et le bandeau de récupération sur /app la proposera après
     // qu'il ait choisi un forfait.
-    if (usage?.plan === "free") {
-      router.push("/pricing?from=transcription");
-      return;
-    }
-
-    await generateFiche(transcript, sessionDurationRef.current);
+    generateFicheOrPaywall(transcript, sessionDurationRef.current);
   };
 
   // On génère un PDF via une page toute neuve, indépendante, déjà stylée en
@@ -862,7 +871,7 @@ export default function Home() {
                   // On garde la sauvegarde : si cette tentative échoue aussi
                   // (pic de trafic) et que l'onglet est fermé, le texte reste
                   // récupérable. generateFiche l'efface lui-même en cas de succès.
-                  generateFiche(backup.transcript, durationSeconds);
+                  generateFicheOrPaywall(backup.transcript, durationSeconds);
                 }}
                 className="rounded-full bg-[#2563eb] px-4 py-1.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
               >
