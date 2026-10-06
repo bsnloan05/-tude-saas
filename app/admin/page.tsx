@@ -54,7 +54,7 @@ function parisDateKey(date: Date): string {
 // Première vente connue : le graphique part de ce jour-là plutôt que de
 // glisser sur une fenêtre de X jours, pour toujours voir tout l'historique
 // depuis le début.
-const SALES_START_DATE = "2025-09-23";
+const SALES_START_DATE = "2026-09-23";
 
 // Nombre de ventes par jour : une "vente" = une session Stripe Checkout
 // payée (abonnement ou paiement unique confondus), regroupée par jour réel
@@ -263,28 +263,32 @@ export default async function AdminPage() {
             {dailySales.today}{" "}
             <span className="text-xs font-normal text-[#8b97b0]">aujourd&apos;hui</span>
           </p>
-          <div className="flex items-end gap-1.5">
-            {dailySales.days.map((d) => {
-              const max = Math.max(1, ...dailySales.days.map((x) => x.count));
-              const heightPercent = (d.count / max) * 100;
-              const label = new Date(`${d.date}T12:00:00`).toLocaleDateString("fr-FR", {
-                day: "2-digit",
-                month: "2-digit",
-              });
-              return (
-                <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
-                  <div className="flex h-16 w-full items-end">
-                    <div
-                      className="w-full rounded-sm bg-[#38bdf8]"
-                      style={{ height: `${Math.max(heightPercent, d.count > 0 ? 8 : 2)}%` }}
-                      title={`${label} : ${d.count} vente(s)`}
-                    />
-                  </div>
-                  <span className="text-[9px] text-[#6b7690]">{label}</span>
-                </div>
-              );
-            })}
-          </div>
+          {(() => {
+            const max = Math.max(1, ...dailySales.days.map((x) => x.count));
+            return (
+              <div className="flex items-end gap-1.5 overflow-x-auto pb-1">
+                {dailySales.days.map((d) => {
+                  const heightPercent = (d.count / max) * 100;
+                  const label = new Date(`${d.date}T12:00:00`).toLocaleDateString("fr-FR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  });
+                  return (
+                    <div key={d.date} className="flex w-6 flex-shrink-0 flex-col items-center gap-1">
+                      <div className="flex h-16 w-full items-end">
+                        <div
+                          className="w-full rounded-sm bg-[#38bdf8]"
+                          style={{ height: `${Math.max(heightPercent, d.count > 0 ? 8 : 2)}%` }}
+                          title={`${label} : ${d.count} vente(s)`}
+                        />
+                      </div>
+                      <span className="text-[9px] text-[#6b7690]">{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
         <SocialStatsPanel />
