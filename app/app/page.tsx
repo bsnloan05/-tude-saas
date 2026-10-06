@@ -92,6 +92,7 @@ export default function Home() {
   const lastActivityRef = useRef<number>(Date.now());
   const [micSilent, setMicSilent] = useState(false);
   const [showStartTip, setShowStartTip] = useState(false);
+  const [showChromeModal, setShowChromeModal] = useState(false);
   const [needsChromeHint, setNeedsChromeHint] = useState(false);
   const isIPadRef = useRef(false);
   const chromeTipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -418,6 +419,22 @@ export default function Home() {
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
+
+  // Appelé depuis la pop-up d'avertissement navigateur une fois confirmée :
+  // relance exactement le même comportement qu'un clic direct sur Démarrer.
+  const confirmChromeWarningAndStart = () => {
+    setShowChromeModal(false);
+    setShowStartTip(true);
+    // Sur iPad, l'astuce se masque après 3 min pour ne pas gêner un long
+    // cours ; sur Mac/Windows/Android elle reste affichée sans limite,
+    // jusqu'à l'arrêt.
+    if (isIPadRef.current) {
+      chromeTipTimeoutRef.current = setTimeout(() => {
+        setShowStartTip(false);
+      }, 3 * 60 * 1000);
+    }
+    startRecording();
+  };
 
   const startRecording = async () => {
     if (!recognitionRef.current) return;
@@ -913,21 +930,14 @@ export default function Home() {
               onClick={() => {
                 if (status === "recording") {
                   stopRecording();
+                } else if (needsChromeHint) {
+                  // Bloque le démarrage tant que l'avertissement navigateur
+                  // n'est pas confirmé (voir la pop-up plus bas).
+                  setShowChromeModal(true);
                 } else {
                   // Tout le monde peut transcrire gratuitement, même sans
                   // forfait : le mur de paiement n'arrive qu'au moment de
                   // générer la fiche (voir stopRecording), pas avant.
-                  if (needsChromeHint) {
-                    setShowStartTip(true);
-                    // Sur iPad, l'astuce se masque après 3 min pour ne pas
-                    // gêner un long cours ; sur Mac/Windows/Android elle
-                    // reste affichée sans limite, jusqu'à l'arrêt.
-                    if (isIPadRef.current) {
-                      chromeTipTimeoutRef.current = setTimeout(() => {
-                        setShowStartTip(false);
-                      }, 3 * 60 * 1000);
-                    }
-                  }
                   startRecording();
                 }
               }}
@@ -1240,6 +1250,31 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {showChromeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1120]/70 px-4">
+          <div className="w-full max-w-sm rounded-lg border border-amber-900/50 bg-[#141b2e] p-6 text-center shadow-lg">
+            <svg viewBox="0 0 24 24" className="mx-auto mb-3 h-8 w-8 text-amber-300" fill="currentColor">
+              <circle cx="12" cy="12" r="4" />
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 016.93 4H12a4 4 0 00-3.46 2L5.07 6.34A7.96 7.96 0 0112 4zM4 12c0-1.17.28-2.27.78-3.25l3.47 6.01A4 4 0 0012 16l-3.46 5.98A8 8 0 014 12zm8 8a7.96 7.96 0 01-2.78-.5l3.47-6.01A4 4 0 0016 10h4.22A8 8 0 0112 20z"
+              />
+            </svg>
+            <p className="mb-5 text-sm font-medium text-amber-200">
+              Attention, nous te conseillons d&apos;utiliser Google Chrome pour une
+              meilleure transcription.
+            </p>
+            <button
+              onClick={confirmChromeWarningAndStart}
+              className="rounded-full bg-[#2563eb] px-5 py-2.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+            >
+              Continuer
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
