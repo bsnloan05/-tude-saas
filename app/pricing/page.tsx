@@ -260,7 +260,9 @@ export default function PricingPage() {
                       <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     {feature.text === "Transcription vocale en direct" ? (
-                      <strong className="font-extrabold text-[#e7ecf5]">{feature.text}</strong>
+                      <strong className="font-black text-white underline decoration-2 underline-offset-2">
+                        {feature.text}
+                      </strong>
                     ) : (
                       feature.text
                     )}
