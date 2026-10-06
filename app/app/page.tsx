@@ -1253,8 +1253,8 @@ export default function Home() {
 
       {showChromeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b1120]/70 px-4">
-          <div className="w-full max-w-sm rounded-lg border border-amber-900/50 bg-[#141b2e] p-6 text-center shadow-lg">
-            <svg viewBox="0 0 24 24" className="mx-auto mb-3 h-8 w-8 text-amber-300" fill="currentColor">
+          <div className="w-full max-w-md rounded-lg border border-amber-900/50 bg-[#141b2e] p-8 text-center shadow-lg">
+            <svg viewBox="0 0 24 24" className="mx-auto mb-4 h-11 w-11 text-amber-300" fill="currentColor">
               <circle cx="12" cy="12" r="4" />
               <path
                 fillRule="evenodd"
@@ -1262,13 +1262,13 @@ export default function Home() {
                 d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 016.93 4H12a4 4 0 00-3.46 2L5.07 6.34A7.96 7.96 0 0112 4zM4 12c0-1.17.28-2.27.78-3.25l3.47 6.01A4 4 0 0012 16l-3.46 5.98A8 8 0 014 12zm8 8a7.96 7.96 0 01-2.78-.5l3.47-6.01A4 4 0 0016 10h4.22A8 8 0 0112 20z"
               />
             </svg>
-            <p className="mb-5 text-sm font-medium text-amber-200">
+            <p className="mb-6 text-base font-medium text-amber-200">
               Attention, nous te conseillons d&apos;utiliser Google Chrome pour une
               meilleure transcription.
             </p>
             <button
               onClick={confirmChromeWarningAndStart}
-              className="rounded-full bg-[#2563eb] px-5 py-2.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+              className="rounded-full bg-[#2563eb] px-6 py-3 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
             >
               Continuer
             </button>
