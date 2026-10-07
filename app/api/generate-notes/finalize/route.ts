@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getQuotaSeconds, hasImportAccess } from "@/lib/plans";
+import { startOfMonthParis } from "@/lib/parisDate";
 import {
   buildFicheFromNotesSystemPrompt,
   buildFicheFromDocumentNotesPrompt,
@@ -67,15 +68,12 @@ export async function POST(request: NextRequest) {
     }
   } else {
     const quotaSeconds = getQuotaSeconds(profile?.plan);
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
 
     const { data: sessions } = await supabase
       .from("usage_sessions")
       .select("duration_seconds")
       .eq("user_id", user.id)
-      .gte("created_at", startOfMonth.toISOString());
+      .gte("created_at", startOfMonthParis());
 
     const usedSeconds = (sessions ?? []).reduce(
       (total, session) => total + session.duration_seconds,

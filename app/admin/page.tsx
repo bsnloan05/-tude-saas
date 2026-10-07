@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { startOfDayParis, startOfMonthParis } from "@/lib/parisDate";
 import SocialStatsPanel from "./SocialStatsPanel";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -16,34 +17,6 @@ const PLAN_LABELS: Record<string, string> = {
   trimestriel: "Pro",
   lifetime: "À vie",
 };
-
-// Le serveur (Vercel) tourne en UTC, mais "aujourd'hui" doit correspondre à
-// la journée en heure de Paris, pas à la journée UTC (qui ne change pas à
-// minuit heure française) — sinon le compteur du jour inclut encore une
-// bonne partie de la veille après minuit (ou l'inverse selon l'heure).
-function parisOffsetMinutes(date: Date): number {
-  const utc = new Date(date.toLocaleString("en-US", { timeZone: "UTC" }));
-  const paris = new Date(date.toLocaleString("en-US", { timeZone: "Europe/Paris" }));
-  return (paris.getTime() - utc.getTime()) / 60000;
-}
-
-function startOfDayParis(daysAgo = 0): string {
-  const now = new Date();
-  const offsetMin = parisOffsetMinutes(now);
-  const shifted = new Date(now.getTime() + offsetMin * 60000);
-  shifted.setUTCDate(shifted.getUTCDate() - daysAgo);
-  shifted.setUTCHours(0, 0, 0, 0);
-  return new Date(shifted.getTime() - offsetMin * 60000).toISOString();
-}
-
-function startOfMonthParis(): string {
-  const now = new Date();
-  const offsetMin = parisOffsetMinutes(now);
-  const shifted = new Date(now.getTime() + offsetMin * 60000);
-  shifted.setUTCDate(1);
-  shifted.setUTCHours(0, 0, 0, 0);
-  return new Date(shifted.getTime() - offsetMin * 60000).toISOString();
-}
 
 // "en-CA" donne directement un format YYYY-MM-DD, pratique pour regrouper
 // les ventes Stripe par jour en heure de Paris (pas en UTC).
