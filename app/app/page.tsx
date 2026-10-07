@@ -76,6 +76,7 @@ export default function Home() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [highlightMode, setHighlightMode] = useState(true);
+  const [chunkProgress, setChunkProgress] = useState("");
   const [usage, setUsage] = useState<{
     usedSeconds: number;
     quotaSeconds: number | null;
@@ -523,8 +524,71 @@ export default function Home() {
     }, BACKUP_SAVE_INTERVAL_MS);
   };
 
+  // Doit correspondre à DELAY_BETWEEN_CALLS_MS dans lib/fiche-generation.ts
+  // (pause nécessaire entre deux appels Groq pour respecter sa limite de
+  // débit par minute).
+  const CHUNK_DELAY_MS = 60000;
+
+  // Pilote la génération morceau par morceau depuis le navigateur quand le
+  // serveur a répondu "needsChunking" (texte trop long pour un seul appel
+  // Groq) : une fonction Vercel du plan gratuit est limitée à 60s, bien en
+  // dessous des minutes nécessaires pour condenser plusieurs morceaux avec
+  // une pause d'une minute entre chaque. Le navigateur n'a pas cette limite,
+  // donc chaque étape est une requête HTTP séparée qu'il enchaîne lui-même.
+  const runChunkedGeneration = async (
+    chunks: string[],
+    source: "transcript" | "document",
+    requiresImportPlan: boolean,
+    durationSeconds?: number,
+  ): Promise<string> => {
+    const condensedChunks: string[] = [];
+
+    for (let i = 0; i < chunks.length; i++) {
+      if (i > 0) {
+        setChunkProgress(`Pause anti-surcharge avant la suite du cours (${i}/${chunks.length})...`);
+        await new Promise((resolve) => setTimeout(resolve, CHUNK_DELAY_MS));
+      }
+      setChunkProgress(`Traitement du cours en cours (${i + 1}/${chunks.length})...`);
+
+      const response = await fetch("/api/generate-notes/chunk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chunk: chunks[i], source }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "La génération a échoué.");
+      }
+      const data = await response.json();
+      condensedChunks.push(data.condensed ?? "");
+    }
+
+    setChunkProgress("Dernière étape : assemblage de la fiche...");
+    await new Promise((resolve) => setTimeout(resolve, CHUNK_DELAY_MS));
+
+    const finalResponse = await fetch("/api/generate-notes/finalize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ condensedChunks, source, requiresImportPlan, durationSeconds }),
+    });
+
+    setChunkProgress("");
+
+    if (!finalResponse.ok) {
+      const data = await finalResponse.json().catch(() => ({}));
+      if (data.code === "quota_exceeded" || data.code === "plan_required") {
+        setIsQuotaError(true);
+      }
+      throw new Error(data.error || "La génération a échoué.");
+    }
+
+    const finalData = await finalResponse.json();
+    return finalData.notes;
+  };
+
   const generateFiche = async (transcript: string, durationSeconds: number) => {
     setStatus("generating");
+    setChunkProgress("");
     setShowFreePreview(false);
     setIsQuotaError(false);
     try {
@@ -541,7 +605,16 @@ export default function Home() {
       }
 
       const data = await response.json();
-      setNotes(data.notes);
+      const finalNotes = data.needsChunking
+        ? await runChunkedGeneration(
+            data.chunks,
+            data.source,
+            data.requiresImportPlan,
+            data.durationSeconds,
+          )
+        : data.notes;
+
+      setNotes(finalNotes);
       setStatus("done");
       window.localStorage.removeItem(BACKUP_STORAGE_KEY);
       fetchUsage();
@@ -576,6 +649,7 @@ export default function Home() {
 
   const importAudio = async (file: File) => {
     setStatus("generating");
+    setChunkProgress("");
     setIsQuotaError(false);
     setNotes("");
     try {
@@ -611,7 +685,15 @@ export default function Home() {
       }
 
       const data = await response.json();
-      setNotes(data.notes);
+      const finalNotes = data.needsChunking
+        ? await runChunkedGeneration(
+            data.chunks,
+            data.source,
+            data.requiresImportPlan,
+          )
+        : data.notes;
+
+      setNotes(finalNotes);
       setStatus("done");
       fetchUsage();
     } catch (error) {
@@ -633,6 +715,7 @@ export default function Home() {
 
   const importPdf = async (file: File) => {
     setStatus("generating");
+    setChunkProgress("");
     setIsQuotaError(false);
     setNotes("");
     try {
@@ -650,7 +733,15 @@ export default function Home() {
       }
 
       const data = await response.json();
-      setNotes(data.notes);
+      const finalNotes = data.needsChunking
+        ? await runChunkedGeneration(
+            data.chunks,
+            data.source,
+            data.requiresImportPlan,
+          )
+        : data.notes;
+
+      setNotes(finalNotes);
       setStatus("done");
       fetchUsage();
     } catch (error) {
@@ -1086,9 +1177,8 @@ export default function Home() {
                   </span>
                 </div>
                 <p className="max-w-xs text-center text-xs text-[#8b97b0]">
-                  Pour un cours long, ça peut prendre plusieurs minutes
-                  (limite du service gratuit) — ne ferme pas cette page,
-                  même si ça semble ne rien faire.
+                  {chunkProgress ||
+                    "Pour un cours long, ça peut prendre plusieurs minutes (limite du service gratuit) — ne ferme pas cette page, même si ça semble ne rien faire."}
                 </p>
               </div>
             )}

@@ -3,11 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { getQuotaSeconds } from "@/lib/plans";
 import {
   buildFicheSystemPrompt,
-  buildFicheFromNotesSystemPrompt,
-  CONDENSE_SYSTEM_PROMPT,
-  generateFicheFromText,
+  generateSingleCallFiche,
   isGroqRateLimitError,
+  SINGLE_CALL_MAX_CHARS,
+  CHUNK_CHAR_SIZE,
+  splitIntoChunks,
 } from "@/lib/fiche-generation";
+
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   const { transcript, durationSeconds } = await request.json();
@@ -65,12 +68,27 @@ export async function POST(request: NextRequest) {
 
   const cleanTranscript = transcript.trim();
 
-  try {
-    const notes = await generateFicheFromText(cleanTranscript, {
-      singleCallSystemPrompt: buildFicheSystemPrompt(enableDiagrams),
-      condenseSystemPrompt: CONDENSE_SYSTEM_PROMPT,
-      chunkedSystemPrompt: buildFicheFromNotesSystemPrompt(enableDiagrams),
+  // Un cours assez long (au-delà d'environ 30-35 min de parole) dépasse la
+  // limite de débit Groq en un seul appel et doit être découpé, ce qui prend
+  // plusieurs minutes (pause d'une minute entre chaque morceau) — largement
+  // au-delà des 60s max d'une fonction Vercel sur le plan gratuit. On renvoie
+  // donc les morceaux au navigateur, qui pilote lui-même la suite via
+  // generate-notes/chunk puis generate-notes/finalize, sans limite de temps.
+  if (cleanTranscript.length > SINGLE_CALL_MAX_CHARS) {
+    return NextResponse.json({
+      needsChunking: true,
+      chunks: splitIntoChunks(cleanTranscript, CHUNK_CHAR_SIZE),
+      source: "transcript",
+      requiresImportPlan: false,
+      durationSeconds: sessionDuration,
     });
+  }
+
+  try {
+    const notes = await generateSingleCallFiche(
+      cleanTranscript,
+      buildFicheSystemPrompt(enableDiagrams),
+    );
 
     if (sessionDuration > 0) {
       await supabase

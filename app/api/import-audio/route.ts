@@ -4,11 +4,14 @@ import { hasImportAccess } from "@/lib/plans";
 import {
   groqClient,
   buildFicheSystemPrompt,
-  buildFicheFromNotesSystemPrompt,
-  CONDENSE_SYSTEM_PROMPT,
-  generateFicheFromText,
+  generateSingleCallFiche,
   isGroqRateLimitError,
+  SINGLE_CALL_MAX_CHARS,
+  CHUNK_CHAR_SIZE,
+  splitIntoChunks,
 } from "@/lib/fiche-generation";
+
+export const maxDuration = 60;
 
 const BUCKET = "audio-imports";
 // Limite du tier gratuit de Groq Whisper : 25 Mo par fichier (le bucket
@@ -119,12 +122,25 @@ export async function POST(request: NextRequest) {
 
     const enableDiagrams = profile?.plan === "lifetime";
 
-    try {
-      const notes = await generateFicheFromText(transcript, {
-        singleCallSystemPrompt: buildFicheSystemPrompt(enableDiagrams),
-        condenseSystemPrompt: CONDENSE_SYSTEM_PROMPT,
-        chunkedSystemPrompt: buildFicheFromNotesSystemPrompt(enableDiagrams),
+    // Un enregistrement assez long dépasse la limite de débit Groq en un
+    // seul appel et doit être découpé, ce qui prend plusieurs minutes — au-
+    // delà des 60s max d'une fonction Vercel sur le plan gratuit. Le
+    // navigateur pilote alors la suite via generate-notes/chunk puis
+    // generate-notes/finalize.
+    if (transcript.length > SINGLE_CALL_MAX_CHARS) {
+      return NextResponse.json({
+        needsChunking: true,
+        chunks: splitIntoChunks(transcript, CHUNK_CHAR_SIZE),
+        source: "transcript",
+        requiresImportPlan: true,
       });
+    }
+
+    try {
+      const notes = await generateSingleCallFiche(
+        transcript,
+        buildFicheSystemPrompt(enableDiagrams),
+      );
 
       if (notes.trim()) {
         await supabase.from("fiches").insert({ user_id: user.id, content: notes });

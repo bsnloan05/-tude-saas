@@ -4,11 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { hasImportAccess } from "@/lib/plans";
 import {
   buildFicheFromDocumentPrompt,
-  buildFicheFromDocumentNotesPrompt,
-  CONDENSE_DOCUMENT_PROMPT,
-  generateFicheFromText,
+  generateSingleCallFiche,
   isGroqRateLimitError,
+  SINGLE_CALL_MAX_CHARS,
+  CHUNK_CHAR_SIZE,
+  splitIntoChunks,
 } from "@/lib/fiche-generation";
+
+export const maxDuration = 60;
 
 // Les fonctions Vercel limitent la taille du corps de requête à ~4,5 Mo :
 // on reste en dessous pour laisser de la marge à l'encodage multipart.
@@ -82,12 +85,24 @@ export async function POST(request: NextRequest) {
 
   const enableDiagrams = profile?.plan === "lifetime";
 
-  try {
-    const notes = await generateFicheFromText(extractedText, {
-      singleCallSystemPrompt: buildFicheFromDocumentPrompt(enableDiagrams),
-      condenseSystemPrompt: CONDENSE_DOCUMENT_PROMPT,
-      chunkedSystemPrompt: buildFicheFromDocumentNotesPrompt(enableDiagrams),
+  // Un document assez long dépasse la limite de débit Groq en un seul appel
+  // et doit être découpé, ce qui prend plusieurs minutes — au-delà des 60s
+  // max d'une fonction Vercel sur le plan gratuit. Le navigateur pilote alors
+  // la suite via generate-notes/chunk puis generate-notes/finalize.
+  if (extractedText.length > SINGLE_CALL_MAX_CHARS) {
+    return NextResponse.json({
+      needsChunking: true,
+      chunks: splitIntoChunks(extractedText, CHUNK_CHAR_SIZE),
+      source: "document",
+      requiresImportPlan: true,
     });
+  }
+
+  try {
+    const notes = await generateSingleCallFiche(
+      extractedText,
+      buildFicheFromDocumentPrompt(enableDiagrams),
+    );
 
     if (notes.trim()) {
       await supabase.from("fiches").insert({ user_id: user.id, content: notes });

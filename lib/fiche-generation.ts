@@ -123,10 +123,63 @@ export interface FicheGenerationPrompts {
   chunkedSystemPrompt: string;
 }
 
+// Un seul appel Groq pour un texte assez court pour tenir dans la limite de
+// débit (voir SINGLE_CALL_MAX_CHARS) : utilisé aussi bien en appel direct
+// que comme étape finale après condensation des morceaux (voir plus bas).
+export async function generateSingleCallFiche(
+  text: string,
+  systemPrompt: string,
+): Promise<string> {
+  const response = await groqClient.chat.completions.create({
+    model: "openai/gpt-oss-120b",
+    max_tokens: maxOutputTokensFor(text, 2000, 4500),
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: text },
+    ],
+  });
+  return response.choices[0]?.message?.content ?? "";
+}
+
+// Condense un seul morceau d'un texte trop long pour tenir en un appel. Les
+// fonctions Vercel du plan gratuit sont limitées à 60s d'exécution, bien en
+// dessous des minutes nécessaires pour condenser plusieurs morceaux avec une
+// pause d'une minute entre chaque (limite de débit Groq) : chaque appel à
+// cette fonction correspond donc à une requête HTTP séparée, déclenchée par
+// le navigateur (qui n'a lui pas de limite de temps), pas enchaînée côté
+// serveur dans une seule requête.
+export async function condenseChunk(
+  chunk: string,
+  condenseSystemPrompt: string,
+): Promise<string> {
+  const response = await groqClient.chat.completions.create({
+    model: "openai/gpt-oss-120b",
+    max_tokens: maxOutputTokensFor(chunk, 1200, 1500),
+    messages: [
+      { role: "system", content: condenseSystemPrompt },
+      { role: "user", content: chunk },
+    ],
+  });
+  return response.choices[0]?.message?.content ?? "";
+}
+
+// Fusionne les morceaux déjà condensés (voir condenseChunk) en une fiche
+// finale cohérente.
+export async function finalizeFromCondensed(
+  condensedChunks: string[],
+  chunkedSystemPrompt: string,
+): Promise<string> {
+  const condensedText = condensedChunks.join("\n\n---\n\n");
+  return generateSingleCallFiche(condensedText, chunkedSystemPrompt);
+}
+
 // Logique commune de génération (appel direct si le texte est court, sinon
-// découpage + condensation + fusion), partagée entre la transcription vocale
-// et l'import de document : seuls les prompts système changent selon la
-// source du texte.
+// découpage + condensation + fusion) pour un usage server-to-server simple,
+// sans la limite de 60s d'une fonction Vercel (ex : script, tâche de fond).
+// Les routes API du produit n'appellent PAS cette fonction directement pour
+// le cas découpé : elles renvoient les morceaux au navigateur, qui pilote
+// condenseChunk/finalizeFromCondensed lui-même entre plusieurs requêtes (voir
+// generate-notes/chunk et generate-notes/finalize).
 export async function generateFicheFromText(
   text: string,
   prompts: FicheGenerationPrompts,
@@ -134,15 +187,7 @@ export async function generateFicheFromText(
   const cleanText = text.trim();
 
   if (cleanText.length <= SINGLE_CALL_MAX_CHARS) {
-    const response = await groqClient.chat.completions.create({
-      model: "openai/gpt-oss-120b",
-      max_tokens: maxOutputTokensFor(cleanText, 2000, 4500),
-      messages: [
-        { role: "system", content: prompts.singleCallSystemPrompt },
-        { role: "user", content: cleanText },
-      ],
-    });
-    return response.choices[0]?.message?.content ?? "";
+    return generateSingleCallFiche(cleanText, prompts.singleCallSystemPrompt);
   }
 
   const chunks = splitIntoChunks(cleanText, CHUNK_CHAR_SIZE);
@@ -150,32 +195,11 @@ export async function generateFicheFromText(
 
   for (let i = 0; i < chunks.length; i++) {
     if (i > 0) await sleep(DELAY_BETWEEN_CALLS_MS);
-
-    const response = await groqClient.chat.completions.create({
-      model: "openai/gpt-oss-120b",
-      max_tokens: maxOutputTokensFor(chunks[i], 1200, 1500),
-      messages: [
-        { role: "system", content: prompts.condenseSystemPrompt },
-        { role: "user", content: chunks[i] },
-      ],
-    });
-
-    condensed.push(response.choices[0]?.message?.content ?? "");
+    condensed.push(await condenseChunk(chunks[i], prompts.condenseSystemPrompt));
   }
 
   await sleep(DELAY_BETWEEN_CALLS_MS);
-
-  const condensedText = condensed.join("\n\n---\n\n");
-  const finalResponse = await groqClient.chat.completions.create({
-    model: "openai/gpt-oss-120b",
-    max_tokens: maxOutputTokensFor(condensedText, 1500, 4096),
-    messages: [
-      { role: "system", content: prompts.chunkedSystemPrompt },
-      { role: "user", content: condensedText },
-    ],
-  });
-
-  return finalResponse.choices[0]?.message?.content ?? "";
+  return finalizeFromCondensed(condensed, prompts.chunkedSystemPrompt);
 }
 
 export function isGroqRateLimitError(error: unknown): boolean {
