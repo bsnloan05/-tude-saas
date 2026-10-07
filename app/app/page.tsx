@@ -86,6 +86,7 @@ export default function Home() {
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalTranscriptRef = useRef("");
   const latestTranscriptRef = useRef("");
+  const pendingInterimRef = useRef("");
   const sessionDurationRef = useRef(0);
   const isRecordingRef = useRef(false);
   const restartIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -225,6 +226,7 @@ export default function Home() {
       // On garde aussi le texte "en cours" (pas encore confirmé) : si on
       // arrête l'enregistrement juste après avoir parlé, le tout dernier
       // passage n'est parfois pas encore finalisé, et on ne veut pas le perdre.
+      pendingInterimRef.current = interim;
       latestTranscriptRef.current = finalTranscriptRef.current + interim;
       setLiveTranscript(latestTranscriptRef.current);
       lastActivityRef.current = Date.now();
@@ -264,6 +266,18 @@ export default function Home() {
     };
 
     recognition.onend = () => {
+      // Quand le navigateur arrête l'écoute (redémarrage interne, limite de
+      // session...), tout résultat "en cours" non encore confirmé disparaît
+      // avec l'ancienne session. Sur Chrome, ces redémarrages sont fréquents
+      // (environ toutes les 60s) : sans ça, un bout de phrase capté juste
+      // avant le redémarrage s'effaçait au lieu d'être gardé.
+      if (pendingInterimRef.current) {
+        finalTranscriptRef.current += pendingInterimRef.current + " ";
+        pendingInterimRef.current = "";
+        latestTranscriptRef.current = finalTranscriptRef.current;
+        setLiveTranscript(latestTranscriptRef.current);
+      }
+
       // Le navigateur peut arrêter l'écoute tout seul (silence, limite interne,
       // redémarrage forcé pour rafraîchir la connexion...). Tant qu'on est censé
       // être en train d'enregistrer, on relance automatiquement.
@@ -461,6 +475,7 @@ export default function Home() {
 
     finalTranscriptRef.current = "";
     latestTranscriptRef.current = "";
+    pendingInterimRef.current = "";
     setLiveTranscript("");
     setNotes("");
     setCopied(false);
