@@ -179,6 +179,20 @@ export default function LandingPage() {
         </div>
       </main>
 
+      <section className="w-full max-w-3xl pb-16">
+        <ScrollFadeIn>
+          <div className="overflow-hidden rounded-lg border border-[#232d45] bg-[#141b2e] shadow-sm">
+            <video
+              src="/memoflash-demo.mp4"
+              controls
+              playsInline
+              preload="metadata"
+              className="w-full"
+            />
+          </div>
+        </ScrollFadeIn>
+      </section>
+
       <section className="w-full max-w-4xl border-t border-[#232d45] py-16">
         <h2 className="mb-10 text-center text-2xl font-bold text-[#e7ecf5]">
           Comment ça marche
