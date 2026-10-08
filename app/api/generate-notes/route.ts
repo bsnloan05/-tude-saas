@@ -41,6 +41,21 @@ export async function POST(request: NextRequest) {
   const quotaSeconds = getQuotaSeconds(profile?.plan);
   const enableDiagrams = profile?.plan === "lifetime";
 
+  // Un quota de 0 (forfait gratuit) doit bloquer dans tous les cas, même
+  // avec une durée annoncée de 0 : sinon, un appel direct à l'API (hors
+  // interface) avec "durationSeconds: 0" passerait toujours la vérification
+  // plus bas (0 + 0 n'est jamais strictement supérieur à 0) et ne serait
+  // jamais comptabilisé dans l'usage, donnant un accès gratuit illimité.
+  if (quotaSeconds === 0) {
+    return NextResponse.json(
+      {
+        error: "Génération réservée aux forfaits payants. Passe à un forfait pour continuer.",
+        code: "quota_exceeded",
+      },
+      { status: 403 },
+    );
+  }
+
   const { data: sessions } = await supabase
     .from("usage_sessions")
     .select("duration_seconds")
@@ -52,7 +67,7 @@ export async function POST(request: NextRequest) {
     0,
   );
 
-  if (quotaSeconds !== null && usedSeconds + sessionDuration > quotaSeconds) {
+  if (quotaSeconds !== null && usedSeconds + sessionDuration >= quotaSeconds) {
     const remainingMinutes = Math.max(0, Math.floor((quotaSeconds - usedSeconds) / 60));
     return NextResponse.json(
       {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getQuotaSeconds } from "@/lib/plans";
 import {
   CONDENSE_SYSTEM_PROMPT,
   CONDENSE_DOCUMENT_PROMPT,
@@ -21,6 +22,26 @@ export async function POST(request: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: "Non connecté." }, { status: 401 });
+  }
+
+  // Un compte gratuit ne peut de toute façon jamais finaliser une génération
+  // (voir generate-notes/finalize) : autant le bloquer ici aussi, pour ne
+  // pas dépenser de budget Groq sur des morceaux qui n'aboutiront jamais à
+  // une fiche si quelqu'un appelle cette route directement, hors interface.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan")
+    .eq("id", user.id)
+    .single();
+
+  if (getQuotaSeconds(profile?.plan) === 0) {
+    return NextResponse.json(
+      {
+        error: "Génération réservée aux forfaits payants. Passe à un forfait pour continuer.",
+        code: "quota_exceeded",
+      },
+      { status: 403 },
+    );
   }
 
   const { chunk, source } = await request.json();
