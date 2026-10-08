@@ -27,6 +27,10 @@ const PLANS: Array<{
   name: string;
   nameColor: string;
   price: string;
+  // Ancien prix réellement pratiqué avant la baisse (jamais un prix inventé
+  // pour l'occasion, ce serait illégal en France) : affiché barré à côté du
+  // prix actuel pour montrer la baisse.
+  oldPrice?: string;
   period: string;
   quota: string;
   features: Feature[];
@@ -38,6 +42,7 @@ const PLANS: Array<{
     name: "Standard",
     nameColor: "text-[#c3cbdc]",
     price: "11,99€",
+    oldPrice: "16,99€",
     period: "/mois",
     quota: "Usage illimité",
     features: STANDARD_FEATURES,
@@ -233,6 +238,9 @@ export default function PricingPage() {
               </span>
             </h2>
             <div className="mb-1 flex items-baseline gap-2">
+              {plan.oldPrice && (
+                <span className="text-lg text-[#6b7690] line-through">{plan.oldPrice}</span>
+              )}
               <span className="text-3xl font-bold text-[#e7ecf5]">{plan.price}</span>
               <span className="text-sm text-[#8b97b0]">{plan.period}</span>
             </div>
