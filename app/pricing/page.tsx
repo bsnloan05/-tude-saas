@@ -237,10 +237,10 @@ export default function PricingPage() {
                 {plan.name}
               </span>
             </h2>
+            {plan.oldPrice && (
+              <span className="text-xs text-[#6b7690] line-through">{plan.oldPrice}</span>
+            )}
             <div className="mb-1 flex items-baseline gap-2">
-              {plan.oldPrice && (
-                <span className="text-lg text-[#6b7690] line-through">{plan.oldPrice}</span>
-              )}
               <span className="text-3xl font-bold text-[#e7ecf5]">{plan.price}</span>
               <span className="text-sm text-[#8b97b0]">{plan.period}</span>
             </div>
