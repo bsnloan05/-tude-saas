@@ -2,6 +2,7 @@ import Link from "next/link";
 import ScrollFadeIn from "@/components/ScrollFadeIn";
 import LiveActivityBanner from "@/components/LiveActivityBanner";
 import TypewriterCycle from "@/components/TypewriterCycle";
+import LandingVideo from "@/components/LandingVideo";
 
 const STEPS = [
   {
@@ -181,15 +182,7 @@ export default function LandingPage() {
 
       <section className="w-full max-w-3xl pb-16">
         <ScrollFadeIn>
-          <div className="overflow-hidden rounded-lg border border-[#232d45] bg-[#141b2e] shadow-sm">
-            <video
-              src="/memoflash-demo.mp4"
-              controls
-              playsInline
-              preload="metadata"
-              className="w-full"
-            />
-          </div>
+          <LandingVideo />
         </ScrollFadeIn>
       </section>
 
