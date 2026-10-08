@@ -2,14 +2,10 @@
 
 import { useRef, useState } from "react";
 
-// Les navigateurs bloquent la lecture automatique avec le son : on démarre
-// donc en muet dès l'arrivée sur la page (autorisé partout), et on ne
-// propose le son qu'après un vrai clic de la personne (sur l'icône pendant
-// la lecture, ou sur "Revoir" une fois la vidéo terminée).
 export default function LandingVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ended, setEnded] = useState(false);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(false);
 
   const toggleMute = () => {
     const video = videoRef.current;
@@ -34,7 +30,6 @@ export default function LandingVideo() {
         ref={videoRef}
         src="/memoflash-demo.mp4"
         autoPlay
-        muted
         playsInline
         preload="auto"
         onEnded={() => setEnded(true)}
