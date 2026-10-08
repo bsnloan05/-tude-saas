@@ -1,11 +1,24 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function LandingVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ended, setEnded] = useState(false);
   const [muted, setMuted] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    // On tente d'abord le son : certains navigateurs l'autorisent. S'il est
+    // refusé (Safari, notamment), on relance aussitôt en muet plutôt que de
+    // ne jamais démarrer — la vidéo doit toujours se lancer toute seule.
+    video.play().catch(() => {
+      video.muted = true;
+      setMuted(true);
+      video.play().catch(() => {});
+    });
+  }, []);
 
   const toggleMute = () => {
     const video = videoRef.current;
@@ -29,7 +42,6 @@ export default function LandingVideo() {
       <video
         ref={videoRef}
         src="/memoflash-demo.mp4"
-        autoPlay
         playsInline
         preload="auto"
         onEnded={() => setEnded(true)}
