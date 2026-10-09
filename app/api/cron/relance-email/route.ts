@@ -65,13 +65,20 @@ export async function GET(request: NextRequest) {
   const supabase = createAdminClient();
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
+  // Supabase limite chaque requête à 1000 lignes par défaut : avec la
+  // croissance des inscriptions, cette liste cumulative (tous les comptes
+  // gratuits jamais relancés) pourrait finir par dépasser ce cap et faire
+  // silencieusement sauter des comptes de la relance. Marge large par
+  // prévention plutôt que d'attendre que ça se reproduise (déjà vu sur
+  // /admin avec "Comptes totaux").
   const { data: candidates, error } = await supabase
     .from("profiles")
     .select("id")
     .eq("plan", "free")
     .eq("marketing_opt_out", false)
     .is("relance_email_sent_at", null)
-    .lte("created_at", cutoff);
+    .lte("created_at", cutoff)
+    .limit(5000);
 
   if (error) {
     console.error("Erreur requête relance:", error);
