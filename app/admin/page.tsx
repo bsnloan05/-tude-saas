@@ -95,6 +95,31 @@ async function getRealLifetimeRevenueCents(): Promise<number> {
     .reduce((sum, pi) => sum + pi.amount_received, 0);
 }
 
+// Supabase limite chaque requête à 1000 lignes par défaut : au-delà de 1000
+// comptes, un simple .select() tronquait silencieusement le résultat, ce qui
+// figeait "Comptes totaux" et les compteurs d'inscriptions une fois ce cap
+// atteint. On va donc chercher toutes les pages, quelle que soit la taille.
+async function fetchAllProfiles(
+  admin: ReturnType<typeof createAdminClient>,
+): Promise<{ id: string; plan: string | null; created_at: string }[]> {
+  const pageSize = 1000;
+  const all: { id: string; plan: string | null; created_at: string }[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data } = await admin
+      .from("profiles")
+      .select("id, plan, created_at")
+      .range(from, from + pageSize - 1);
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return all;
+}
+
 export default async function AdminPage() {
   const supabase = await createClient();
   const {
@@ -112,14 +137,14 @@ export default async function AdminPage() {
   const admin = createAdminClient();
 
   const [
-    { data: profiles },
+    profiles,
     { count: fichesTotal },
     { count: fichesToday },
     mrrCents,
     lifetimeRevenueCents,
     dailySales,
   ] = await Promise.all([
-    admin.from("profiles").select("id, plan, created_at"),
+    fetchAllProfiles(admin),
     admin.from("fiches").select("*", { count: "exact", head: true }),
     admin
       .from("fiches")
@@ -133,7 +158,7 @@ export default async function AdminPage() {
   // Le compte du propriétaire (toi) peut avoir un forfait payant sans jamais
   // être passé par Stripe (accès donné manuellement) : l'exclure de toutes
   // les statistiques, sinon il se compte lui-même comme un vrai client.
-  const rows = (profiles ?? []).filter((row) => row.id !== user.id);
+  const rows = profiles.filter((row) => row.id !== user.id);
   const totalSignups = rows.length;
 
   const planCounts = new Map<string, number>();
