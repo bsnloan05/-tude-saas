@@ -119,7 +119,7 @@ export default async function AdminPage() {
     lifetimeRevenueCents,
     dailySales,
   ] = await Promise.all([
-    admin.from("profiles").select("plan, created_at"),
+    admin.from("profiles").select("id, plan, created_at"),
     admin.from("fiches").select("*", { count: "exact", head: true }),
     admin
       .from("fiches")
@@ -130,7 +130,10 @@ export default async function AdminPage() {
     getDailySales(),
   ]);
 
-  const rows = profiles ?? [];
+  // Le compte du propriétaire (toi) peut avoir un forfait payant sans jamais
+  // être passé par Stripe (accès donné manuellement) : l'exclure de toutes
+  // les statistiques, sinon il se compte lui-même comme un vrai client.
+  const rows = (profiles ?? []).filter((row) => row.id !== user.id);
   const totalSignups = rows.length;
 
   const planCounts = new Map<string, number>();
