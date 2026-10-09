@@ -29,9 +29,13 @@ export async function POST(request: NextRequest) {
   const origin = request.nextUrl.origin;
 
   // "lifetime" est un paiement unique (pas d'abonnement), "standard" reste
-  // un abonnement mensuel classique.
+  // un abonnement mensuel classique. Pour un paiement unique, Stripe ne crée
+  // pas de vrai objet "client" par défaut (seulement un paiement "orphelin"
+  // regroupé sous un badge "Invité" dans le dashboard) : "customer_creation"
+  // force sa création, pour que stripe_customer_id soit toujours renseigné.
   const session = await stripe.checkout.sessions.create({
     mode: plan === "lifetime" ? "payment" : "subscription",
+    ...(plan === "lifetime" ? { customer_creation: "always" as const } : {}),
     line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
     client_reference_id: user.id,
     customer_email: user.email,
