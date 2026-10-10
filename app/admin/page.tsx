@@ -86,13 +86,70 @@ async function getRealMrrCents(): Promise<number> {
   return mrrCents;
 }
 
-// Revenu à vie réel : somme des paiements uniques (mode "payment", pas
-// abonnement) réussis sur Stripe.
-async function getRealLifetimeRevenueCents(): Promise<number> {
+// Tous les paiements réussis sur Stripe (abonnements ET paiements uniques
+// confondus), récupérés une seule fois et réutilisés pour plusieurs
+// statistiques ci-dessous.
+async function getSucceededPaymentIntents(): Promise<Stripe.PaymentIntent[]> {
   const paymentIntents = await stripe.paymentIntents.list({ limit: 100 });
-  return paymentIntents.data
-    .filter((pi) => pi.status === "succeeded")
+  return paymentIntents.data.filter((pi) => pi.status === "succeeded");
+}
+
+// Identifiants des paiements liés à une facture d'abonnement (le lien n'est
+// plus un simple champ "invoice" sur le paiement depuis les versions
+// récentes de l'API Stripe : il faut passer par invoice.payments).
+async function getInvoicePaymentIntentIds(): Promise<Set<string>> {
+  const invoices = await stripe.invoices.list({
+    limit: 100,
+    expand: ["data.payments"],
+  });
+
+  const ids = new Set<string>();
+  for (const invoice of invoices.data) {
+    for (const invoicePayment of invoice.payments?.data ?? []) {
+      const payment = invoicePayment.payment;
+      if (payment.type === "payment_intent" && payment.payment_intent) {
+        const pi = payment.payment_intent;
+        ids.add(typeof pi === "string" ? pi : pi.id);
+      }
+    }
+  }
+  return ids;
+}
+
+// Revenu à vie réel : uniquement les paiements uniques (mode "payment",
+// forfait "À vie"), pas les paiements automatiques d'abonnement — ceux-là
+// sont déjà reflétés dans le revenu récurrent mensuel (MRR).
+function getLifetimeRevenueCents(
+  succeeded: Stripe.PaymentIntent[],
+  invoicePaymentIntentIds: Set<string>,
+): number {
+  return succeeded
+    .filter((pi) => !invoicePaymentIntentIds.has(pi.id))
     .reduce((sum, pi) => sum + pi.amount_received, 0);
+}
+
+// Panier moyen réel : montant moyen par paiement réussi (abonnement ou
+// unique confondus), pas une estimation basée sur les prix affichés.
+function getAverageOrderValueCents(succeeded: Stripe.PaymentIntent[]): number {
+  if (succeeded.length === 0) return 0;
+  const total = succeeded.reduce((sum, pi) => sum + pi.amount_received, 0);
+  return total / succeeded.length;
+}
+
+// LTV à date : total encaissé jusqu'ici divisé par le nombre de clients
+// distincts — pas une projection, juste ce que chaque client a vraiment
+// rapporté en moyenne jusqu'à maintenant. Un paiement sans client Stripe
+// associé (voir le correctif sur les paiements "À vie") compte comme son
+// propre client plutôt que d'être ignoré.
+function getLtvToDateCents(succeeded: Stripe.PaymentIntent[]): number {
+  if (succeeded.length === 0) return 0;
+  const totalsByCustomer = new Map<string, number>();
+  for (const pi of succeeded) {
+    const key = (pi.customer as string | null) ?? pi.id;
+    totalsByCustomer.set(key, (totalsByCustomer.get(key) ?? 0) + pi.amount_received);
+  }
+  const total = [...totalsByCustomer.values()].reduce((sum, v) => sum + v, 0);
+  return total / totalsByCustomer.size;
 }
 
 // Supabase limite chaque requête à 1000 lignes par défaut : au-delà de 1000
@@ -141,7 +198,8 @@ export default async function AdminPage() {
     { count: fichesTotal },
     { count: fichesToday },
     mrrCents,
-    lifetimeRevenueCents,
+    succeededPaymentIntents,
+    invoicePaymentIntentIds,
     dailySales,
   ] = await Promise.all([
     fetchAllProfiles(admin),
@@ -151,9 +209,17 @@ export default async function AdminPage() {
       .select("*", { count: "exact", head: true })
       .gte("created_at", startOfDayParis()),
     getRealMrrCents(),
-    getRealLifetimeRevenueCents(),
+    getSucceededPaymentIntents(),
+    getInvoicePaymentIntentIds(),
     getDailySales(),
   ]);
+
+  const lifetimeRevenueCents = getLifetimeRevenueCents(
+    succeededPaymentIntents,
+    invoicePaymentIntentIds,
+  );
+  const averageOrderValueCents = getAverageOrderValueCents(succeededPaymentIntents);
+  const ltvToDateCents = getLtvToDateCents(succeededPaymentIntents);
 
   // Le compte du propriétaire (toi) peut avoir un forfait payant sans jamais
   // être passé par Stripe (accès donné manuellement) : l'exclure de toutes
@@ -181,6 +247,8 @@ export default async function AdminPage() {
 
   const mrr = mrrCents / 100;
   const lifetimeRevenue = lifetimeRevenueCents / 100;
+  const averageOrderValue = averageOrderValueCents / 100;
+  const ltvToDate = ltvToDateCents / 100;
 
   const planOrder = ["free", "standard", "trimestriel", "lifetime", "premium"];
 
@@ -210,6 +278,11 @@ export default async function AdminPage() {
             label="Revenu à vie encaissé (Stripe)"
             value={`${lifetimeRevenue.toFixed(2)}€`}
           />
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <StatCard label="Panier moyen" value={`${averageOrderValue.toFixed(2)}€`} />
+          <StatCard label="LTV à date (par client)" value={`${ltvToDate.toFixed(2)}€`} />
         </div>
 
         <div className="mt-8 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
@@ -297,9 +370,11 @@ export default async function AdminPage() {
         <p className="mt-6 text-xs text-[#6b7690]">
           Revenus lus en direct sur Stripe (abonnements actifs + paiements
           uniques réussis) — limité aux 100 premiers éléments de chaque liste,
-          largement suffisant au volume actuel. Le taux de désabonnement
-          (churn) n&apos;est pas encore suivi dans le temps — seul le forfait
-          actuel de chaque compte est connu, pas son historique.
+          largement suffisant au volume actuel. La LTV est calculée sur
+          l&apos;argent déjà encaissé à ce jour (pas une projection). Le taux
+          de désabonnement (churn) n&apos;est pas encore suivi dans le temps —
+          seul le forfait actuel de chaque compte est connu, pas son
+          historique.
         </p>
       </div>
     </div>
