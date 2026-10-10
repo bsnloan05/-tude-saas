@@ -128,6 +128,13 @@ function getLifetimeRevenueCents(
     .reduce((sum, pi) => sum + pi.amount_received, 0);
 }
 
+// Chiffre d'affaires total réel : tout ce qui a été encaissé depuis le
+// début (abonnements + paiements uniques confondus), contrairement au
+// "Revenu à vie" qui exclut volontairement les abonnements.
+function getTotalRevenueCents(succeeded: Stripe.PaymentIntent[]): number {
+  return succeeded.reduce((sum, pi) => sum + pi.amount_received, 0);
+}
+
 // Panier moyen réel : montant moyen par paiement réussi (abonnement ou
 // unique confondus), pas une estimation basée sur les prix affichés.
 function getAverageOrderValueCents(succeeded: Stripe.PaymentIntent[]): number {
@@ -218,6 +225,7 @@ export default async function AdminPage() {
     succeededPaymentIntents,
     invoicePaymentIntentIds,
   );
+  const totalRevenueCents = getTotalRevenueCents(succeededPaymentIntents);
   const averageOrderValueCents = getAverageOrderValueCents(succeededPaymentIntents);
   const ltvToDateCents = getLtvToDateCents(succeededPaymentIntents);
 
@@ -247,6 +255,7 @@ export default async function AdminPage() {
 
   const mrr = mrrCents / 100;
   const lifetimeRevenue = lifetimeRevenueCents / 100;
+  const totalRevenue = totalRevenueCents / 100;
   const averageOrderValue = averageOrderValueCents / 100;
   const ltvToDate = ltvToDateCents / 100;
 
@@ -256,6 +265,18 @@ export default async function AdminPage() {
     <div className="dot-grid min-h-screen bg-[#0b1120] px-4 py-12">
       <div className="mx-auto w-full max-w-4xl">
         <h1 className="mb-8 text-2xl font-bold text-[#e7ecf5]">Tableau de bord</h1>
+
+        <div className="mb-4 rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 p-6 text-center">
+          <p className="text-xs font-semibold tracking-wide text-[#7dd3fc] uppercase">
+            Chiffre d&apos;affaires total encaissé (Stripe)
+          </p>
+          <p className="mt-2 text-4xl font-bold text-[#e7ecf5]">
+            {totalRevenue.toFixed(2)}€
+          </p>
+          <p className="mt-1 text-xs text-[#8b97b0]">
+            Abonnements + paiements uniques (&quot;À vie&quot;) confondus, depuis le début
+          </p>
+        </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <StatCard label="Comptes totaux" value={totalSignups.toString()} />
