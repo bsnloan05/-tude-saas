@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { startOfDayParis, startOfMonthParis } from "@/lib/parisDate";
 import SocialStatsPanel from "./SocialStatsPanel";
+import DailyBarChart from "./DailyBarChart";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -389,32 +390,7 @@ export default async function AdminPage() {
             {dailySales.today}{" "}
             <span className="text-xs font-normal text-[#8b97b0]">aujourd&apos;hui</span>
           </p>
-          {(() => {
-            const max = Math.max(1, ...dailySales.days.map((x) => x.count));
-            return (
-              <div className="flex items-end gap-1.5 overflow-x-auto pb-1">
-                {dailySales.days.map((d) => {
-                  const heightPercent = (d.count / max) * 100;
-                  const label = new Date(`${d.date}T12:00:00`).toLocaleDateString("fr-FR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  });
-                  return (
-                    <div key={d.date} className="flex w-6 flex-shrink-0 flex-col items-center gap-1">
-                      <div className="flex h-16 w-full items-end">
-                        <div
-                          className="w-full rounded-sm bg-[#38bdf8]"
-                          style={{ height: `${Math.max(heightPercent, d.count > 0 ? 8 : 2)}%` }}
-                          title={`${label} : ${d.count} vente(s)`}
-                        />
-                      </div>
-                      <span className="text-[9px] text-[#6b7690]">{label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
+          <DailyBarChart days={dailySales.days} color="bg-[#38bdf8]" unitLabel="vente(s)" />
         </div>
 
         <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
@@ -425,32 +401,11 @@ export default async function AdminPage() {
             {dailySignups.today}{" "}
             <span className="text-xs font-normal text-[#8b97b0]">aujourd&apos;hui</span>
           </p>
-          {(() => {
-            const max = Math.max(1, ...dailySignups.days.map((x) => x.count));
-            return (
-              <div className="flex items-end gap-1.5 overflow-x-auto pb-1">
-                {dailySignups.days.map((d) => {
-                  const heightPercent = (d.count / max) * 100;
-                  const label = new Date(`${d.date}T12:00:00`).toLocaleDateString("fr-FR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  });
-                  return (
-                    <div key={d.date} className="flex w-6 flex-shrink-0 flex-col items-center gap-1">
-                      <div className="flex h-16 w-full items-end">
-                        <div
-                          className="w-full rounded-sm bg-emerald-400"
-                          style={{ height: `${Math.max(heightPercent, d.count > 0 ? 8 : 2)}%` }}
-                          title={`${label} : ${d.count} inscription(s)`}
-                        />
-                      </div>
-                      <span className="text-[9px] text-[#6b7690]">{label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
+          <DailyBarChart
+            days={dailySignups.days}
+            color="bg-emerald-400"
+            unitLabel="inscription(s)"
+          />
         </div>
 
         <SocialStatsPanel />
