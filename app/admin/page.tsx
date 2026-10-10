@@ -29,6 +29,36 @@ function parisDateKey(date: Date): string {
 // depuis le début.
 const SALES_START_DATE = "2026-09-23";
 
+// Nombre d'inscriptions par jour, regroupées en heure de Paris. Part du
+// premier compte créé plutôt que d'une fenêtre fixe, pour toujours voir tout
+// l'historique depuis le vrai début.
+function getDailySignups(
+  rows: { created_at: string }[],
+): { today: number; days: { date: string; count: number }[] } {
+  if (rows.length === 0) return { today: 0, days: [] };
+
+  const dayCounts = new Map<string, number>();
+  let earliestKey = parisDateKey(new Date());
+  for (const row of rows) {
+    const date = new Date(row.created_at);
+    const key = parisDateKey(date);
+    dayCounts.set(key, (dayCounts.get(key) ?? 0) + 1);
+    if (key < earliestKey) earliestKey = key;
+  }
+
+  const todayKey = parisDateKey(new Date());
+  const days: { date: string; count: number }[] = [];
+  const cursor = new Date(`${earliestKey}T12:00:00Z`);
+  const end = new Date(`${todayKey}T12:00:00Z`);
+  while (cursor.getTime() <= end.getTime()) {
+    const key = parisDateKey(cursor);
+    days.push({ date: key, count: dayCounts.get(key) ?? 0 });
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+
+  return { today: dayCounts.get(todayKey) ?? 0, days };
+}
+
 // Nombre de ventes par jour : une "vente" = une session Stripe Checkout
 // payée (abonnement ou paiement unique confondus), regroupée par jour réel
 // (heure de Paris). Limité aux 100 dernières sessions, largement suffisant
@@ -248,6 +278,7 @@ export default async function AdminPage() {
   const signupsToday = rows.filter((r) => r.created_at >= todayStart).length;
   const signupsWeek = rows.filter((r) => r.created_at >= weekStart).length;
   const signupsMonth = rows.filter((r) => r.created_at >= monthStart).length;
+  const dailySignups = getDailySignups(rows);
 
   const payingPlans = ["standard", "premium", "trimestriel", "lifetime"];
   const payingCount = payingPlans.reduce((sum, p) => sum + (planCounts.get(p) ?? 0), 0);
@@ -375,6 +406,42 @@ export default async function AdminPage() {
                           className="w-full rounded-sm bg-[#38bdf8]"
                           style={{ height: `${Math.max(heightPercent, d.count > 0 ? 8 : 2)}%` }}
                           title={`${label} : ${d.count} vente(s)`}
+                        />
+                      </div>
+                      <span className="text-[9px] text-[#6b7690]">{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
+
+        <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
+          <h2 className="mb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
+            Inscriptions par jour
+          </h2>
+          <p className="mb-4 text-2xl font-bold text-[#e7ecf5]">
+            {dailySignups.today}{" "}
+            <span className="text-xs font-normal text-[#8b97b0]">aujourd&apos;hui</span>
+          </p>
+          {(() => {
+            const max = Math.max(1, ...dailySignups.days.map((x) => x.count));
+            return (
+              <div className="flex items-end gap-1.5 overflow-x-auto pb-1">
+                {dailySignups.days.map((d) => {
+                  const heightPercent = (d.count / max) * 100;
+                  const label = new Date(`${d.date}T12:00:00`).toLocaleDateString("fr-FR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  });
+                  return (
+                    <div key={d.date} className="flex w-6 flex-shrink-0 flex-col items-center gap-1">
+                      <div className="flex h-16 w-full items-end">
+                        <div
+                          className="w-full rounded-sm bg-emerald-400"
+                          style={{ height: `${Math.max(heightPercent, d.count > 0 ? 8 : 2)}%` }}
+                          title={`${label} : ${d.count} inscription(s)`}
                         />
                       </div>
                       <span className="text-[9px] text-[#6b7690]">{label}</span>
