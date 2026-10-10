@@ -18,7 +18,7 @@ export default function DailyBarChart({
   const max = Math.max(1, ...days.map((d) => d.count));
 
   return (
-    <div className="flex items-end gap-1.5 overflow-x-auto pb-6">
+    <div className="flex items-end gap-1.5 overflow-x-auto pt-8 pb-1">
       {days.map((d) => {
         const heightPercent = (d.count / max) * 100;
         const label = new Date(`${d.date}T12:00:00`).toLocaleDateString("fr-FR", {
