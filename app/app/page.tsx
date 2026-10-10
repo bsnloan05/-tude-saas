@@ -110,17 +110,20 @@ export default function Home() {
   const pdfInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const micStreamRef = useRef<MediaStream | null>(null);
   const waveformRafRef = useRef<number | null>(null);
   const keepAliveOscillatorRef = useRef<OscillatorNode | null>(null);
 
   const BAR_COUNT = 5;
 
-  const startWaveform = async () => {
+  // Les barres sont animées de façon simulée plutôt qu'à partir d'une
+  // vraie analyse du micro : demander l'accès au micro une deuxième fois
+  // (en plus de celui déjà utilisé par la reconnaissance vocale) perturbait
+  // la transcription sur certains navigateurs mobiles stricts (Safari iOS),
+  // qui gèrent mal deux accès micro simultanés — le texte qui s'affiche en
+  // direct est déjà la vraie preuve que ça marche, les barres ne sont qu'un
+  // décor.
+  const startWaveform = () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      micStreamRef.current = stream;
-
       const AudioContextCtor =
         window.AudioContext ||
         (window as unknown as { webkitAudioContext: typeof AudioContext })
@@ -128,14 +131,10 @@ export default function Home() {
       const audioContext = new AudioContextCtor();
       audioContextRef.current = audioContext;
 
-      const source = audioContext.createMediaStreamSource(stream);
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 64;
-      source.connect(analyser);
-
       // Un son quasi inaudible joué en continu signale au navigateur que cet
       // onglet est "actif" au niveau audio, ce qui réduit le risque qu'il le
       // décharge de la mémoire en arrière-plan (perte totale de la session).
+      // Ceci n'a besoin d'aucun accès au micro (son généré, pas capté).
       const oscillator = audioContext.createOscillator();
       const silentGain = audioContext.createGain();
       silentGain.gain.value = 0.0001;
@@ -144,27 +143,21 @@ export default function Home() {
       oscillator.start();
       keepAliveOscillatorRef.current = oscillator;
 
-      const data = new Uint8Array(analyser.frequencyBinCount);
-      const groupSize = Math.floor(data.length / BAR_COUNT) || 1;
-
+      let frame = 0;
       const tick = () => {
-        analyser.getByteFrequencyData(data);
+        frame += 1;
         for (let i = 0; i < BAR_COUNT; i++) {
-          let sum = 0;
-          for (let j = 0; j < groupSize; j++) {
-            sum += data[i * groupSize + j] ?? 0;
-          }
-          const average = sum / groupSize;
-          const heightPercent = Math.max(15, Math.min(100, (average / 255) * 100));
+          const phase = frame / 12 + i * 1.3;
+          const heightPercent = 35 + Math.sin(phase) * 25 + Math.random() * 15;
           const bar = barRefs.current[i];
-          if (bar) bar.style.height = `${heightPercent}%`;
+          if (bar) bar.style.height = `${Math.max(15, Math.min(100, heightPercent))}%`;
         }
         waveformRafRef.current = requestAnimationFrame(tick);
       };
       tick();
     } catch {
-      // Si l'accès au micro pour la visualisation échoue, on laisse tomber
-      // silencieusement : la transcription (qui gère son propre accès) continue.
+      // Si l'initialisation échoue, pas grave : purement décoratif, la
+      // transcription (qui gère son propre accès micro) continue.
     }
   };
 
@@ -179,8 +172,6 @@ export default function Home() {
     keepAliveOscillatorRef.current = null;
     audioContextRef.current?.close();
     audioContextRef.current = null;
-    micStreamRef.current?.getTracks().forEach((track) => track.stop());
-    micStreamRef.current = null;
     barRefs.current.forEach((bar) => {
       if (bar) bar.style.height = "15%";
     });
