@@ -101,7 +101,7 @@ export default function LandingPage() {
         </svg>
       </div>
 
-      <header className="relative flex w-full max-w-5xl items-center justify-between py-8">
+      <header className="relative flex w-full max-w-5xl items-center justify-between border-b border-[#232d45] py-8">
         <div className="flex items-baseline">
           <span className="text-lg font-bold tracking-tight text-[#e7ecf5]">Memo</span>
           <span className="text-lg font-bold tracking-tight text-[#38bdf8]">flash</span>
