@@ -96,6 +96,7 @@ export default function Home() {
   const [showStartTip, setShowStartTip] = useState(false);
   const [showChromeModal, setShowChromeModal] = useState(false);
   const [needsChromeHint, setNeedsChromeHint] = useState(false);
+  const [showAltBrowserTip, setShowAltBrowserTip] = useState(false);
   const isIPadRef = useRef(false);
   const chromeTipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const networkErrorTimestampsRef = useRef<number[]>([]);
@@ -185,6 +186,10 @@ export default function Home() {
     const isIPhone = /iPhone|iPod/.test(ua);
     const isChrome = /Chrome/.test(ua) && !/Edg|OPR/.test(ua);
     setNeedsChromeHint(!isIPhone && !isChrome);
+    // Sur Chrome (déjà le navigateur recommandé), un rappel discret plutôt
+    // qu'une pop-up bloquante : utile seulement si jamais ça pose problème,
+    // pas besoin d'ajouter de friction à tout le monde pour un cas rare.
+    setShowAltBrowserTip(!isIPhone && isChrome);
     // iPadOS se fait souvent passer pour un Mac dans le user-agent (depuis
     // iPadOS 13) : on le détecte aussi via le tactile, absent sur un vrai Mac.
     isIPadRef.current =
@@ -1069,6 +1074,12 @@ export default function Home() {
                 </svg>
                 Nous te conseillons Google Chrome pour une meilleure
                 transcription
+              </p>
+            )}
+            {status === "idle" && showAltBrowserTip && (
+              <p className="text-xs text-[#6b7690]">
+                Si la transcription rencontre des problèmes, essaie un autre
+                navigateur.
               </p>
             )}
             {(status === "idle" || status === "done") && (
