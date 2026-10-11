@@ -3,6 +3,7 @@ import ScrollFadeIn from "@/components/ScrollFadeIn";
 import LiveActivityBanner from "@/components/LiveActivityBanner";
 import TypewriterCycle from "@/components/TypewriterCycle";
 import LandingVideo from "@/components/LandingVideo";
+import LanguageSelector from "@/components/LanguageSelector";
 
 const STEPS = [
   {
@@ -110,18 +111,7 @@ export default function LandingPage() {
           <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="hidden items-center gap-1.5 text-sm font-medium text-[#8b97b0] sm:flex">
-            🇫🇷 France (Français)
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="h-3.5 w-3.5"
-            >
-              <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
+          <LanguageSelector />
           <Link
             href="/login"
             className="text-sm font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
