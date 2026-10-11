@@ -103,10 +103,8 @@ export default function LandingPage() {
 
       <header className="relative flex w-full max-w-5xl items-center justify-between py-8">
         <div className="flex items-baseline">
-          <span className="text-lg font-bold tracking-tight text-[#e7ecf5]">
-            Memoflash
-          </span>
-          <span className="text-lg font-bold text-[#38bdf8]">.</span>
+          <span className="text-lg font-bold tracking-tight text-[#e7ecf5]">Memo</span>
+          <span className="text-lg font-bold tracking-tight text-[#38bdf8]">flash</span>
         </div>
         <div className="flex items-center gap-1 sm:gap-2">
           <LanguageSelector />
