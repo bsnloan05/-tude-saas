@@ -1078,8 +1078,11 @@ export default function Home() {
             )}
             {status === "idle" && showAltBrowserTip && (
               <p className="text-xs text-[#6b7690]">
-                Si la transcription rencontre des problèmes, essaie un autre
-                navigateur.
+                Si la transcription rencontre des problèmes, essaie{" "}
+                <strong className="font-black text-white underline decoration-2 underline-offset-2">
+                  un autre navigateur
+                </strong>
+                .
               </p>
             )}
             {(status === "idle" || status === "done") && (
