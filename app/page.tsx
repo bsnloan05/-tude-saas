@@ -110,11 +110,11 @@ export default function LandingPage() {
           </span>
           <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1 sm:gap-2">
           <LanguageSelector />
           <Link
             href="/login"
-            className="text-sm font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
+            className="rounded-full px-3 py-1.5 text-sm font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5] active:scale-95"
           >
             Se connecter
           </Link>
