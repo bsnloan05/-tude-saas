@@ -902,11 +902,7 @@ export default function Home() {
         </svg>
       </div>
 
-      <span className="relative mb-8 self-start rounded-full border border-[#2a3552] px-3 py-1 text-sm font-medium text-[#8b97b0]">
-        Bêta
-      </span>
-
-      <main className="flex w-full max-w-2xl flex-col items-center gap-8">
+      <main className="mt-8 flex w-full max-w-2xl flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-3 text-center">
           <h1 className="text-balance text-2xl font-bold tracking-tight text-[#e7ecf5] sm:text-3xl">
             Transforme tes cours en{" "}
