@@ -102,13 +102,11 @@ export default function LandingPage() {
       </div>
 
       <header className="relative flex w-full max-w-5xl items-center justify-between py-8">
-        <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-              <path d="M13 2L4 14h6l-1 8 10-13h-6l0-7z" />
-            </svg>
+        <div className="flex items-baseline">
+          <span className="text-lg font-bold tracking-tight text-[#e7ecf5]">
+            Memoflash
           </span>
-          <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
+          <span className="text-lg font-bold text-[#38bdf8]">.</span>
         </div>
         <div className="flex items-center gap-1 sm:gap-2">
           <LanguageSelector />
