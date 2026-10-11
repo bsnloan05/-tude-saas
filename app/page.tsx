@@ -110,17 +110,29 @@ export default function LandingPage() {
           <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link
-            href="/pricing"
-            className="text-sm font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
-          >
-            Tarifs
-          </Link>
+          <span className="hidden items-center gap-1.5 text-sm font-medium text-[#8b97b0] sm:flex">
+            🇫🇷 France (Français)
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-3.5 w-3.5"
+            >
+              <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
           <Link
             href="/login"
             className="text-sm font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
           >
             Se connecter
+          </Link>
+          <Link
+            href="/onboarding"
+            className="rounded-full bg-[#2563eb] px-5 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+          >
+            Commencer
           </Link>
         </div>
       </header>
