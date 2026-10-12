@@ -103,7 +103,7 @@ export default function LandingPage() {
 
       <div className="relative -mx-4 w-[calc(100%+2rem)] border-b border-[#232d45]">
         <header className="relative mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 sm:px-10">
-          <div className="flex items-baseline">
+          <div className="ml-1 flex items-baseline sm:ml-3">
             <span className="text-lg font-bold tracking-tight text-[#e7ecf5]">Memo</span>
             <span className="text-lg font-bold tracking-tight text-[#38bdf8]">flash</span>
           </div>
