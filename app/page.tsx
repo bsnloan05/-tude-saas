@@ -164,13 +164,14 @@ export default function LandingPage() {
           />
         </p>
 
-        <div className="mt-8 flex items-center justify-center">
+        <div className="mt-8 flex flex-col items-center gap-2">
           <Link
             href="/onboarding"
             className="flex h-12 w-52 items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
           >
             Commencer
           </Link>
+          <span className="text-sm text-[#8b97b0]">2 min chrono</span>
         </div>
       </main>
 
