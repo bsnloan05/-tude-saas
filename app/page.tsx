@@ -64,15 +64,16 @@ const STEPS = [
 export default function LandingPage() {
   return (
     <div className="relative isolate flex min-h-screen flex-col items-center overflow-hidden bg-[#070a12] px-4">
-      {/* Fond dégradé bleu sombre, façon Gemini : plusieurs halos diffus
-          plutôt que des icônes qui flottent. Pur CSS, aucune animation. */}
+      {/* Fond dégradé bleu sombre, façon Gemini : sombre en haut à gauche,
+          halo bleu en bas à droite, pour un effet diagonal. Fixé à l'écran
+          (pas à la page) pour rester cohérent même en scrollant. */}
       <div
         aria-hidden
-        className="-z-10 pointer-events-none absolute -top-40 left-1/2 h-[42rem] w-[60rem] -translate-x-1/2 rounded-full bg-[#2563eb]/30 blur-[140px]"
+        className="pointer-events-none fixed -right-32 -bottom-32 -z-10 h-[46rem] w-[46rem] rounded-full bg-[#2563eb]/35 blur-[150px]"
       />
       <div
         aria-hidden
-        className="-z-10 pointer-events-none absolute top-1/3 -right-40 h-[28rem] w-[28rem] rounded-full bg-[#38bdf8]/15 blur-[120px]"
+        className="pointer-events-none fixed -top-32 -left-32 -z-10 h-[24rem] w-[24rem] rounded-full bg-[#38bdf8]/10 blur-[130px]"
       />
 
       <div className="relative -mx-4 w-[calc(100%+2rem)] border-b border-[#232d45]">
