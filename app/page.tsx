@@ -247,12 +247,6 @@ export default function LandingPage() {
         </ScrollFadeIn>
       </section>
 
-      <section className="w-full max-w-3xl pb-16">
-        <ScrollFadeIn>
-          <LandingVideo />
-        </ScrollFadeIn>
-      </section>
-
       <section className="w-full max-w-4xl border-t border-[#232d45] py-16">
         <h2 className="mb-10 text-center text-2xl font-bold text-[#e7ecf5]">
           Comment ça marche
@@ -272,6 +266,12 @@ export default function LandingPage() {
             </ScrollFadeIn>
           ))}
         </div>
+      </section>
+
+      <section className="w-full max-w-3xl pb-16">
+        <ScrollFadeIn>
+          <LandingVideo />
+        </ScrollFadeIn>
       </section>
 
       <footer className="flex w-full max-w-4xl flex-col items-center gap-4 border-t border-[#232d45] py-10 text-center sm:flex-row sm:justify-between sm:text-left">
