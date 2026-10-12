@@ -46,18 +46,31 @@ const FIELDS: Array<{ label: string; icon: React.ReactNode }> = [
   },
 ];
 
-const STEPS = [
+const STEPS: Array<{ title: string; text: string; icon: React.ReactNode }> = [
   {
     title: "Démarre",
     text: "Appuie sur un bouton en début de cours, Memoflash écoute en direct.",
+    icon: (
+      <>
+        <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
+        <path d="M19 11a7 7 0 01-14 0M12 18v3" strokeLinecap="round" />
+      </>
+    ),
   },
   {
     title: "Écoute ton cours normalement",
     text: "Pas besoin d'écrire quoi que ce soit, concentre-toi sur ce que dit ton prof.",
+    icon: <path d="M3 18v-6a9 9 0 0118 0v6M21 19a2 2 0 01-2 2h-1v-6h3zM3 19a2 2 0 002 2h1v-6H3z" />,
   },
   {
     title: "Récupère ta fiche",
     text: "Une fiche de révision claire et structurée, prête en quelques minutes.",
+    icon: (
+      <>
+        <path d="M6 3h9l5 5v13a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z" />
+        <path d="M9 12h6M9 16h6M9 8h2" strokeLinecap="round" />
+      </>
+    ),
   },
 ];
 
@@ -193,16 +206,29 @@ export default function LandingPage() {
       </section>
 
       <section className="w-full max-w-6xl border-t border-[#232d45] py-16">
-        <h2 className="mb-10 text-left text-2xl font-bold text-[#e7ecf5]">
+        <h2 className="text-left text-2xl font-bold text-[#e7ecf5]">
           Comment ça marche
         </h2>
-        <div className="grid gap-6 sm:grid-cols-3">
+        <p className="mt-2 mb-10 text-left text-[#8b97b0]">
+          Trois étapes, zéro effort.
+        </p>
+        <div className="grid gap-x-6 gap-y-10 sm:grid-cols-3">
           {STEPS.map((step, index) => (
             <ScrollFadeIn key={step.title} delayMs={index * 120}>
-              <div className="rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
-                <span className="mb-4 flex h-8 w-8 items-center justify-center rounded-full bg-[#2563eb]/20 text-sm font-semibold text-[#38bdf8]">
+              <div className="relative rounded-lg border border-[#232d45] bg-[#141b2e] pt-9 pr-6 pb-6 pl-6">
+                <span className="absolute -top-4 left-6 flex h-8 w-8 items-center justify-center rounded-full bg-[#2563eb] text-sm font-bold text-white shadow-[0_6px_16px_rgba(37,99,235,0.5)]">
                   {index + 1}
                 </span>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinejoin="round"
+                  className="mb-4 h-7 w-7 text-[#38bdf8]"
+                >
+                  {step.icon}
+                </svg>
                 <h3 className="mb-2 text-base font-semibold text-[#e7ecf5]">
                   {step.title}
                 </h3>
