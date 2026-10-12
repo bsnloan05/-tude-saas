@@ -161,9 +161,9 @@ export default function LandingPage() {
         </div>
       </main>
 
-      <section className="w-full max-w-4xl pb-10">
+      <section className="w-full max-w-6xl pb-10">
         <ScrollFadeIn>
-          <p className="mb-6 text-center text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
+          <p className="mb-6 text-left text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
             Memoflash fonctionne pour toutes les filières
           </p>
           <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
@@ -192,8 +192,8 @@ export default function LandingPage() {
         </ScrollFadeIn>
       </section>
 
-      <section className="w-full max-w-4xl border-t border-[#232d45] py-16">
-        <h2 className="mb-10 text-center text-2xl font-bold text-[#e7ecf5]">
+      <section className="w-full max-w-6xl border-t border-[#232d45] py-16">
+        <h2 className="mb-10 text-left text-2xl font-bold text-[#e7ecf5]">
           Comment ça marche
         </h2>
         <div className="grid gap-6 sm:grid-cols-3">
@@ -213,15 +213,17 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="w-full max-w-2xl border-t border-[#232d45] py-16">
+      <section className="w-full max-w-6xl border-t border-[#232d45] py-16">
         <ScrollFadeIn>
-          <p className="mb-3 text-center text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
+          <p className="mb-3 text-left text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
             Questions
           </p>
-          <h2 className="mb-8 text-center text-2xl font-bold text-[#e7ecf5]">
+          <h2 className="mb-8 text-left text-2xl font-bold text-[#e7ecf5]">
             Les questions qu&apos;on nous pose souvent
           </h2>
-          <FaqAccordion />
+          <div className="max-w-2xl">
+            <FaqAccordion />
+          </div>
         </ScrollFadeIn>
       </section>
 
