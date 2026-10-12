@@ -16,7 +16,7 @@ const FAQ = [
   {
     question: "Et si l'IA ne capte pas bien certains mots ?",
     answer:
-      "Si un mot est mal capté (bruit, débit rapide...), l'IA s'appuie sur le contexte du cours pour le reconstituer correctement — sans jamais inventer de nouvelles informations qui n'ont pas été dites.",
+      "Il y a une différence entre corriger et inventer. Si un mot que ton prof a vraiment prononcé est mal retranscrit (bruit, débit rapide...), l'IA s'appuie sur le contexte du cours pour deviner le bon mot. Mais elle n'ajoute jamais un fait, un exemple ou une idée qui n'a pas été abordé en cours.",
   },
   {
     question: "Qu'est-ce qui se passe si mon cours est très long ?",
