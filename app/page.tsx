@@ -5,7 +5,46 @@ import TypewriterCycle from "@/components/TypewriterCycle";
 import LandingVideo from "@/components/LandingVideo";
 import LanguageSelector from "@/components/LanguageSelector";
 
-const FIELDS = ["Droit", "Médecine", "Prépa", "Économie", "Sciences", "Lettres", "Psychologie", "Histoire"];
+const FIELDS: Array<{ label: string; icon: React.ReactNode }> = [
+  {
+    label: "Droit",
+    icon: (
+      <path d="M12 3v18M5 7l-3 6a3 3 0 006 0l-3-6zM19 7l-3 6a3 3 0 006 0l-3-6zM5 7h14M8 21h8" />
+    ),
+  },
+  {
+    label: "Médecine",
+    icon: <path d="M3 12h4l2-5 4 10 2-5h6" />,
+  },
+  {
+    label: "Prépa",
+    icon: (
+      <>
+        <path d="M2 9l10-5 10 5-10 5L2 9z" />
+        <path d="M6 11v5c0 1.5 2.5 3 6 3s6-1.5 6-3v-5" />
+      </>
+    ),
+  },
+  {
+    label: "Sciences",
+    icon: (
+      <>
+        <path d="M9 2v6L3.5 18a2 2 0 001.8 3h13.4a2 2 0 001.8-3L15 8V2" />
+        <path d="M9 2h6M7 15h10" />
+      </>
+    ),
+  },
+  {
+    label: "Économie",
+    icon: <path d="M4 18l5-6 4 4 7-9M14 7h6v6" />,
+  },
+  {
+    label: "Lettres",
+    icon: (
+      <path d="M4 5c3-1.5 6-1.5 8 0v14c-2-1.5-5-1.5-8 0V5zM20 5c-3-1.5-6-1.5-8 0v14c2-1.5 5-1.5 8 0V5z" />
+    ),
+  },
+];
 
 const STEPS = [
   {
@@ -179,17 +218,28 @@ export default function LandingPage() {
 
       <section className="w-full pb-10">
         <ScrollFadeIn>
-          <p className="mb-5 text-center text-xs font-semibold tracking-wide text-[#6b7690] uppercase">
+          <p className="mb-6 text-center text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
             Memoflash fonctionne pour toutes les filières
           </p>
           <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-            <div className="animate-marquee flex w-max items-center gap-10">
+            <div className="animate-marquee flex w-max items-center gap-14">
               {[...FIELDS, ...FIELDS].map((field, i) => (
                 <span
                   key={i}
-                  className="shrink-0 text-lg font-semibold text-[#8b97b0]"
+                  className="flex shrink-0 items-center gap-2.5 text-lg font-semibold text-[#8b97b0]"
                 >
-                  {field}
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5"
+                  >
+                    {field.icon}
+                  </svg>
+                  {field.label}
                 </span>
               ))}
             </div>
