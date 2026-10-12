@@ -206,10 +206,10 @@ export default function LandingPage() {
       </section>
 
       <section className="w-full max-w-6xl border-t border-[#232d45] py-16">
-        <h2 className="text-left text-2xl font-bold text-[#e7ecf5]">
+        <h2 className="text-center text-2xl font-bold text-[#e7ecf5]">
           Comment ça marche
         </h2>
-        <p className="mt-2 mb-10 text-left text-[#8b97b0]">
+        <p className="mt-2 mb-10 text-center text-[#8b97b0]">
           Trois étapes, zéro effort.
         </p>
         <div className="grid gap-x-6 gap-y-10 sm:grid-cols-3">
