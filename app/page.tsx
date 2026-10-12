@@ -218,7 +218,14 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div />
+          <div className="overflow-hidden rounded-[28px]">
+            <iframe
+              src="/memoflash-hero.html"
+              title="Démonstration animée de Memoflash"
+              className="aspect-[1400/980] w-full border-0"
+              loading="lazy"
+            />
+          </div>
         </div>
       </main>
 

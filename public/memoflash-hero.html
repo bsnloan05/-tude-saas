@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memoflash — Hero MacBook</title>
+<style>
+  html,body{margin:0;padding:0;background:#070a12;overflow:hidden}
+
+  /* ============ Composant .mf-hero ============ */
+  .mf-hero{position:relative;width:100%;aspect-ratio:1400/980;overflow:hidden;border-radius:28px;background:#070a12;
+           font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,sans-serif;color:#f8fafc;-webkit-font-smoothing:antialiased}
+  .mf-hero[data-bg="none"]{background:transparent;border-radius:0}
+  .mf-hero[data-bg="none"] .mf-bg{display:none}
+  .mf-hero *{box-sizing:border-box;margin:0;padding:0}
+  .mf-stage{position:absolute;left:0;top:0;width:1400px;height:980px;transform-origin:0 0}
+  .mf-bg{position:absolute;inset:0}
+  .mf-bg canvas{position:absolute;inset:0;width:100%;height:100%}
+  .mf-glow{position:absolute;left:110px;top:0;width:1100px;height:900px;border-radius:50%;
+           background:radial-gradient(closest-side,rgba(37,99,235,.38),rgba(37,99,235,.12) 55%,rgba(37,99,235,0))}
+
+  /* MacBook */
+  .mf-3d{position:absolute;inset:0;perspective:2400px;perspective-origin:700px 440px}
+  .mf-rig{position:absolute;inset:0;transform-style:preserve-3d}
+  .mf-mac{position:absolute;left:150px;top:118px;width:1020px;transform-style:preserve-3d;transform:scale(1.06);transform-origin:510px 340px}
+  .mf-lid{position:relative;width:1020px;height:660px;border-radius:30px 30px 12px 12px;padding:17px 17px 22px;
+          background:linear-gradient(180deg,#1b1f27,#0d1016);box-shadow:inset 0 0 0 2px #2c323d,inset 0 2px 0 #4a5160,0 0 0 1px #05070b}
+  .mf-notch{position:absolute;left:50%;top:17px;width:150px;height:24px;margin-left:-75px;border-radius:0 0 13px 13px;background:#05070b;z-index:5}
+  .mf-notch:after{content:"";position:absolute;left:50%;top:8px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#1a2133;box-shadow:inset 0 0 2px #3b82f6}
+  .mf-screen{position:relative;width:100%;height:100%;border-radius:15px;overflow:hidden;background:#0b1120}
+  .mf-base{position:relative;width:1200px;height:26px;margin-left:-90px;border-radius:2px 2px 22px 22px / 2px 2px 14px 14px;
+           background:linear-gradient(180deg,#5b6270 0,#2a2f38 18%,#1a1d24 60%,#0c0e12 100%);box-shadow:0 1px 0 #6b7280 inset}
+  .mf-base:before{content:"";position:absolute;left:50%;top:0;width:170px;height:9px;margin-left:-85px;border-radius:0 0 12px 12px;background:linear-gradient(180deg,#14171d,#262a33)}
+  .mf-shadow{position:absolute;left:180px;top:808px;width:960px;height:70px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.75),rgba(0,0,0,0));filter:blur(6px)}
+  .mf-glass{position:absolute;inset:0;z-index:20;pointer-events:none;background:linear-gradient(118deg,rgba(255,255,255,.07) 0%,rgba(255,255,255,.02) 32%,rgba(255,255,255,0) 46%)}
+
+  /* écran macOS + fenêtre */
+  .mf-wall{position:absolute;inset:0;background:radial-gradient(120% 90% at 20% 0%,#1d4ed8 0%,#0f2a6b 35%,#0b1120 75%)}
+  .mf-menubar{position:absolute;left:0;right:0;top:0;height:28px;display:flex;align-items:center;gap:20px;padding:0 18px;font-size:13.5px;color:#e5e7eb;background:rgba(8,12,22,.55)}
+  .mf-menubar b{font-weight:700}
+  .mf-mbr{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .mf-mbr svg{width:17px;height:17px}
+  .mf-win{position:absolute;left:22px;top:44px;right:22px;bottom:16px;border-radius:13px;overflow:hidden;background:#0c1222;
+          box-shadow:0 30px 70px rgba(0,0,0,.55),inset 0 0 0 1px rgba(148,163,184,.18)}
+  .mf-tb{position:absolute;left:0;right:0;top:0;height:42px;display:flex;align-items:center;justify-content:center;background:#0a0f1c;border-bottom:1px solid rgba(148,163,184,.12);z-index:3}
+  .mf-tl{position:absolute;left:16px;display:flex;gap:8px}.mf-tl i{width:12px;height:12px;border-radius:50%}
+  .mf-url{display:flex;align-items:center;gap:8px;padding:6px 18px;border-radius:9px;background:rgba(148,163,184,.1);font-size:13px;color:#cbd5e1}
+  .mf-url svg{width:12px;height:12px}
+  .mf-view{position:absolute;left:0;right:0;top:42px;bottom:0;overflow:hidden;
+           background-color:#0d1322;background-image:radial-gradient(rgba(148,163,184,.22) 1px,transparent 1.4px);background-size:22px 22px}
+  .mf-page{position:absolute;left:0;right:0;top:0}
+  .mf-back{position:absolute;left:62px;top:18px;font-size:14px;color:#94a3b8}
+  .mf-card{position:absolute;left:60px;right:60px;top:52px;border-radius:14px;background:#141b2c;border:1px solid rgba(148,163,184,.16);padding:24px 26px 30px}
+
+  /* ---- barre latérale (pendant le cours en direct) ---- */
+  .mf-sb{position:absolute;left:0;top:0;bottom:0;width:206px;background:#0b1222;border-right:1px solid rgba(148,163,184,.12);padding:20px 14px;z-index:2}
+  .mf-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;padding:0 6px}
+  .mf-bdg{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#38bdf8,#2563eb);display:grid;place-items:center;box-shadow:0 6px 18px rgba(37,99,235,.45)}
+  .mf-bdg svg{width:17px;height:17px}
+  .mf-new{margin-top:20px;height:38px;border-radius:10px;border:1.5px solid rgba(56,189,248,.45);color:#38bdf8;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+  .mf-lab{margin:22px 8px 10px;font-size:11px;font-weight:700;letter-spacing:.16em;color:#64748b}
+  .mf-sub{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:9px;font-size:14px;color:#cbd5e1;font-weight:600}
+  .mf-sub i{width:9px;height:9px;border-radius:3px}
+  .mf-sub span{margin-left:auto;color:#64748b;font-size:12px}
+  .mf-sub.on{background:rgba(56,189,248,.1);color:#fff;box-shadow:inset 3px 0 0 #38bdf8}
+  .mf-recpage{left:206px}
+  .mf-rmain{padding:24px 30px}
+  .mf-crumb{font-size:13px;color:#94a3b8;font-weight:600}
+  .mf-h{font-size:27px;font-weight:800;letter-spacing:-.02em;margin-top:6px}
+  /* ---- écran d'enregistrement ---- */
+  .mf-rtitle{font-size:21px;font-weight:700}
+  .mf-date{margin-top:8px;font-size:13px;color:#94a3b8}
+  .mf-rec{margin-top:16px;height:48px;border-radius:12px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.3);display:flex;align-items:center;gap:12px;padding:0 16px;font-size:14px;font-weight:700;color:#e0f2fe}
+  .mf-dot{width:10px;height:10px;border-radius:50%;background:#38bdf8;box-shadow:0 0 12px #38bdf8}
+  .mf-time{color:#38bdf8;font-variant-numeric:tabular-nums}
+  .mf-wave{margin-left:auto;display:flex;align-items:center;gap:4px;height:30px}
+  .mf-wave i{display:block;width:4px;border-radius:2px;background:linear-gradient(180deg,#7dd3fc,#2563eb)}
+  .mf-sep{height:1px;background:rgba(148,163,184,.15);margin:18px 0}
+  .mf-tx{font-size:15px;line-height:1.75;color:#cbd5e1;min-height:200px}
+  .mf-tx .t{font-weight:700;color:#7dd3fc;background:rgba(56,189,248,.18);border-radius:4px;padding:1px 5px}
+  .mf-caret{display:inline-block;width:2px;height:17px;margin-left:2px;vertical-align:-3px;background:#38bdf8}
+  .mf-gen{position:absolute;left:calc(50% + 103px);top:250px;display:flex;align-items:center;gap:10px;padding:13px 24px;border-radius:999px;white-space:nowrap;z-index:4;
+          background:linear-gradient(135deg,#38bdf8,#2563eb);font-size:15px;font-weight:800;box-shadow:0 14px 40px rgba(37,99,235,.6)}
+  .mf-gen svg{width:18px;height:18px}
+  .mf-shim{position:absolute;top:60px;left:0;width:220px;height:420px;z-index:4;background:linear-gradient(90deg,rgba(56,189,248,0),rgba(56,189,248,.26),rgba(255,255,255,.16),rgba(56,189,248,0));filter:blur(6px)}
+
+  /* ---- la fiche (reprise de l'interface Memoflash) ---- */
+  .cf-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+  .cf-title{font-size:21px;font-weight:700}
+  .cf-input{margin-top:14px;width:250px;height:34px;border-radius:9px;border:1px solid rgba(148,163,184,.4);display:flex;align-items:center;padding:0 12px;font-size:13px;color:#94a3b8;white-space:nowrap;overflow:hidden}
+  .cf-row{display:flex;align-items:center;gap:10px;margin-top:14px}
+  .cf-seg{position:relative;display:flex;padding:4px;border-radius:999px;background:#0b1120;border:1px solid rgba(148,163,184,.14)}
+  .cf-seg span{position:relative;z-index:1;padding:5px 13px;font-size:12.5px;border-radius:999px}
+  .cf-pill{position:absolute;top:4px;bottom:4px;left:4px;border-radius:999px;background:#2563eb;box-shadow:0 4px 14px rgba(37,99,235,.5)}
+  .cf-btn{padding:7px 15px;border-radius:999px;border:1px solid rgba(148,163,184,.35);font-size:13px;color:#e2e8f0}
+  .cf-body{margin-top:18px;padding-top:18px;border-top:1px solid rgba(148,163,184,.15);font-size:14px;line-height:1.65;color:#cbd5e1}
+  /* chaque élément a sa variable --k : 0 = Sobre, 1 = Surligné */
+  .cf-ess{border-left:4px solid rgba(56,189,248,var(--k,0));border-radius:8px;padding:12px 16px;
+          background:rgba(56,189,248,calc(var(--k,0) * .09));color:color-mix(in srgb,#7dd3fc calc(var(--k,0) * 100%),#cbd5e1)}
+  .cf-h2{font-size:19px;font-weight:800;margin:20px 0 8px;color:color-mix(in srgb,#fbbf24 calc(var(--k,0) * 100%),#f8fafc)}
+  .cf-li{position:relative;padding-left:22px;margin-top:8px}
+  .cf-li:before{content:"";position:absolute;left:5px;top:.62em;width:6px;height:6px;border-radius:50%;background:color-mix(in srgb,#fbbf24 calc(var(--k,0) * 100%),#64748b)}
+  .cf-li.sub{margin-left:22px}
+  .cf-call{border-left:4px solid rgba(16,185,129,var(--k,0));border-radius:8px;padding:10px 14px;margin-left:-2px;
+           background:rgba(20,184,166,calc(var(--k,0) * .07));color:color-mix(in srgb,#7ee2b8 calc(var(--k,0) * 100%),#cbd5e1)}
+  .cf-li.cf-call:before{left:-16px}
+  .cf-li.cf-call{margin-left:22px;padding-left:16px}
+  .cf-att{border-left:4px solid rgba(245,158,11,var(--k,0));border-radius:8px;padding:10px 14px 10px 16px;margin-left:22px;
+          background:rgba(245,158,11,calc(var(--k,0) * .08));color:color-mix(in srgb,#fcd34d calc(var(--k,0) * 100%),#cbd5e1)}
+  .cf-li.cf-att:before{left:-16px}
+  .cf-t{font-weight:700;border-radius:4px;padding:1px 5px;color:color-mix(in srgb,#7dd3fc calc(var(--k,0) * 100%),#f8fafc);background:rgba(56,189,248,calc(var(--k,0) * .2))}
+  .cf-flash{box-shadow:0 0 calc(var(--f,0) * 26px) rgba(56,189,248,calc(var(--f,0) * .45))}
+  .cf-map{display:block;margin:12px auto 6px}
+
+  /* curseur */
+  .mf-cur{position:absolute;left:0;top:0;width:26px;height:26px;z-index:6;filter:drop-shadow(0 3px 6px rgba(0,0,0,.55))}
+  .mf-rip{position:absolute;left:0;top:0;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;border:2.5px solid rgba(255,255,255,.85);z-index:6}
+
+  /* notifications flottantes */
+  .mf-notifs{position:absolute;left:868px;top:150px;width:470px;transform-style:preserve-3d}
+  .mf-n{position:absolute;left:0;top:0;width:470px;height:122px;border-radius:26px;padding:20px 24px 0 22px;display:flex;gap:16px;
+        background:linear-gradient(180deg,rgba(36,40,52,.98),rgba(26,30,40,.98));
+        border:1px solid rgba(255,255,255,.09);box-shadow:0 30px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
+  .mf-n:after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(6,8,14,var(--dim,0));pointer-events:none}
+  .mf-ni{flex:0 0 52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#38bdf8,#2563eb);display:grid;place-items:center;box-shadow:0 8px 22px rgba(37,99,235,.45)}
+  .mf-ni svg{width:28px;height:28px}
+  .mf-nb{flex:1;min-width:0}
+  .mf-nh{display:flex;justify-content:space-between;align-items:baseline}
+  .mf-nh b{font-size:19px;font-weight:700}
+  .mf-nh span{font-size:15px;color:#9ca3af}
+  .mf-nt{margin-top:5px;font-size:18px;line-height:1.35;color:#e5e7eb}
+  .mf-nt strong{color:#fff;font-weight:800}
+</style>
+</head>
+<body>
+
+<!-- ===================== COMPOSANT HERO MEMOFLASH ===================== -->
+<div class="mf-hero" data-bg="stars" role="img" aria-label="Memoflash transcrit ton cours en direct et génère ta fiche de révision surlignée automatiquement">
+  <div class="mf-stage">
+    <div class="mf-bg"><canvas width="1400" height="980"></canvas></div>
+    <div class="mf-glow"></div>
+    <div class="mf-shadow"></div>
+    <div class="mf-3d"><div class="mf-rig">
+      <div class="mf-mac">
+        <div class="mf-lid"><div class="mf-notch"></div>
+          <div class="mf-screen"><div class="mf-glass"></div>
+            <div class="mf-wall"></div>
+            <div class="mf-menubar"><b>Memoflash</b><span>Fichier</span><span>Édition</span><span>Affichage</span><span>Fenêtre</span><span>Aide</span>
+              <div class="mf-mbr">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" stroke-width="2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M12 20h.01"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" stroke-width="2"><rect x="2" y="7" width="18" height="10" rx="2.5"/><rect x="4.5" y="9.5" width="12" height="5" rx="1" fill="#e5e7eb" stroke="none"/><path d="M22 11v2" stroke-linecap="round"/></svg>
+                <span>lun. 9:41</span></div></div>
+            <div class="mf-win">
+              <div class="mf-tb"><div class="mf-tl"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+                <div class="mf-url"><svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.4"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>memoflash.io</div></div>
+              <div class="mf-view">
+
+                <!-- écran 1 : cours en direct (barre latérale + transcription) -->
+                <aside class="mf-sb">
+                  <div class="mf-logo"><div class="mf-bdg"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="#fff"/></svg></div>Memoflash</div>
+                  <div class="mf-new">+ Nouveau cours</div>
+                  <div class="mf-lab">MATIÈRES</div>
+                  <div class="mf-sub on"><i style="background:#fbbf24"></i>Économie<span>6</span></div>
+                  <div class="mf-sub"><i style="background:#34d399"></i>Biologie<span>8</span></div>
+                  <div class="mf-sub"><i style="background:#fb923c"></i>Histoire<span>5</span></div>
+                  <div class="mf-sub"><i style="background:#60a5fa"></i>Maths<span>11</span></div>
+                  <div class="mf-sub"><i style="background:#a78bfa"></i>Philosophie<span>4</span></div>
+                </aside>
+                <div class="mf-page mf-recpage">
+                  <div class="mf-rmain">
+                    <div class="mf-crumb">Économie › Chapitre 1</div>
+                    <div class="mf-h">Cours en direct</div>
+                    <div class="mf-rec"><span class="mf-dot"></span>Memoflash écoute<span class="mf-time">00:00</span><div class="mf-wave"></div></div>
+                    <div class="mf-tx" style="margin-top:20px"></div>
+                  </div>
+                </div>
+                <div class="mf-shim"></div>
+                <div class="mf-gen"><svg viewBox="0 0 24 24" fill="#fff"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.13-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0l1.58 6.14a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96l-6.14 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/></svg>Génération de ta fiche…</div>
+
+                <!-- écran 2 : la fiche générée -->
+                <div class="mf-page mf-fichepage">
+                  <div class="mf-back">← Mes fiches</div>
+                  <div class="mf-card">
+                    <div class="cf-top">
+                      <div><div class="cf-title">Objectifs et définitions de l'économie</div><div class="mf-date">11 octobre 2026 à 16:59</div></div>
+                      <div class="cf-input">Ajouter une matière (ex : Histoire)</div>
+                    </div>
+                    <div class="cf-row">
+                      <div class="cf-seg"><i class="cf-pill"></i><span class="cf-s1">Sobre</span><span class="cf-s2">Surligné</span></div>
+                      <div class="cf-btn">Copier la fiche</div><div class="cf-btn">Télécharger en PDF</div>
+                    </div>
+                    <div class="cf-body">
+                      <div class="cf-ess cf-k cf-flash"><span class="cf-t cf-k">L'essentiel</span> : l'économie analyse la production, la répartition et la consommation des richesses ; les économistes reposent sur les hypothèses de rareté, d'individualisme méthodologique et de rationalité ; les décisions se fondent sur le coût d'opportunité, le raisonnement à la marge et les incitations.</div>
+                      <div class="cf-h2 cf-k">Objectifs et définitions de l'économie</div>
+                      <div class="cf-li cf-k"><span class="cf-t cf-k">Économie</span> : terme couvrant le comportement de gestion des ressources, les relations sociales liées à la production et à la consommation, et la discipline scientifique rattachée aux sciences sociales.</div>
+                      <div class="cf-li cf-call cf-k cf-flash"><span class="cf-t cf-k">Science des richesses</span> : vision classique (Adam Smith, David Ricardo) qui étudie comment les richesses sont produites, réparties et utilisées.</div>
+                      <div class="cf-li sub cf-k">Adam Smith (<i>Recherches sur la nature et les causes de la richesse des nations</i>) : l'économie vise à enrichir le peuple et le souverain.</div>
+                      <div class="cf-li cf-call cf-k cf-flash"><span class="cf-t cf-k">Science des échanges marchands</span> : approche néoclassique qui centre l'analyse sur les échanges et la formation des prix.</div>
+                      <div class="cf-h2 cf-k">Méthodes d'analyse économique</div>
+                      <div class="cf-li cf-k">Trois hypothèses fondamentales :</div>
+                      <div class="cf-mapwrap"><svg class="cf-map" width="640" height="190" viewBox="0 0 640 190" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="14">
+                        <g fill="none" stroke="#38bdf8" stroke-width="1.6">
+                          <path class="cf-ml" pathLength="1" d="M240 52 C150 66 112 80 112 120"/><path class="cf-ml" pathLength="1" d="M320 56 L320 112"/><path class="cf-ml" pathLength="1" d="M400 52 C490 66 528 80 528 120"/>
+                        </g>
+                        <g fill="#38bdf8"><path class="cf-ar" d="M107 113 L112 122 L117 113 Z"/><path class="cf-ar" d="M315 106 L320 115 L325 106 Z"/><path class="cf-ar" d="M523 113 L528 122 L533 113 Z"/></g>
+                        <g class="cf-nd" data-x="320" data-y="32"><rect x="-80" y="-22" width="160" height="44" fill="#1c1d22" stroke="#e5e7eb" stroke-opacity=".7"/><text text-anchor="middle" y="5" fill="#e5e7eb">Hypothèses d'analyse</text></g>
+                        <g class="cf-nd" data-x="112" data-y="146"><rect x="-56" y="-22" width="112" height="44" fill="#1e3a5f" stroke="#38bdf8"/><text text-anchor="middle" y="5" fill="#e5e7eb">Rareté</text></g>
+                        <g class="cf-nd" data-x="320" data-y="146"><rect x="-96" y="-30" width="192" height="60" fill="#1e3a5f" stroke="#38bdf8"/><text text-anchor="middle" y="-3" fill="#e5e7eb">Individualisme</text><text text-anchor="middle" y="16" fill="#e5e7eb">méthodologique</text></g>
+                        <g class="cf-nd" data-x="528" data-y="146"><rect x="-94" y="-22" width="188" height="44" fill="#1e3a5f" stroke="#38bdf8"/><text text-anchor="middle" y="5" fill="#e5e7eb">Rationalité des agents</text></g>
+                      </svg></div>
+                      <div class="cf-li cf-call cf-k cf-flash"><span class="cf-t cf-k">Rareté</span> : situation où les ressources disponibles sont inférieures aux besoins (ressources &lt; besoins).</div>
+                      <div class="cf-li cf-call cf-k cf-flash"><span class="cf-t cf-k">Rationalité</span> : les individus agissent de manière à maximiser leurs intérêts, en pesant coûts et bénéfices.</div>
+                      <div class="cf-li cf-att cf-k cf-flash">⚠️ <span class="cf-t cf-k">Attention</span> : la représentation néoclassique de la rationalité (homo œconomicus) s'éloigne souvent de la réalité humaine (information imparfaite, capacités cognitives limitées).</div>
+                      <div class="cf-h2 cf-k">Décisions des agents économiques</div>
+                      <div class="cf-li cf-call cf-k cf-flash"><span class="cf-t cf-k">Coût d'opportunité</span> : valeur maximale des bénéfices auxquels on renonce pour obtenir quelque chose.</div>
+                      <div class="cf-li sub cf-k">Exemple : poursuite d'études → coûts directs (logement, frais de scolarité) + coût d'opportunité (salaire non perçu).</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mf-rip"></div>
+                <svg class="mf-cur" viewBox="0 0 24 24"><path d="M4 2.5 L4 19.5 L8.6 15.4 L11.6 22 L14.6 20.7 L11.7 14.2 L18 14.2 Z" fill="#fff" stroke="#0b1120" stroke-width="1.4" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mf-base"></div>
+      </div>
+      <div class="mf-notifs"></div>
+    </div></div>
+  </div>
+</div>
+<!-- =================== FIN COMPOSANT HERO MEMOFLASH =================== -->
+
+<script>
+/* Hero Memoflash : boucle de 18 s, entièrement calculée à partir du temps.
+   1. le cours d'économie se transcrit en direct
+   2. la fiche est générée (mode Sobre), le curseur bascule sur « Surligné » -> tout s'allume
+   3. la fiche défile jusqu'au schéma, qui se dessine
+   Les notifications tombent en pile pendant ce temps. Pause hors écran, image fixe si « réduire les animations ». */
+(function () {
+  const hero = document.querySelector('.mf-hero');
+  const q = s => hero.querySelector(s), qa = s => [...hero.querySelectorAll(s)];
+  const LOOP = 18;
+  const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+  const prog = (t, a, b) => clamp((t - a) / (b - a));
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const eOut = k => 1 - Math.pow(1 - k, 3);
+  const eIn = k => k * k * k;
+  const eInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+  const spr = k => k <= 0 ? 0 : k >= 1 ? 1 : 1 - Math.exp(-6 * k) * Math.cos(9.5 * k);
+  const rnd = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  const css = (el, o, tr, blur = 0) => { el.style.opacity = o; el.style.transform = tr; el.style.filter = blur > .1 ? `blur(${blur.toFixed(1)}px)` : 'none'; el.style.visibility = o < .003 ? 'hidden' : ''; };
+
+  // mise à l'échelle du stage 1400×980 sur la largeur du conteneur
+  const stage = q('.mf-stage');
+  const fit = () => { stage.style.transform = `scale(${hero.clientWidth / 1400})`; };
+  new ResizeObserver(fit).observe(hero); fit();
+
+  // fond « constellation »
+  const cv = q('canvas'), cx = cv.getContext('2d');
+  const NODES = Array.from({ length: 46 }, (_, i) => ({ x: rnd(i) * 1400, y: rnd(i + 99) * 980, a: rnd(i + 7) * 6.28, r: 30 + rnd(i + 3) * 60, s: .08 + rnd(i + 5) * .12, big: rnd(i + 11) > .86 }));
+  function stars(t) {
+    cx.clearRect(0, 0, 1400, 980);
+    const P = NODES.map(n => [n.x + Math.cos(n.a + t * n.s) * n.r, n.y + Math.sin(n.a * 1.3 + t * n.s * .8) * n.r * .6, n.big]);
+    for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
+      const d = Math.hypot(P[i][0] - P[j][0], P[i][1] - P[j][1]); if (d > 210) continue;
+      cx.strokeStyle = `rgba(148,163,184,${(.16 * (1 - d / 210)).toFixed(3)})`; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(P[i][0], P[i][1]); cx.lineTo(P[j][0], P[j][1]); cx.stroke();
+    }
+    P.forEach(([x, y, big], i) => {
+      const tw = big ? .7 + .3 * Math.sin(t * 2 + i) : .5;
+      cx.fillStyle = big ? `rgba(255,255,255,${tw})` : 'rgba(148,163,184,.45)';
+      cx.beginPath(); cx.arc(x, y, big ? 3.2 : 1.8, 0, 6.283); cx.fill();
+      if (big) { cx.fillStyle = `rgba(56,189,248,${.18 * tw})`; cx.beginPath(); cx.arc(x, y, 11, 0, 6.283); cx.fill(); }
+    });
+  }
+
+  // onde audio
+  const wave = q('.mf-wave'); const bars = Array.from({ length: 22 }, () => { const i = document.createElement('i'); wave.appendChild(i); return i; });
+
+  // transcription du cours d'économie (les notions clés sont repérées au fil de l'eau)
+  const TX = [["Bon, aujourd'hui on attaque l'", 0], ["économie", 1], [". C'est l'étude de la production, de la répartition et de la consommation des richesses. Toute l'analyse repose sur trois hypothèses : la ", 0],
+              ["rareté", 1], [", l'", 0], ["individualisme méthodologique", 1], [" et la ", 0], ["rationalité", 1], [". Et retenez bien : chaque choix a un ", 0], ["coût d'opportunité", 1], ["…", 0]];
+  const TXLEN = TX.reduce((n, [s]) => n + s.length, 0);
+  function transcript(n, caret) {
+    let out = '', left = n;
+    for (const [s, k] of TX) { if (left <= 0) break; const part = s.slice(0, left); left -= s.length; out += k ? `<span class="t">${part}</span>` : part; }
+    return out + (caret ? '<span class="mf-caret"></span>' : '');
+  }
+
+  // notifications (comme des paiements qui tombent)
+  const BOLT = '<svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="#fff"/></svg>';
+  const NOTES = [
+    { t: 6.9, html: 'Fiche prête :<br><strong>Objectifs et définitions de l\'économie</strong>' },
+    { t: 11.7, html: 'Schéma généré : <strong>Hypothèses d\'analyse</strong><br>3 notions reliées automatiquement' },
+    { t: 13.9, html: '<strong>amphi-eco.m4a</strong> transcrit<br>Fiche ajoutée dans Économie' },
+  ];
+  const box = q('.mf-notifs');
+  NOTES.forEach(n => { const d = document.createElement('div'); d.className = 'mf-n'; d.innerHTML = `<div class="mf-ni">${BOLT}</div><div class="mf-nb"><div class="mf-nh"><b>Memoflash</b><span></span></div><div class="mf-nt">${n.html}</div></div>`; box.appendChild(d); n.el = d; n.time = d.querySelector('.mf-nh span'); });
+  const ago = k => k === 0 ? 'maintenant' : k === 1 ? 'il y a 1 min' : `il y a ${k} min`;
+
+  const sb = q('.mf-sb');
+  const recpage = q('.mf-recpage'), fichepage = q('.mf-fichepage'), gen = q('.mf-gen'), shim = q('.mf-shim');
+  const tx = q('.mf-tx'), time = q('.mf-time'), dot = q('.mf-dot'), rig = q('.mf-rig'), shadow = q('.mf-shadow');
+  const ks = qa('.mf-fichepage .cf-k'), flashes = qa('.mf-fichepage .cf-flash');
+  const pill = q('.cf-pill'), s1 = q('.cf-s1'), s2 = q('.cf-s2'), cur = q('.mf-cur'), rip = q('.mf-rip');
+  const mls = qa('.cf-ml'), ars = qa('.cf-ar'), nds = qa('.cf-nd'), map = q('.cf-mapwrap');
+  mls.forEach(p => p.style.strokeDasharray = '1 1');
+  const card = q('.mf-fichepage .mf-card'), view = q('.mf-view');
+
+  // mesures (une seule fois, après chargement des polices)
+  let M = null;
+  function measure() {
+    const top = el => { let y = 0; while (el && el !== fichepage) { y += el.offsetTop; el = el.offsetParent; } return y; };
+    const segTop = top(q('.cf-seg')), segLeft = (() => { let x = 0, el = s2; while (el && el !== fichepage) { x += el.offsetLeft; el = el.offsetParent; } return x; })();
+    M = { vh: view.clientHeight, mapY: top(map), end: card.offsetTop + card.offsetHeight + 24,
+          p1: { x: s1.offsetLeft, w: s1.offsetWidth }, p2: { x: s2.offsetLeft, w: s2.offsetWidth },
+          click: { x: segLeft + s2.offsetWidth / 2, y: segTop + q('.cf-seg').offsetHeight / 2 } };
+  }
+
+  function render(T) {
+    if (!M) measure();
+    const t = T % LOOP, g = T;
+    stars(g);
+    const ry = -9 + 3 * Math.sin(g * .42), rx = 5 + 2 * Math.sin(g * .33 + 1), ty = 9 * Math.sin(g * .7);
+    rig.style.transform = `translateY(${ty.toFixed(2)}px) rotateY(${ry.toFixed(3)}deg) rotateX(${rx.toFixed(3)}deg)`;
+    shadow.style.transform = `scale(${(1 - ty / 260).toFixed(3)})`; shadow.style.opacity = (.85 - ty / 60).toFixed(3);
+
+    // ---- 1. cours en direct (0 → 6,3 s ; retour en fin de boucle)
+    const out = eIn(prog(t, 6.0, 6.4)), back = eOut(prog(t, 17.2, 17.9));
+    const recO = t < 6.4 ? 1 - out : back;
+    css(recpage, recO, `translateY(${(-16 * out).toFixed(1)}px)`, out * 8);
+    const sbk = t < 17.2 ? eInOut(prog(t, 6.0, 6.45)) : 1 - eOut(prog(t, 17.2, 17.9));
+    css(sb, 1 - sbk, `translateX(${(-220 * sbk).toFixed(1)}px)`, sbk * 4);
+    time.textContent = '00:' + String(Math.floor(t < 6.4 ? 12 + t : 12)).padStart(2, '0');
+    dot.style.opacity = (.35 + .65 * (.5 + .5 * Math.cos(g * 8))).toFixed(2);
+    bars.forEach((b, i) => { const v = Math.abs(Math.sin(g * 8.3 + i * .7) * Math.sin(g * 3.7 + i * 1.3)); b.style.height = (5 + 24 * v * (.4 + .6 * Math.sin(Math.PI * (i + .5) / bars.length))).toFixed(1) + 'px'; });
+    tx.innerHTML = transcript(t < 6.4 ? Math.floor(TXLEN * prog(t, .4, 5.4)) : 0, t < 5.9 && (g * 2.5 % 1) < .55);
+
+    // ---- génération
+    const sh = prog(t, 5.6, 6.3);
+    css(shim, sh > 0 && sh < 1 ? 1 : 0, `translateX(${(sh * 1100 - 220).toFixed(0)}px) skewX(-16deg)`);
+    const go = eIn(prog(t, 6.5, 6.7));
+    css(gen, eOut(prog(t, 5.55, 5.85)) * (1 - go), `translateX(-50%) scale(${(lerp(.75, 1, spr(prog(t, 5.55, 6.05))) * (1 - .1 * go)).toFixed(3)})`);
+
+    // ---- 2. la fiche apparaît en mode Sobre
+    const fin = eOut(prog(t, 6.35, 6.9)), fout = eIn(prog(t, 16.6, 17.2));
+    css(fichepage, t > 6.3 && t < 17.25 ? fin * (1 - fout) : 0, `translateY(${(lerp(24, 0, fin) - scrollY(t)).toFixed(1)}px)`, (1 - fin) * 6);
+
+    // ---- bascule Sobre -> Surligné (clic à 8,2 s)
+    const sw = eInOut(prog(t, 8.2, 8.45));
+    pill.style.width = lerp(M.p1.w, M.p2.w, sw) + 'px';
+    pill.style.transform = `translateX(${lerp(0, M.p2.x - M.p1.x, sw).toFixed(1)}px)`;
+    s1.style.color = sw < .5 ? '#fff' : '#94a3b8'; s2.style.color = sw >= .5 ? '#fff' : '#94a3b8';
+    ks.forEach((el, i) => el.style.setProperty('--k', eOut(prog(t, 8.25 + i * .025, 8.55 + i * .025)).toFixed(3)));
+    flashes.forEach((el, i) => { const k = prog(t, 8.25 + i * .05, 8.95 + i * .05); el.style.setProperty('--f', (Math.sin(Math.PI * k)).toFixed(3)); });
+
+    // curseur qui va cliquer sur « Surligné »
+    const mv = eInOut(prog(t, 7.4, 8.1)), sc = scrollY(t);
+    const cxp = lerp(900, M.click.x - 4, mv), cyp = lerp(470, M.click.y - 3, mv) - sc * mv + Math.sin(mv * Math.PI) * -30;
+    css(cur, eOut(prog(t, 7.3, 7.5)) * (1 - eOut(prog(t, 8.7, 8.95))), `translate(${cxp.toFixed(1)}px,${cyp.toFixed(1)}px) scale(${t > 8.15 && t < 8.3 ? .82 : 1})`);
+    const rk = prog(t, 8.2, 8.65);
+    css(rip, t > 8.2 && t < 8.65 ? (1 - rk) * .9 : 0, `translate(${M.click.x.toFixed(1)}px,${(M.click.y - sc).toFixed(1)}px) scale(${(.3 + eOut(rk) * 1.6).toFixed(3)})`);
+
+    // ---- 3. le schéma se dessine quand il arrive à l'écran
+    mls.forEach((p, i) => p.style.strokeDashoffset = 1 - eInOut(prog(t, 11.35 + i * .08, 11.85 + i * .08)));
+    ars.forEach((a, i) => a.style.opacity = eOut(prog(t, 11.75 + i * .08, 11.95 + i * .08)));
+    nds.forEach((n, i) => { const k = prog(t, 11.1 + (i ? .4 + i * .1 : 0), 11.45 + (i ? .4 + i * .1 : 0)); n.setAttribute('transform', `translate(${n.dataset.x} ${n.dataset.y}) scale(${Math.max(.001, spr(k)).toFixed(3)})`); n.style.opacity = eOut(k); });
+
+    // ---- notifications
+    const leave = eIn(prog(t, 16.3, 16.9));
+    NOTES.forEach(nt => {
+      if (t < nt.t) { css(nt.el, 0, 'none'); return; }
+      const k = prog(t, nt.t, nt.t + .7);
+      const slot = NOTES.filter(o => t >= o.t + .05 && o.t > nt.t).length;
+      const sk = NOTES.filter(o => o.t > nt.t).reduce((acc, o) => acc + eOut(prog(t, o.t, o.t + .55)), 0);
+      nt.el.style.setProperty('--dim', (.22 * sk).toFixed(3));
+      css(nt.el, Math.min(1, k * 3) * (1 - leave), `translate3d(${(leave * 120).toFixed(1)}px,${(sk * 136 + lerp(-46, 0, eOut(k))).toFixed(1)}px,${60 - sk * 18}px) scale(${(lerp(.9, 1, spr(k)) * (1 - .03 * sk)).toFixed(3)})`, (1 - eOut(k)) * 8 + leave * 6);
+      nt.time.textContent = ago(slot);
+      nt.el.style.zIndex = 10 - sk | 0;
+    });
+  }
+
+  // défilement « lecture » : jusqu'au schéma, pause, puis la suite
+  function scrollY(t) {
+    if (!M || !isFinite(M.mapY)) return 0;
+    const atMap = Math.max(0, M.mapY - M.vh * .3), atEnd = Math.max(atMap, M.end - M.vh);
+    return lerp(0, atMap, eInOut(prog(t, 9.1, 11.1))) + lerp(0, atEnd - atMap, eInOut(prog(t, 12.6, 15.0)));
+  }
+
+  window.mfHeroRender = render;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const go = () => {
+    if (reduce || window.__capture) { render(9.0); return; }
+    let visible = true; const start = performance.now();
+    new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(hero);
+    const loop = now => { if (visible && !document.hidden) render((now - start) / 1000); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  };
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(go);
+})();
+</script>
+</body>
+</html>
