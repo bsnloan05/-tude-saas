@@ -225,22 +225,9 @@ export default function LandingPage() {
         </ScrollFadeIn>
       </section>
 
-      <footer className="flex w-full max-w-4xl flex-col items-center gap-4 border-t border-[#232d45] py-10 text-center sm:flex-row sm:justify-between sm:text-left">
-        <span className="text-sm text-[#8b97b0]">© 2026 Memoflash</span>
-        <div className="flex gap-4">
-          <Link
-            href="/pricing"
-            className="text-sm text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
-          >
-            Tarifs
-          </Link>
-          <Link
-            href="/login"
-            className="text-sm text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
-          >
-            Se connecter
-          </Link>
-        </div>
+      <footer className="flex w-full max-w-6xl items-center gap-4 border-t border-[#232d45] py-10">
+        <span className="text-sm font-bold text-[#e7ecf5]">Memoflash</span>
+        <span className="text-sm text-[#8b97b0]">N&apos;écris pas, écoute seulement.</span>
       </footer>
 
       <LiveActivityBanner />
