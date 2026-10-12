@@ -124,8 +124,8 @@ export default function LandingPage() {
       </header>
 
       <main className="flex w-full max-w-3xl flex-col items-center py-16 text-center">
-        <span className="mb-5 rounded-full border border-[#2a3552] px-3 py-1 text-xs font-medium text-[#8b97b0]">
-          Fait pour les étudiants
+        <span className="mb-5 flex items-center gap-1.5 rounded-full bg-[#2563eb]/15 px-4 py-2 text-sm font-bold text-[#7dd3fc]">
+          🎧 N&apos;écris pas, écoute seulement
         </span>
 
         <h1 className="text-balance text-4xl font-bold tracking-tight text-[#e7ecf5] sm:text-5xl">
