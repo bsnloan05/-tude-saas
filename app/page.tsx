@@ -4,6 +4,7 @@ import LiveActivityBanner from "@/components/LiveActivityBanner";
 import TypewriterCycle from "@/components/TypewriterCycle";
 import LandingVideo from "@/components/LandingVideo";
 import LanguageSelector from "@/components/LanguageSelector";
+import FaqAccordion from "@/components/FaqAccordion";
 
 const FIELDS: Array<{ label: string; icon: React.ReactNode }> = [
   {
@@ -271,6 +272,18 @@ export default function LandingPage() {
       <section className="w-full max-w-3xl pb-16">
         <ScrollFadeIn>
           <LandingVideo />
+        </ScrollFadeIn>
+      </section>
+
+      <section className="w-full max-w-2xl border-t border-[#232d45] py-16">
+        <ScrollFadeIn>
+          <p className="mb-3 text-center text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
+            Questions
+          </p>
+          <h2 className="mb-8 text-center text-2xl font-bold text-[#e7ecf5]">
+            Les questions qu&apos;on nous pose souvent
+          </h2>
+          <FaqAccordion />
         </ScrollFadeIn>
       </section>
 
