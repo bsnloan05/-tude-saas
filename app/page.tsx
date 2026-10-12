@@ -167,53 +167,61 @@ export default function LandingPage() {
         </header>
       </div>
 
-      <main className="flex w-full max-w-3xl flex-col items-center py-16 text-center">
-        <span className="mb-5 flex items-center gap-1.5 rounded-full border border-[#2a3552] bg-[#141b2e] px-4 py-2 text-sm font-bold text-[#c3cbdc]">
-          🎧 N&apos;écris pas, écoute seulement
-        </span>
+      <main className="w-full max-w-6xl py-16">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
+          <div className="flex flex-col items-start text-left">
+            <span className="mb-5 flex items-center gap-1.5 rounded-full border border-[#2a3552] bg-[#141b2e] px-4 py-2 text-sm font-bold text-[#c3cbdc]">
+              🎧 N&apos;écris pas, écoute seulement
+            </span>
 
-        <h1 className="text-balance text-4xl font-bold tracking-tight text-[#e7ecf5] sm:text-5xl">
-          Transforme la voix de ton prof en{" "}
-          <span className="relative inline-block">
-            fiche de révision
-            <svg
-              viewBox="0 0 200 12"
-              preserveAspectRatio="none"
-              className="absolute -bottom-1 left-0 h-2.5 w-full text-[#38bdf8]"
-            >
-              <path
-                d="M2 8c40-6 120-6 196 0"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="4"
-                strokeLinecap="round"
-                className="draw-underline"
-                pathLength={100}
+            <h1 className="text-balance text-4xl font-bold tracking-tight text-[#e7ecf5] sm:text-5xl">
+              Transforme la voix de ton prof en{" "}
+              <span className="relative inline-block">
+                fiche de révision
+                <svg
+                  viewBox="0 0 200 12"
+                  preserveAspectRatio="none"
+                  className="absolute -bottom-1 left-0 h-2.5 w-full text-[#38bdf8]"
+                >
+                  <path
+                    d="M2 8c40-6 120-6 196 0"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    className="draw-underline"
+                    pathLength={100}
+                  />
+                </svg>
+              </span>
+            </h1>
+
+            <p className="mt-6 max-w-xl text-lg text-[#8b97b0] sm:text-xl">
+              Démarre l&apos;enregistrement pendant le cours et{" "}
+              <TypewriterCycle
+                words={[
+                  "récupère une fiche claire en quelques minutes",
+                  "concentre-toi sur ce que dit ton prof",
+                  "révise sans avoir rien écrit toi-même",
+                  "ne loupe plus aucune information importante",
+                ]}
               />
-            </svg>
-          </span>
-        </h1>
+            </p>
 
-        <p className="mt-6 max-w-xl text-lg text-[#8b97b0] sm:text-xl">
-          Démarre l&apos;enregistrement pendant le cours et{" "}
-          <TypewriterCycle
-            words={[
-              "récupère une fiche claire en quelques minutes",
-              "concentre-toi sur ce que dit ton prof",
-              "révise sans avoir rien écrit toi-même",
-              "ne loupe plus aucune information importante",
-            ]}
-          />
-        </p>
+            <div className="mt-8 flex flex-col items-start gap-2">
+              <Link
+                href="/onboarding"
+                className="flex h-12 w-52 items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+              >
+                Créer ma fiche
+              </Link>
+              <span className="text-sm text-[#8b97b0]">2 min chrono</span>
+            </div>
+          </div>
 
-        <div className="mt-8 flex flex-col items-center gap-2">
-          <Link
-            href="/onboarding"
-            className="flex h-12 w-52 items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
-          >
-            Créer ma fiche
-          </Link>
-          <span className="text-sm text-[#8b97b0]">2 min chrono</span>
+          <ScrollFadeIn>
+            <LandingVideo />
+          </ScrollFadeIn>
         </div>
       </main>
 
@@ -267,12 +275,6 @@ export default function LandingPage() {
             </ScrollFadeIn>
           ))}
         </div>
-      </section>
-
-      <section className="w-full max-w-3xl pb-16">
-        <ScrollFadeIn>
-          <LandingVideo />
-        </ScrollFadeIn>
       </section>
 
       <section className="w-full max-w-2xl border-t border-[#232d45] py-16">
