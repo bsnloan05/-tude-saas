@@ -175,6 +175,22 @@ export default function LandingPage() {
         </div>
       </main>
 
+      <section className="w-full max-w-4xl pb-10">
+        <ScrollFadeIn>
+          <p className="mb-5 text-center text-xs font-semibold tracking-wide text-[#6b7690] uppercase">
+            Memoflash fonctionne pour toutes les filières
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-base font-semibold text-[#8b97b0] sm:gap-x-10">
+            <span>Droit</span>
+            <span>Médecine</span>
+            <span>Prépa</span>
+            <span>Économie</span>
+            <span>Sciences</span>
+            <span>Lettres</span>
+          </div>
+        </ScrollFadeIn>
+      </section>
+
       <section className="w-full max-w-3xl pb-16">
         <ScrollFadeIn>
           <LandingVideo />
