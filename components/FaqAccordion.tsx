@@ -14,6 +14,11 @@ const FAQ = [
       "Non. La fiche est générée uniquement à partir de ce qui a été dit pendant ton cours — rien n'est ajouté ou inventé.",
   },
   {
+    question: "Et si l'IA ne capte pas bien certains mots ?",
+    answer:
+      "Si un mot est mal capté (bruit, débit rapide...), l'IA s'appuie sur le contexte du cours pour le reconstituer correctement — sans jamais inventer de nouvelles informations qui n'ont pas été dites.",
+  },
+  {
     question: "Qu'est-ce qui se passe si mon cours est très long ?",
     answer:
       "Memoflash gère aussi les cours longs : le texte est traité en plusieurs étapes automatiquement, tu n'as rien à faire de particulier.",
