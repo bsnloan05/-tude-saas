@@ -2,7 +2,6 @@ import Link from "next/link";
 import ScrollFadeIn from "@/components/ScrollFadeIn";
 import LiveActivityBanner from "@/components/LiveActivityBanner";
 import TypewriterCycle from "@/components/TypewriterCycle";
-import LandingVideo from "@/components/LandingVideo";
 import LanguageSelector from "@/components/LanguageSelector";
 import FaqAccordion from "@/components/FaqAccordion";
 
@@ -174,7 +173,7 @@ export default function LandingPage() {
               🎧 N&apos;écris pas, écoute seulement
             </span>
 
-            <h1 className="text-balance text-4xl font-bold tracking-tight text-[#e7ecf5] sm:text-5xl">
+            <h1 className="max-w-md text-balance text-4xl font-bold tracking-tight text-[#e7ecf5] sm:text-5xl">
               Transforme la voix de ton prof en{" "}
               <span className="relative inline-block">
                 fiche de révision
@@ -208,7 +207,7 @@ export default function LandingPage() {
               />
             </p>
 
-            <div className="mt-8 flex flex-col items-start gap-2">
+            <div className="mt-8 flex flex-col items-center gap-2">
               <Link
                 href="/onboarding"
                 className="flex h-12 w-52 items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
@@ -219,9 +218,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <ScrollFadeIn>
-            <LandingVideo />
-          </ScrollFadeIn>
+          <div />
         </div>
       </main>
 
