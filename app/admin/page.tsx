@@ -223,7 +223,7 @@ export default async function AdminPage() {
 
   if (!user || user.email !== OWNER_EMAIL) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#0b1120] px-4 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#070a12] px-4 text-center">
         <p className="text-sm text-[#8b97b0]">Accès refusé.</p>
       </div>
     );
@@ -294,7 +294,7 @@ export default async function AdminPage() {
   const planOrder = ["free", "standard", "trimestriel", "lifetime", "premium"];
 
   return (
-    <div className="dot-grid min-h-screen bg-[#0b1120] px-4 py-12">
+    <div className="min-h-screen bg-[#070a12] px-4 py-12">
       <div className="mx-auto w-full max-w-4xl">
         <h1 className="mb-8 text-2xl font-bold text-[#e7ecf5]">Tableau de bord</h1>
 

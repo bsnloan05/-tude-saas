@@ -45,7 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#0b1120]">
+    <div className="flex min-h-screen bg-[#070a12]">
       <aside className="hidden w-60 shrink-0 flex-col border-r border-[#232d45] px-4 py-6 lg:flex">
         <div className="flex items-center gap-2 px-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
@@ -143,7 +143,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </Link>
       </aside>
 
-      <div className="dot-grid flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         {/* Barre visible uniquement sur mobile/fenêtre étroite : la barre
             latérale est cachée en dessous de sm, donc on garde un accès au
             logo ici et la navigation dans la barre du bas. */}
@@ -162,7 +162,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Barre de navigation du bas, visible uniquement sur mobile/fenêtre
           étroite : équivalent en icônes de la barre latérale. */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-10 flex items-center justify-around border-t border-[#232d45] bg-[#0b1120] py-2 pr-16 pl-2 lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-10 flex items-center justify-around border-t border-[#232d45] bg-[#070a12] py-2 pr-16 pl-2 lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         <Link

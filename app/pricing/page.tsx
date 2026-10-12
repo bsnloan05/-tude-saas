@@ -168,23 +168,15 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="dot-grid isolate relative flex min-h-screen flex-col items-center overflow-hidden bg-[#0b1120] px-4 py-16">
+    <div className="isolate relative flex min-h-screen flex-col items-center overflow-hidden bg-[#070a12] px-4 py-16">
       <div
         aria-hidden
-        className="-z-10 pointer-events-none absolute -top-32 left-1/2 h-80 w-[36rem] -translate-x-1/2 rounded-full bg-[#2563eb]/25 blur-[100px]"
+        className="pointer-events-none fixed -right-32 -bottom-32 -z-10 h-[46rem] w-[46rem] rounded-full bg-[#2563eb]/35 blur-[150px]"
       />
-
-      <svg
+      <div
         aria-hidden
-        className="big-bg-icon pointer-events-none absolute top-1/2 left-1/2 -z-10 h-[22rem] w-[22rem] -translate-x-1/2 -translate-y-1/2 text-[#38bdf8]"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="0.6"
-      >
-        <path d="M4 5c3-1.5 6-1.5 8 0v14c-2-1.5-5-1.5-8 0V5z" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M20 5c-3-1.5-6-1.5-8 0v14c2-1.5 5-1.5 8 0V5z" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+        className="pointer-events-none fixed -top-32 -left-32 -z-10 h-[24rem] w-[24rem] rounded-full bg-[#38bdf8]/10 blur-[130px]"
+      />
 
       <div className="mb-10 flex w-full max-w-4xl items-center justify-between">
         <Link
