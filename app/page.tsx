@@ -101,27 +101,29 @@ export default function LandingPage() {
         </svg>
       </div>
 
-      <header className="relative -mx-4 flex w-[calc(100%+2rem)] items-center justify-between border-b border-[#232d45] px-6 py-4 sm:px-12">
-        <div className="flex items-baseline">
-          <span className="text-lg font-bold tracking-tight text-[#e7ecf5]">Memo</span>
-          <span className="text-lg font-bold tracking-tight text-[#38bdf8]">flash</span>
-        </div>
-        <div className="flex items-center gap-1 sm:gap-2">
-          <LanguageSelector />
-          <Link
-            href="/login"
-            className="rounded-full px-3 py-1.5 text-sm font-semibold text-[#e7ecf5] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
-          >
-            Se connecter
-          </Link>
-          <Link
-            href="/onboarding"
-            className="rounded-full bg-[#2563eb] px-5 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
-          >
-            Commencer
-          </Link>
-        </div>
-      </header>
+      <div className="relative -mx-4 w-[calc(100%+2rem)] border-b border-[#232d45]">
+        <header className="relative mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 sm:px-10">
+          <div className="flex items-baseline">
+            <span className="text-lg font-bold tracking-tight text-[#e7ecf5]">Memo</span>
+            <span className="text-lg font-bold tracking-tight text-[#38bdf8]">flash</span>
+          </div>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <LanguageSelector />
+            <Link
+              href="/login"
+              className="rounded-full px-3 py-1.5 text-sm font-semibold text-[#e7ecf5] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
+            >
+              Se connecter
+            </Link>
+            <Link
+              href="/onboarding"
+              className="rounded-full bg-[#2563eb] px-5 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+            >
+              Commencer
+            </Link>
+          </div>
+        </header>
+      </div>
 
       <main className="flex w-full max-w-3xl flex-col items-center py-16 text-center">
         <span className="mb-5 flex items-center gap-1.5 rounded-full border border-[#2a3552] bg-[#141b2e] px-4 py-2 text-sm font-bold text-[#c3cbdc]">
