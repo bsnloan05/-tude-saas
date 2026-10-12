@@ -81,13 +81,36 @@ const GOAL_PHRASES: Record<string, string> = {
   "Avoir plus de temps libre": "avoir plus de temps libre",
 };
 
+const TOTAL_STEPS = QUESTIONS.length + 1;
+
+function getAverageBadge(target: number): string {
+  if (target >= 18) return "Excellent";
+  if (target >= 16) return "Très bien";
+  if (target >= 14) return "Bien";
+  if (target >= 12) return "Assez bien";
+  return "Passable";
+}
+
 export default function OnboardingPage() {
+  const [showAverageStep, setShowAverageStep] = useState(true);
+  const [currentAverage, setCurrentAverage] = useState(11);
+  const [targetAverage, setTargetAverage] = useState(14);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
 
-  const isDone = step >= QUESTIONS.length;
+  const isDone = !showAverageStep && step >= QUESTIONS.length;
   const painPoint = answers[PAIN_POINT_INDEX];
   const goal = answers[GOAL_INDEX];
+  const averageDelta = targetAverage - currentAverage;
+
+  const handleCurrentAverageChange = (value: number) => {
+    setCurrentAverage(value);
+    if (value > targetAverage) setTargetAverage(value);
+  };
+
+  const handleTargetAverageChange = (value: number) => {
+    setTargetAverage(Math.max(value, currentAverage));
+  };
 
   const selectOption = (option: string) => {
     setAnswers((prev) => {
@@ -123,7 +146,7 @@ export default function OnboardingPage() {
         </Link>
         {!isDone && (
           <span className="text-xs text-[#8b97b0]">
-            {step + 1} / {QUESTIONS.length}
+            {showAverageStep ? 1 : step + 2} / {TOTAL_STEPS}
           </span>
         )}
       </div>
@@ -132,12 +155,93 @@ export default function OnboardingPage() {
         <div className="mb-8 h-1.5 w-full max-w-md overflow-hidden rounded-full bg-[#232d45]">
           <div
             className="h-full rounded-full bg-[#2563eb] transition-all duration-300"
-            style={{ width: `${(step / QUESTIONS.length) * 100}%` }}
+            style={{
+              width: `${((showAverageStep ? 0 : step + 1) / TOTAL_STEPS) * 100}%`,
+            }}
           />
         </div>
       )}
 
-      {!isDone ? (
+      {showAverageStep ? (
+        <div className="fiche-enter w-full max-w-md">
+          <h1 className="mb-2 text-balance text-center text-2xl font-bold text-[#e7ecf5]">
+            Quelle moyenne vises-tu ?
+          </h1>
+          <p className="mb-8 text-center text-sm text-[#8b97b0]">
+            Dis-nous où tu en es, et où tu veux aller.
+          </p>
+
+          <div className="mb-8 flex items-center justify-center gap-5">
+            <div className="text-center">
+              <p className="mb-1 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
+                Actuelle
+              </p>
+              <p className="text-3xl font-bold text-[#e7ecf5]">{currentAverage}</p>
+            </div>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-5 w-5 text-[#8b97b0]"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div className="text-center">
+              <p className="mb-1 text-xs font-semibold tracking-wide text-[#38bdf8] uppercase">
+                Visée
+              </p>
+              <p className="text-3xl font-bold text-[#38bdf8]">
+                {targetAverage}
+                {averageDelta > 0 && (
+                  <span className="ml-1.5 text-sm font-semibold text-emerald-400">
+                    (+{averageDelta})
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <label className="mb-2 flex items-center justify-between text-xs font-semibold text-[#8b97b0]">
+              <span>Ta moyenne actuelle</span>
+              <span>{currentAverage}/20</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={20}
+              step={0.5}
+              value={currentAverage}
+              onChange={(e) => handleCurrentAverageChange(parseFloat(e.target.value))}
+              className="w-full accent-[#2563eb]"
+            />
+          </div>
+
+          <div className="mb-8">
+            <label className="mb-2 flex items-center justify-between text-xs font-semibold text-[#38bdf8]">
+              <span>Ta moyenne visée</span>
+              <span>{targetAverage}/20</span>
+            </label>
+            <input
+              type="range"
+              min={0}
+              max={20}
+              step={0.5}
+              value={targetAverage}
+              onChange={(e) => handleTargetAverageChange(parseFloat(e.target.value))}
+              className="w-full accent-[#38bdf8]"
+            />
+          </div>
+
+          <button
+            onClick={() => setShowAverageStep(false)}
+            className="flex h-12 w-full items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+          >
+            Continuer
+          </button>
+        </div>
+      ) : !isDone ? (
         <div key={step} className="fiche-enter w-full max-w-md">
           <h1 className="mb-6 text-balance text-center text-2xl font-bold text-[#e7ecf5]">
             {QUESTIONS[step].question}
@@ -166,6 +270,23 @@ export default function OnboardingPage() {
                 {GOAL_PHRASES[goal] ?? "gagner du temps sur tes études"}
               </span>
             </p>
+          </div>
+
+          <div className="mb-4 rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 p-4 text-center">
+            <p className="mb-1.5 text-xs font-semibold tracking-wide text-[#7dd3fc] uppercase">
+              Ta moyenne visée
+            </p>
+            <p className="text-2xl font-bold text-[#e7ecf5]">
+              {targetAverage}/20{" "}
+              {averageDelta > 0 && (
+                <span className="text-base font-semibold text-emerald-400">
+                  (+{averageDelta} points)
+                </span>
+              )}
+            </p>
+            <span className="mt-2 inline-block rounded-full border border-[#2a3552] px-3 py-1 text-xs font-semibold text-[#c3cbdc]">
+              {getAverageBadge(targetAverage)}
+            </span>
           </div>
 
           <div className="mb-4 rounded-lg border border-[#2a3552] bg-[#0b1120] p-4">
