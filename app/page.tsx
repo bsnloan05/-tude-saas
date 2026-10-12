@@ -101,7 +101,7 @@ export default function LandingPage() {
       </div>
 
       <main className="w-full max-w-6xl py-16">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
+        <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.15fr]">
           <div className="flex flex-col items-start text-left">
             <span className="mb-5 flex items-center gap-1.5 rounded-full border border-[#2a3552] bg-[#141b2e] px-4 py-2 text-sm font-bold text-[#c3cbdc]">
               🎧 N&apos;écris pas, écoute seulement
@@ -152,14 +152,12 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-[28px]">
-            <iframe
-              src="/memoflash-hero.html"
-              title="Démonstration animée de Memoflash"
-              className="aspect-[1400/980] w-full border-0"
-              loading="lazy"
-            />
-          </div>
+          <iframe
+            src="/memoflash-hero.html"
+            title="Démonstration animée de Memoflash"
+            className="aspect-[1400/980] w-full border-0 bg-transparent"
+            loading="lazy"
+          />
         </div>
       </main>
 
