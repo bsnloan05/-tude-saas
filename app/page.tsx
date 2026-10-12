@@ -221,9 +221,7 @@ export default function LandingPage() {
           <h2 className="mb-8 text-left text-2xl font-bold text-[#e7ecf5]">
             Les questions qu&apos;on nous pose souvent
           </h2>
-          <div className="max-w-2xl">
-            <FaqAccordion />
-          </div>
+          <FaqAccordion />
         </ScrollFadeIn>
       </section>
 
