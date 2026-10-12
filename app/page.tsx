@@ -216,7 +216,7 @@ export default function LandingPage() {
         </div>
       </main>
 
-      <section className="w-full pb-10">
+      <section className="w-full max-w-4xl pb-10">
         <ScrollFadeIn>
           <p className="mb-6 text-center text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
             Memoflash fonctionne pour toutes les filières
