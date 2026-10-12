@@ -110,7 +110,7 @@ export default function LandingPage() {
           <LanguageSelector />
           <Link
             href="/login"
-            className="rounded-full px-3 py-1.5 text-xs font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5] active:scale-95"
+            className="rounded-full px-3 py-1.5 text-sm font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5] active:scale-95"
           >
             Se connecter
           </Link>

@@ -25,7 +25,7 @@ export default function LanguageSelector() {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[#8b97b0] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
       >
         🇫🇷 France (Français)
         <svg
