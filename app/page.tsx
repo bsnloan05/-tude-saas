@@ -5,6 +5,8 @@ import TypewriterCycle from "@/components/TypewriterCycle";
 import LandingVideo from "@/components/LandingVideo";
 import LanguageSelector from "@/components/LanguageSelector";
 
+const FIELDS = ["Droit", "Médecine", "Prépa", "Économie", "Sciences", "Lettres", "Psychologie", "Histoire"];
+
 const STEPS = [
   {
     title: "Démarre",
@@ -175,18 +177,22 @@ export default function LandingPage() {
         </div>
       </main>
 
-      <section className="w-full max-w-4xl pb-10">
+      <section className="w-full pb-10">
         <ScrollFadeIn>
           <p className="mb-5 text-center text-xs font-semibold tracking-wide text-[#6b7690] uppercase">
             Memoflash fonctionne pour toutes les filières
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-base font-semibold text-[#8b97b0] sm:gap-x-10">
-            <span>Droit</span>
-            <span>Médecine</span>
-            <span>Prépa</span>
-            <span>Économie</span>
-            <span>Sciences</span>
-            <span>Lettres</span>
+          <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+            <div className="animate-marquee flex w-max items-center gap-10">
+              {[...FIELDS, ...FIELDS].map((field, i) => (
+                <span
+                  key={i}
+                  className="shrink-0 text-lg font-semibold text-[#8b97b0]"
+                >
+                  {field}
+                </span>
+              ))}
+            </div>
           </div>
         </ScrollFadeIn>
       </section>
