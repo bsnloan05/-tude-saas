@@ -164,18 +164,12 @@ export default function LandingPage() {
           />
         </p>
 
-        <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
+        <div className="mt-8 flex items-center justify-center">
           <Link
             href="/onboarding"
             className="flex h-12 w-52 items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
           >
             Commencer
-          </Link>
-          <Link
-            href="/login"
-            className="flex h-12 w-52 items-center justify-center rounded-full border border-[#2a3552] text-base font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#141b2e] active:scale-95"
-          >
-            Se connecter
           </Link>
         </div>
       </main>
