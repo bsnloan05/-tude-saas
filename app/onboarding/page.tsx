@@ -129,7 +129,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="relative isolate flex min-h-screen flex-col items-start overflow-hidden bg-[#070a12] px-4 py-16 sm:px-10 lg:px-24">
+    <div className="relative isolate min-h-screen overflow-hidden bg-[#070a12]">
       <div
         aria-hidden
         className="pointer-events-none fixed -right-32 -bottom-32 -z-10 h-[46rem] w-[46rem] rounded-full bg-[#2563eb]/35 blur-[150px]"
@@ -139,37 +139,44 @@ export default function OnboardingPage() {
         className="pointer-events-none fixed -top-32 -left-32 -z-10 h-[24rem] w-[24rem] rounded-full bg-[#38bdf8]/10 blur-[130px]"
       />
 
-      <div className="mb-10 flex w-full max-w-4xl items-center justify-between">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-sm font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
-        >
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-              <path d="M13 2L4 14h6l-1 8 10-13h-6l0-7z" />
-            </svg>
-          </span>
-          <span className="text-[#e7ecf5]">Memoflash</span>
-        </Link>
-        {!isDone && (
-          <span className="text-xs text-[#8b97b0]">
-            {showAverageStep ? 1 : step + 2} / {TOTAL_STEPS}
-          </span>
-        )}
+      <div className="relative border-b border-[#232d45]">
+        <header className="flex w-full items-center justify-between px-4 py-4 sm:px-10 lg:px-24">
+          <div className="flex items-baseline">
+            <span className="text-lg font-bold tracking-tight text-[#e7ecf5]">Memo</span>
+            <span className="text-lg font-bold tracking-tight text-[#38bdf8]">flash</span>
+          </div>
+          <div className="flex items-center gap-4">
+            {!isDone && (
+              <span className="text-xs text-[#8b97b0]">
+                {showAverageStep ? 1 : step + 2} / {TOTAL_STEPS}
+              </span>
+            )}
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#e7ecf5]"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Retour à l&apos;accueil
+            </Link>
+          </div>
+        </header>
       </div>
 
-      {!isDone && (
-        <div className="mb-8 h-1.5 w-full max-w-4xl overflow-hidden rounded-full bg-[#232d45]">
-          <div
-            className="h-full rounded-full bg-[#2563eb] transition-all duration-300"
-            style={{
-              width: `${((showAverageStep ? 0 : step + 1) / TOTAL_STEPS) * 100}%`,
-            }}
-          />
-        </div>
-      )}
+      <div className="flex flex-col items-start px-4 py-12 sm:px-10 lg:px-24">
+        {!isDone && (
+          <div className="mb-8 h-1.5 w-full max-w-4xl overflow-hidden rounded-full bg-[#232d45]">
+            <div
+              className="h-full rounded-full bg-[#2563eb] transition-all duration-300"
+              style={{
+                width: `${((showAverageStep ? 0 : step + 1) / TOTAL_STEPS) * 100}%`,
+              }}
+            />
+          </div>
+        )}
 
-      {showAverageStep ? (
+        {showAverageStep ? (
         <div className="fiche-enter w-full max-w-4xl">
           <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
             Ton objectif
@@ -361,7 +368,8 @@ export default function OnboardingPage() {
             Créer mon compte
           </Link>
         </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
