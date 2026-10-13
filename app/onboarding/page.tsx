@@ -81,7 +81,114 @@ const GOAL_PHRASES: Record<string, string> = {
   "Avoir plus de temps libre": "avoir plus de temps libre",
 };
 
-const TOTAL_STEPS = QUESTIONS.length + 1;
+const TOTAL_STEPS = QUESTIONS.length + 3;
+
+type Testimonial = { quote: string; name: string };
+
+// Vrais témoignages déjà utilisés sur /pricing (TESTIMONIALS), choisis ici
+// selon la réponse pour que le témoignage affiché colle au mieux au sujet.
+const PAIN_POINT_TESTIMONIALS: Record<string, Testimonial> = {
+  "Je n'arrive pas à tout noter à temps": {
+    quote:
+      "Je comprends beaucoup mieux les cours : j'écoute le prof, et en rentrant, je relis directement ma fiche.",
+    name: "Entela",
+  },
+  "Je décroche ou je m'endors pendant le cours": {
+    quote: "Je comprends beaucoup mieux mes cours.",
+    name: "Dounia",
+  },
+  "Je révise à la dernière minute dans le chaos": {
+    quote: "Mes cours sont bien mieux structurés grâce à l'option où j'ai accès à toutes mes fiches.",
+    name: "Chloé",
+  },
+  "Mes notes sont illisibles après coup": {
+    quote: "Mes cours sont beaucoup plus structurés.",
+    name: "Clara",
+  },
+};
+
+const GOAL_TESTIMONIALS: Record<string, Testimonial> = {
+  "Réviser plus efficacement": {
+    quote: "Mes cours sont bien mieux structurés grâce à l'option où j'ai accès à toutes mes fiches.",
+    name: "Chloé",
+  },
+  "Moins stresser": {
+    quote: "Je comprends beaucoup mieux mes cours.",
+    name: "Dounia",
+  },
+  "Avoir de meilleures notes": {
+    quote:
+      "Je comprends beaucoup mieux les cours : j'écoute le prof, et en rentrant, je relis directement ma fiche.",
+    name: "Entela",
+  },
+  "Avoir plus de temps libre": {
+    quote: "Mes cours sont beaucoup plus structurés.",
+    name: "Clara",
+  },
+};
+
+function TestimonialStep({
+  testimonial,
+  avantText,
+  caption,
+  onBack,
+  onContinue,
+}: {
+  testimonial: Testimonial;
+  avantText: string;
+  caption: string;
+  onBack: () => void;
+  onContinue: () => void;
+}) {
+  return (
+    <div className="fiche-enter w-full max-w-4xl">
+      <button
+        onClick={onBack}
+        className="mb-6 flex items-center gap-1.5 text-sm text-[#8b97b0] transition-colors duration-150 hover:text-[#e7ecf5]"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+          <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Question précédente
+      </button>
+
+      <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
+        Ils sont passés par là
+      </p>
+      <h1 className="mb-8 text-balance text-3xl font-bold text-[#e7ecf5] sm:text-4xl">Avant, après.</h1>
+
+      <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:items-stretch sm:gap-6">
+        <div className="w-full rounded-lg border border-[#232d45] bg-[#141b2e] p-5 sm:max-w-xs">
+          <p className="mb-3 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">Avant</p>
+          <p className="text-sm text-[#6b7690]">{avantText}</p>
+        </div>
+
+        <span className="flex h-9 w-9 shrink-0 rotate-90 items-center justify-center self-center rounded-full border border-[#232d45] text-[#8b97b0] sm:rotate-0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+            <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+
+        <div className="w-full rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 p-5 sm:max-w-xs">
+          <p className="mb-3 text-xs font-semibold tracking-wide text-[#7dd3fc] uppercase">
+            Avec Memoflash
+          </p>
+          <p className="text-sm font-medium text-[#e7ecf5]">« {testimonial.quote} »</p>
+          <p className="mt-3 text-sm font-semibold text-[#38bdf8]">— {testimonial.name}</p>
+        </div>
+      </div>
+
+      <p className="mb-8 text-sm text-[#8b97b0]">{caption}</p>
+
+      <button
+        onClick={onContinue}
+        className="flex h-12 w-full items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+      >
+        Continuer
+      </button>
+    </div>
+  );
+}
 
 function getAverageBadge(target: number): string {
   if (target >= 18) return "Excellent";
@@ -98,11 +205,26 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [showTestimonial, setShowTestimonial] = useState(false);
+  const [showGoalTestimonial, setShowGoalTestimonial] = useState(false);
 
-  const isDone = !showAverageStep && step >= QUESTIONS.length;
+  const isDone = !showAverageStep && !showGoalTestimonial && step >= QUESTIONS.length;
   const painPoint = answers[PAIN_POINT_INDEX];
   const goal = answers[GOAL_INDEX];
   const averageDelta = targetAverage - currentAverage;
+
+  // Numéro affiché (1-indexé) : étape moyenne, puis questions, avec un
+  // témoignage inséré après "plus grosse galère" et un autre après
+  // "gagner du temps sur une seule chose" (juste avant le bilan).
+  const stepNumber = showAverageStep
+    ? 1
+    : showTestimonial
+      ? PAIN_POINT_INDEX + 3
+      : showGoalTestimonial
+        ? QUESTIONS.length + 3
+        : step <= PAIN_POINT_INDEX
+          ? step + 2
+          : step + 3;
 
   const handleCurrentAverageChange = (value: number) => {
     setCurrentAverage(value);
@@ -117,6 +239,8 @@ export default function OnboardingPage() {
     // Un court flash visuel (case cochée) avant de passer à la question
     // suivante, pour que le clic se sente confirmé plutôt qu'instantané.
     setSelectedOption(option);
+    const wasPainPointStep = step === PAIN_POINT_INDEX;
+    const wasGoalStep = step === GOAL_INDEX;
     setTimeout(() => {
       setAnswers((prev) => {
         const next = [...prev];
@@ -125,6 +249,8 @@ export default function OnboardingPage() {
       });
       setStep((current) => current + 1);
       setSelectedOption(null);
+      if (wasPainPointStep) setShowTestimonial(true);
+      if (wasGoalStep) setShowGoalTestimonial(true);
     }, 220);
   };
 
@@ -148,7 +274,7 @@ export default function OnboardingPage() {
           <div className="flex items-center gap-4">
             {!isDone && (
               <span className="text-xs text-[#8b97b0]">
-                {showAverageStep ? 1 : step + 2} / {TOTAL_STEPS}
+                {stepNumber} / {TOTAL_STEPS}
               </span>
             )}
             <Link
@@ -170,7 +296,7 @@ export default function OnboardingPage() {
             <div
               className="h-full rounded-full bg-[#2563eb] transition-all duration-300"
               style={{
-                width: `${((showAverageStep ? 0 : step + 1) / TOTAL_STEPS) * 100}%`,
+                width: `${((stepNumber - 1) / TOTAL_STEPS) * 100}%`,
               }}
             />
           </div>
@@ -260,11 +386,41 @@ export default function OnboardingPage() {
             Continuer
           </button>
         </div>
+      ) : showTestimonial ? (
+        <TestimonialStep
+          testimonial={
+            PAIN_POINT_TESTIMONIALS[painPoint] ?? PAIN_POINT_TESTIMONIALS["Je n'arrive pas à tout noter à temps"]
+          }
+          avantText="Des notes prises à la va-vite, et un prof qui a déjà enchaîné sur autre chose."
+          caption="Le témoignage d'une étudiante qui utilise déjà Memoflash. C'est exactement ce que tu peux ressentir, toi aussi."
+          onBack={() => {
+            setStep(PAIN_POINT_INDEX);
+            setShowTestimonial(false);
+          }}
+          onContinue={() => setShowTestimonial(false)}
+        />
+      ) : showGoalTestimonial ? (
+        <TestimonialStep
+          testimonial={GOAL_TESTIMONIALS[goal] ?? GOAL_TESTIMONIALS["Réviser plus efficacement"]}
+          avantText="Du temps perdu à tout réécrire, pour des révisions qui restent approximatives."
+          caption="Encore un témoignage d'une étudiante qui utilise déjà Memoflash. C'est le genre de résultat que tu peux viser."
+          onBack={() => {
+            setStep(GOAL_INDEX);
+            setShowGoalTestimonial(false);
+          }}
+          onContinue={() => setShowGoalTestimonial(false)}
+        />
       ) : !isDone ? (
         <div key={step} className="fiche-enter w-full max-w-4xl">
           {step > 0 && (
             <button
-              onClick={() => setStep((current) => current - 1)}
+              onClick={() => {
+                if (step === PAIN_POINT_INDEX + 1) {
+                  setShowTestimonial(true);
+                } else {
+                  setStep((current) => current - 1);
+                }
+              }}
               className="mb-6 flex items-center gap-1.5 text-sm text-[#8b97b0] transition-colors duration-150 hover:text-[#e7ecf5]"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
