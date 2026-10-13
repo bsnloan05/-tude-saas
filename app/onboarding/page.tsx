@@ -129,7 +129,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="relative isolate flex min-h-screen flex-col items-center overflow-hidden bg-[#070a12] px-4 py-16">
+    <div className="relative isolate flex min-h-screen flex-col items-start overflow-hidden bg-[#070a12] px-4 py-16 sm:px-10 lg:px-24">
       <div
         aria-hidden
         className="pointer-events-none fixed -right-32 -bottom-32 -z-10 h-[46rem] w-[46rem] rounded-full bg-[#2563eb]/35 blur-[150px]"
