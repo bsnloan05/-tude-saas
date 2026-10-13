@@ -97,6 +97,7 @@ export default function OnboardingPage() {
   const [targetAverage, setTargetAverage] = useState(14);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   const isDone = !showAverageStep && step >= QUESTIONS.length;
   const painPoint = answers[PAIN_POINT_INDEX];
@@ -113,12 +114,18 @@ export default function OnboardingPage() {
   };
 
   const selectOption = (option: string) => {
-    setAnswers((prev) => {
-      const next = [...prev];
-      next[step] = option;
-      return next;
-    });
-    setStep((current) => current + 1);
+    // Un court flash visuel (case cochée) avant de passer à la question
+    // suivante, pour que le clic se sente confirmé plutôt qu'instantané.
+    setSelectedOption(option);
+    setTimeout(() => {
+      setAnswers((prev) => {
+        const next = [...prev];
+        next[step] = option;
+        return next;
+      });
+      setStep((current) => current + 1);
+      setSelectedOption(null);
+    }, 220);
   };
 
   return (
@@ -252,15 +259,34 @@ export default function OnboardingPage() {
             {QUESTIONS[step].question}
           </h1>
           <div className="flex flex-col gap-3">
-            {QUESTIONS[step].options.map((option) => (
-              <button
-                key={option}
-                onClick={() => selectOption(option)}
-                className="rounded-lg border border-[#232d45] bg-[#141b2e] px-5 py-3.5 text-left text-sm font-medium text-[#e7ecf5] transition-colors transition-transform duration-150 hover:border-[#2563eb] hover:bg-[#1b2440] active:scale-[0.98]"
-              >
-                {option}
-              </button>
-            ))}
+            {QUESTIONS[step].options.map((option) => {
+              const isSelected = selectedOption === option;
+              return (
+                <button
+                  key={option}
+                  onClick={() => selectOption(option)}
+                  disabled={selectedOption !== null}
+                  className={`flex items-center justify-between gap-4 rounded-xl border px-6 py-5 text-left text-base font-medium text-[#e7ecf5] transition-colors transition-transform duration-150 active:scale-[0.98] disabled:cursor-default ${
+                    isSelected
+                      ? "border-[#2563eb] bg-[#1b2440]"
+                      : "border-[#232d45] bg-[#141b2e] hover:border-[#2563eb] hover:bg-[#1b2440]"
+                  }`}
+                >
+                  <span>{option}</span>
+                  <span
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 ${
+                      isSelected ? "border-[#2563eb] bg-[#2563eb]" : "border-[#3a4568]"
+                    }`}
+                  >
+                    {isSelected && (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" className="h-3.5 w-3.5">
+                        <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       ) : (
