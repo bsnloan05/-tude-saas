@@ -164,17 +164,20 @@ export default function OnboardingPage() {
 
       {showAverageStep ? (
         <div className="fiche-enter w-full max-w-4xl">
-          <h1 className="mb-3 text-balance text-center text-3xl font-bold text-[#e7ecf5] sm:text-4xl">
+          <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
+            Ton objectif
+          </p>
+          <h1 className="mb-2 text-balance text-3xl font-bold text-[#e7ecf5] sm:text-4xl">
             Quelle moyenne vises-tu ?
           </h1>
-          <p className="mb-10 text-center text-base text-[#8b97b0]">
+          <p className="mb-6 text-base text-[#8b97b0]">
             Dis-nous où tu en es, et où tu veux aller.
           </p>
 
-          <div className="mb-8 rounded-lg border border-[#232d45] bg-[#141b2e] p-8 sm:p-12">
-            <div className="mb-10 flex items-center justify-center gap-8 sm:gap-12">
-              <div className="text-center">
-                <p className="mb-2 text-sm font-semibold tracking-wide text-[#8b97b0] uppercase">
+          <div className="mb-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6 sm:p-8">
+            <div className="mb-6 flex items-center gap-6 sm:gap-8">
+              <div>
+                <p className="mb-1 text-sm font-semibold tracking-wide text-[#8b97b0] uppercase">
                   Actuelle
                 </p>
                 <p className="text-5xl font-bold text-[#e7ecf5] sm:text-6xl">{currentAverage}</p>
@@ -188,8 +191,8 @@ export default function OnboardingPage() {
               >
                 <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <div className="text-center">
-                <p className="mb-2 text-sm font-semibold tracking-wide text-[#38bdf8] uppercase">
+              <div>
+                <p className="mb-1 text-sm font-semibold tracking-wide text-[#38bdf8] uppercase">
                   Visée
                 </p>
                 <p className="text-5xl font-bold text-[#38bdf8] sm:text-6xl">
@@ -203,8 +206,8 @@ export default function OnboardingPage() {
               </div>
             </div>
 
-            <div className="mb-8">
-              <label className="mb-3 flex items-center justify-between text-sm font-semibold text-[#8b97b0]">
+            <div className="mb-5">
+              <label className="mb-2 flex items-center justify-between text-sm font-semibold text-[#8b97b0]">
                 <span>Ta moyenne actuelle</span>
                 <span>{currentAverage}/20</span>
               </label>
@@ -220,7 +223,7 @@ export default function OnboardingPage() {
             </div>
 
             <div>
-              <label className="mb-3 flex items-center justify-between text-sm font-semibold text-[#38bdf8]">
+              <label className="mb-2 flex items-center justify-between text-sm font-semibold text-[#38bdf8]">
                 <span>Ta moyenne visée</span>
                 <span>{targetAverage}/20</span>
               </label>
