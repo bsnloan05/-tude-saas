@@ -166,7 +166,7 @@ export default function OnboardingPage() {
 
       <div className="flex flex-col items-start px-4 py-12 sm:px-10 lg:px-[16%]">
         {!isDone && (
-          <div className="mb-8 h-1.5 w-full max-w-4xl overflow-hidden rounded-full bg-[#232d45]">
+          <div className="mb-8 h-1.5 w-full overflow-hidden rounded-full bg-[#232d45]">
             <div
               className="h-full rounded-full bg-[#2563eb] transition-all duration-300"
               style={{
