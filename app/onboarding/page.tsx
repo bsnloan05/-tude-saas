@@ -255,7 +255,18 @@ export default function OnboardingPage() {
         </div>
       ) : !isDone ? (
         <div key={step} className="fiche-enter w-full max-w-4xl">
-          <h1 className="mb-6 text-balance text-center text-2xl font-bold text-[#e7ecf5]">
+          {step > 0 && (
+            <button
+              onClick={() => setStep((current) => current - 1)}
+              className="mb-6 flex items-center gap-1.5 text-sm text-[#8b97b0] transition-colors duration-150 hover:text-[#e7ecf5]"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Question précédente
+            </button>
+          )}
+          <h1 className="mb-6 text-balance text-2xl font-bold text-[#e7ecf5]">
             {QUESTIONS[step].question}
           </h1>
           <div className="flex flex-col gap-3">
@@ -266,15 +277,14 @@ export default function OnboardingPage() {
                   key={option}
                   onClick={() => selectOption(option)}
                   disabled={selectedOption !== null}
-                  className={`flex items-center justify-between gap-4 rounded-xl border px-6 py-5 text-left text-base font-medium text-[#e7ecf5] transition-colors transition-transform duration-150 active:scale-[0.98] disabled:cursor-default ${
+                  className={`flex items-center gap-4 rounded-xl border px-6 py-5 text-left text-base font-semibold text-[#e7ecf5] transition-colors transition-transform duration-150 active:scale-[0.98] disabled:cursor-default ${
                     isSelected
                       ? "border-[#2563eb] bg-[#1b2440]"
                       : "border-[#232d45] bg-[#141b2e] hover:border-[#2563eb] hover:bg-[#1b2440]"
                   }`}
                 >
-                  <span>{option}</span>
                   <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 ${
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-colors duration-150 ${
                       isSelected ? "border-[#2563eb] bg-[#2563eb]" : "border-[#3a4568]"
                     }`}
                   >
@@ -284,6 +294,7 @@ export default function OnboardingPage() {
                       </svg>
                     )}
                   </span>
+                  <span>{option}</span>
                 </button>
               );
             })}
