@@ -91,7 +91,7 @@ const PAIN_POINT_TESTIMONIALS: Record<string, Testimonial> = {
   "Je n'arrive pas à tout noter à temps": {
     quote:
       "Je comprends beaucoup mieux les cours : j'écoute le prof, et en rentrant, je relis directement ma fiche.",
-    name: "Entela",
+    name: "Eliot",
   },
   "Je décroche ou je m'endors pendant le cours": {
     quote: "Je comprends beaucoup mieux mes cours.",
@@ -119,7 +119,7 @@ const GOAL_TESTIMONIALS: Record<string, Testimonial> = {
   "Avoir de meilleures notes": {
     quote:
       "Je comprends beaucoup mieux les cours : j'écoute le prof, et en rentrant, je relis directement ma fiche.",
-    name: "Entela",
+    name: "Eliot",
   },
   "Avoir plus de temps libre": {
     quote: "Mes cours sont beaucoup plus structurés.",

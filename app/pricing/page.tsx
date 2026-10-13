@@ -82,7 +82,7 @@ const PLANS: Array<{
 
 const TESTIMONIALS = [
   {
-    name: "Entela",
+    name: "Eliot",
     quote:
       "Je comprends beaucoup mieux les cours : j'écoute le prof, et en rentrant, je relis directement ma fiche.",
   },
