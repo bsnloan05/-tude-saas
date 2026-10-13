@@ -162,7 +162,7 @@ function TestimonialStep({
 
         <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:items-stretch sm:gap-6">
           <div className="w-full rounded-lg border border-[#232d45] bg-[#141b2e] p-5 text-left sm:max-w-xs">
-            <p className="mb-3 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">Avant</p>
+            <p className="mb-3 text-xs font-bold tracking-wide text-[#e7ecf5] uppercase">Avant</p>
             <p className="text-sm text-[#c3cbdc]">{avantText}</p>
           </div>
 
