@@ -140,7 +140,7 @@ export default function OnboardingPage() {
       />
 
       <div className="relative border-b border-[#232d45]">
-        <header className="flex w-full items-center justify-between px-4 py-4 sm:px-10 lg:px-24">
+        <header className="flex w-full items-center justify-between px-4 py-4 sm:px-10 lg:px-[16%]">
           <div className="flex items-baseline">
             <span className="text-lg font-bold tracking-tight text-[#e7ecf5]">Memo</span>
             <span className="text-lg font-bold tracking-tight text-[#38bdf8]">flash</span>
@@ -164,7 +164,7 @@ export default function OnboardingPage() {
         </header>
       </div>
 
-      <div className="flex flex-col items-start px-4 py-12 sm:px-10 lg:px-24">
+      <div className="flex flex-col items-start px-4 py-12 sm:px-10 lg:px-[16%]">
         {!isDone && (
           <div className="mb-8 h-1.5 w-full max-w-4xl overflow-hidden rounded-full bg-[#232d45]">
             <div
