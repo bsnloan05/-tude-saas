@@ -141,7 +141,7 @@ function TestimonialStep({
   onContinue: () => void;
 }) {
   return (
-    <div className="fiche-enter w-full max-w-4xl">
+    <div className="fiche-enter w-full">
       <button
         onClick={onBack}
         className="mb-6 flex items-center gap-1.5 text-sm text-[#8b97b0] transition-colors duration-150 hover:text-[#e7ecf5]"
@@ -152,7 +152,7 @@ function TestimonialStep({
         Question précédente
       </button>
 
-      <div className="flex flex-col items-center text-center">
+      <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
         <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
           Ils sont passés par là
         </p>
@@ -163,7 +163,7 @@ function TestimonialStep({
         <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:items-stretch sm:gap-6">
           <div className="w-full rounded-lg border border-[#232d45] bg-[#141b2e] p-5 text-left sm:max-w-xs">
             <p className="mb-3 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">Avant</p>
-            <p className="text-sm text-[#6b7690]">{avantText}</p>
+            <p className="text-sm text-[#c3cbdc]">{avantText}</p>
           </div>
 
           <span className="flex h-9 w-9 shrink-0 rotate-90 items-center justify-center self-center rounded-full border border-[#232d45] text-[#8b97b0] sm:rotate-0">
