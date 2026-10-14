@@ -90,9 +90,10 @@ function LoginForm() {
     // Supabase n'envoie l'email que si ce compte existe réellement, mais ne
     // révèle jamais l'un ou l'autre côté client (contre l'énumération de
     // comptes) : on affiche donc toujours le même message de confirmation.
-    await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    });
+    // Le lien final est construit directement par le template d'email
+    // Supabase (token_hash + /reset-password), redirectTo n'est donc plus
+    // utilisé ici.
+    await supabase.auth.resetPasswordForEmail(email);
     setLoading(false);
     setForgotPasswordSent(true);
   };

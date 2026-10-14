@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [checkingSession, setCheckingSession] = useState(true);
   const [hasSession, setHasSession] = useState(false);
   const [password, setPassword] = useState("");
@@ -15,11 +16,23 @@ export default function ResetPasswordPage() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
+    const tokenHash = searchParams.get("token_hash");
     const supabase = createClient();
-    supabase.auth.getSession().then(({ data }) => {
-      setHasSession(!!data.session);
+
+    // Vérifié directement dans ce navigateur (verifyOtp), sans passer par un
+    // échange de code côté serveur : ça marche même si l'email a été ouvert
+    // sur un autre appareil que celui où le lien a été demandé.
+    if (!tokenHash) {
+      setHasSession(false);
+      setCheckingSession(false);
+      return;
+    }
+
+    supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" }).then(({ error }) => {
+      setHasSession(!error);
       setCheckingSession(false);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -155,5 +168,13 @@ export default function ResetPasswordPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
