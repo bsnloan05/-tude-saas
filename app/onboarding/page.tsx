@@ -238,11 +238,11 @@ function LoadingStep({ items, onDone }: { items: string[]; onDone: () => void })
   const [doneCount, setDoneCount] = useState(0);
 
   useEffect(() => {
-    const stepDelay = 650;
+    const stepDelay = 1200;
     const timers = items.map((_, i) =>
       setTimeout(() => setDoneCount((count) => Math.max(count, i + 1)), (i + 1) * stepDelay),
     );
-    const finalTimer = setTimeout(onDone, items.length * stepDelay + 500);
+    const finalTimer = setTimeout(onDone, items.length * stepDelay + 700);
     return () => {
       timers.forEach(clearTimeout);
       clearTimeout(finalTimer);
