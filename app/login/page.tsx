@@ -31,6 +31,8 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState(searchParams.get("error") ?? "");
   const [infoMessage, setInfoMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -81,6 +83,20 @@ function LoginForm() {
     setLoading(false);
   };
 
+  const handleForgotPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setLoading(true);
+    const supabase = createClient();
+    // Supabase n'envoie l'email que si ce compte existe réellement, mais ne
+    // révèle jamais l'un ou l'autre côté client (contre l'énumération de
+    // comptes) : on affiche donc toujours le même message de confirmation.
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    setLoading(false);
+    setForgotPasswordSent(true);
+  };
+
   const handleGoogleLogin = async () => {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
@@ -106,7 +122,59 @@ function LoginForm() {
           <span className="text-base font-bold tracking-tight text-[#38bdf8]">flash</span>
         </div>
 
-        {mode === "signup" ? (
+        {showForgotPassword ? (
+          <>
+            <div className="mb-8 text-center">
+              <h1 className="mb-2 text-2xl font-bold text-[#e7ecf5]">Mot de passe oublié</h1>
+              <p className="text-base text-[#8b97b0]">
+                {forgotPasswordSent
+                  ? "Si un compte existe avec cet email, un lien de réinitialisation vient d'être envoyé."
+                  : "Indique ton email, on t'envoie un lien pour choisir un nouveau mot de passe."}
+              </p>
+            </div>
+
+            {!forgotPasswordSent && (
+              <form onSubmit={handleForgotPassword} className="flex flex-col gap-5">
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="forgot-email" className="text-sm font-medium text-[#c3cbdc]">
+                    Email
+                  </label>
+                  <input
+                    id="forgot-email"
+                    type="email"
+                    required
+                    autoFocus
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="rounded-lg border border-[#2a3552] bg-[#0b1120] px-4 py-3 text-base text-[#e7ecf5] outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
+                    placeholder="toi@exemple.com"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-1 rounded-full bg-[#2563eb] px-4 py-3.5 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {loading ? "Envoi..." : "Envoyer le lien"}
+                </button>
+              </form>
+            )}
+
+            <p className="mt-5 text-center text-sm text-[#8b97b0]">
+              <button
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setForgotPasswordSent(false);
+                }}
+                className="font-semibold text-[#38bdf8] transition-transform duration-150 hover:text-[#60c8fb] active:scale-95"
+              >
+                Retour à la connexion
+              </button>
+            </p>
+          </>
+        ) : mode === "signup" ? (
           <div className="mb-8 text-center">
             <p className="mb-3 text-4xl">🎉</p>
             <h1 className="mb-2 text-balance text-2xl font-bold text-[#e7ecf5] sm:text-3xl">
@@ -126,6 +194,8 @@ function LoginForm() {
           </div>
         )}
 
+        {!showForgotPassword && (
+        <>
         <button
           type="button"
           onClick={handleGoogleLogin}
@@ -191,6 +261,20 @@ function LoginForm() {
               className="rounded-lg border border-[#2a3552] bg-[#0b1120] px-4 py-3 text-base text-[#e7ecf5] outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
               placeholder="6 caractères minimum"
             />
+            {mode === "signin" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForgotPassword(true);
+                  setForgotPasswordSent(false);
+                  setErrorMessage("");
+                  setInfoMessage("");
+                }}
+                className="mt-1 self-end text-sm text-[#8b97b0] transition-colors duration-150 hover:text-[#38bdf8]"
+              >
+                Mot de passe oublié ?
+              </button>
+            )}
           </div>
 
           {mode === "signup" && (
@@ -248,6 +332,8 @@ function LoginForm() {
             {mode === "signin" ? "Inscris-toi" : "Se connecter"}
           </button>
         </p>
+        </>
+        )}
       </div>
     </div>
   );
