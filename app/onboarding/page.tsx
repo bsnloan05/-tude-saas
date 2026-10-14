@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Question = {
   question: string;
@@ -62,17 +63,6 @@ const QUESTIONS: Question[] = [
 
 const PAIN_POINT_INDEX = 4;
 const GOAL_INDEX = 6;
-
-const PAIN_POINT_RESPONSES: Record<string, string> = {
-  "Je n'arrive pas à tout noter à temps":
-    "Plus besoin d'écrire en même temps que le prof parle : Memoflash transcrit et structure tout à ta place.",
-  "Je décroche ou je m'endors pendant le cours":
-    "Même si tu décroches quelques minutes, Memoflash capte tout le cours pour toi, en entier.",
-  "Je révise à la dernière minute dans le chaos":
-    "Ta fiche de révision est prête dès la fin du cours, claire et structurée : fini le chaos de dernière minute.",
-  "Mes notes sont illisibles après coup":
-    "Memoflash transforme automatiquement ta voix en fiche propre et lisible, sans que tu aies à écrire quoi que ce soit.",
-};
 
 const GOAL_PHRASES: Record<string, string> = {
   "Réviser plus efficacement": "réviser plus efficacement",
@@ -241,6 +231,90 @@ function RealisticStep({
   );
 }
 
+// Faux chargement (comme chez Pimzi) : ne reflète aucun vrai calcul, juste
+// une séquence animée qui donne l'impression que Memoflash prépare un plan
+// sur mesure avant de renvoyer vers la création de compte.
+function LoadingStep({ items, onDone }: { items: string[]; onDone: () => void }) {
+  const [doneCount, setDoneCount] = useState(0);
+
+  useEffect(() => {
+    const stepDelay = 650;
+    const timers = items.map((_, i) =>
+      setTimeout(() => setDoneCount((count) => Math.max(count, i + 1)), (i + 1) * stepDelay),
+    );
+    const finalTimer = setTimeout(onDone, items.length * stepDelay + 500);
+    return () => {
+      timers.forEach(clearTimeout);
+      clearTimeout(finalTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const progress = Math.round((doneCount / items.length) * 100);
+
+  return (
+    <div className="fiche-enter w-full">
+      <div className="mx-auto flex max-w-xl flex-col items-center py-16 text-center">
+        <h1 className="mb-8 text-balance text-2xl font-bold text-[#e7ecf5] sm:text-3xl">
+          Memoflash prépare ton plan<span className="text-[#38bdf8]">...</span>
+        </h1>
+
+        <div className="mb-6 flex w-full flex-col gap-3">
+          {items.map((item, i) => {
+            const isItemDone = i < doneCount;
+            const isActive = i === doneCount;
+            return (
+              <div
+                key={item}
+                className={`flex items-center gap-3 rounded-xl border px-5 py-4 text-left transition-opacity duration-300 ${
+                  isItemDone || isActive
+                    ? "border-[#232d45] bg-[#141b2e] opacity-100"
+                    : "border-[#1b2440] bg-[#0f1424] opacity-40"
+                }`}
+              >
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                  {isItemDone ? (
+                    <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6">
+                      <circle cx="12" cy="12" r="10" fill="#34d39926" />
+                      <path
+                        d="M8 12.5l2.5 2.5L16 9.5"
+                        stroke="#34d399"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : isActive ? (
+                    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 animate-spin text-[#38bdf8]">
+                      <path
+                        d="M12 2a10 10 0 010 20"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  ) : (
+                    <span className="block h-2 w-2 rounded-full bg-[#3a4568]" />
+                  )}
+                </span>
+                <span className="text-sm font-medium text-[#e7ecf5]">{item}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#232d45]">
+          <div
+            className="h-full rounded-full bg-[#2563eb] transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <p className="mt-2 text-xs text-[#8b97b0]">{progress}%</p>
+      </div>
+    </div>
+  );
+}
+
 function getAverageBadge(target: number): string {
   if (target >= 18) return "Excellent";
   if (target >= 16) return "Très bien";
@@ -250,6 +324,7 @@ function getAverageBadge(target: number): string {
 }
 
 export default function OnboardingPage() {
+  const router = useRouter();
   const [showAverageStep, setShowAverageStep] = useState(true);
   const [currentAverage, setCurrentAverage] = useState(11);
   const [targetAverage, setTargetAverage] = useState(14);
@@ -532,66 +607,15 @@ export default function OnboardingPage() {
           </div>
         </div>
       ) : (
-        <div className="fiche-enter w-full max-w-4xl rounded-lg border border-[#232d45] bg-[#141b2e] p-8">
-          <div className="mb-6 text-center">
-            <span className="mb-3 inline-block rounded-full border border-[#2a3552] px-4 py-1.5 text-sm font-semibold text-[#e7ecf5]">
-              Ton bilan personnalisé
-            </span>
-            <p className="text-sm text-[#8b97b0]">
-              Objectif :{" "}
-              <span className="font-medium text-[#e7ecf5]">
-                {GOAL_PHRASES[goal] ?? "gagner du temps sur tes études"}
-              </span>
-            </p>
-          </div>
-
-          <div className="mb-4 rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 p-4 text-center">
-            <p className="mb-1.5 text-xs font-semibold tracking-wide text-[#7dd3fc] uppercase">
-              Ta moyenne visée
-            </p>
-            <p className="text-2xl font-bold text-[#e7ecf5]">
-              {targetAverage}/20{" "}
-              {averageDelta > 0 && (
-                <span className="text-base font-semibold text-emerald-400">
-                  (+{averageDelta} points)
-                </span>
-              )}
-            </p>
-            <span className="mt-2 inline-block rounded-full border border-[#2a3552] px-3 py-1 text-xs font-semibold text-[#c3cbdc]">
-              {getAverageBadge(targetAverage)}
-            </span>
-          </div>
-
-          <div className="mb-4 rounded-lg border border-[#2a3552] bg-[#0b1120] p-4">
-            <p className="mb-1.5 text-[17px] font-semibold tracking-wide text-[#8b97b0] uppercase">
-              Ta plus grosse galère :
-            </p>
-            <p className="text-[16px] font-medium text-[#e7ecf5]">{painPoint}</p>
-          </div>
-
-          <div className="mb-6 flex justify-center">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5 text-[#38bdf8]">
-              <path d="M12 4v16M6 14l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-
-          <div className="mb-8 rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 p-4">
-            <p className="mb-1.5 text-xs font-semibold tracking-wide text-[#7dd3fc] uppercase">
-              Ce que Memoflash change pour toi :
-            </p>
-            <p className="text-sm font-medium text-[#e7ecf5]">
-              {PAIN_POINT_RESPONSES[painPoint] ??
-                "Tes cours se transforment automatiquement en fiches de révision claires, sans effort."}
-            </p>
-          </div>
-
-          <Link
-            href="/login?mode=signup"
-            className="flex h-12 w-full items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
-          >
-            Créer mon compte
-          </Link>
-        </div>
+        <LoadingStep
+          items={[
+            "Analyse de tes réponses...",
+            `Objectif repéré : ${GOAL_PHRASES[goal] ?? "gagner du temps sur tes études"}...`,
+            `Moyenne visée calibrée : ${targetAverage}/20 (${getAverageBadge(targetAverage)})...`,
+            "Préparation de ton espace Memoflash...",
+          ]}
+          onDone={() => router.push("/login?mode=signup")}
+        />
         )}
       </div>
     </div>
