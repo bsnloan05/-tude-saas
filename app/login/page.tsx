@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { createBrowserClient } from "@supabase/ssr";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "signin" | "signup";
@@ -86,7 +87,14 @@ function LoginForm() {
   const handleForgotPassword = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
-    const supabase = createClient();
+    // Client dédié en flowType "implicit" (au lieu du client PKCE partagé) :
+    // le lien envoyé par email doit pouvoir être vérifié depuis n'importe
+    // quel navigateur/appareil, pas seulement celui qui a fait la demande.
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { flowType: "implicit" } },
+    );
     // Supabase n'envoie l'email que si ce compte existe réellement, mais ne
     // révèle jamais l'un ou l'autre côté client (contre l'énumération de
     // comptes) : on affiche donc toujours le même message de confirmation.
