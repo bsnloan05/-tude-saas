@@ -235,18 +235,19 @@ function LoginForm() {
           </button>
         </form>
 
-        <button
-          onClick={() => {
-            setMode(mode === "signin" ? "signup" : "signin");
-            setErrorMessage("");
-            setInfoMessage("");
-          }}
-          className="mt-5 w-full text-center text-sm text-[#8b97b0] transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
-        >
-          {mode === "signin"
-            ? "Pas encore de compte ? Inscris-toi"
-            : "Déjà un compte ? Connecte-toi"}
-        </button>
+        <p className="mt-5 text-center text-sm text-[#8b97b0]">
+          {mode === "signin" ? "Pas encore de compte ? " : "Déjà un compte ? "}
+          <button
+            onClick={() => {
+              setMode(mode === "signin" ? "signup" : "signin");
+              setErrorMessage("");
+              setInfoMessage("");
+            }}
+            className="font-semibold text-[#38bdf8] transition-transform duration-150 hover:text-[#60c8fb] active:scale-95"
+          >
+            {mode === "signin" ? "Inscris-toi" : "Se connecter"}
+          </button>
+        </p>
       </div>
     </div>
   );
