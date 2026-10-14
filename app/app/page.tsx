@@ -1219,7 +1219,7 @@ export default function Home() {
         )}
 
         {status === "done" && !showFreePreview && (
-          <div className="fiche-enter w-full">
+          <div className="fiche-enter w-full rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-5 shadow-sm backdrop-blur-sm">
             <div className="mb-5 flex flex-col gap-3 border-b border-[#232d45] px-2 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <span className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5 shrink-0 text-[#38bdf8]">
