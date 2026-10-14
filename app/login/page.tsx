@@ -27,6 +27,7 @@ function LoginForm() {
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [errorMessage, setErrorMessage] = useState(searchParams.get("error") ?? "");
   const [infoMessage, setInfoMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,7 +41,11 @@ function LoginForm() {
     const supabase = createClient();
 
     if (mode === "signup") {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { first_name: firstName } },
+      });
       if (error) {
         setErrorMessage(translateAuthError(error.message));
       } else if (data.user) {
@@ -95,7 +100,7 @@ function LoginForm() {
         className="pointer-events-none fixed -top-32 -left-32 -z-10 h-[24rem] w-[24rem] rounded-full bg-[#38bdf8]/10 blur-[130px]"
       />
 
-      <div className="relative w-full max-w-md rounded-2xl border border-[#232d45] bg-[#141b2e] p-8 shadow-xl sm:p-10">
+      <div className="relative w-full max-w-md">
         <div className="mb-8 flex items-center justify-center gap-0.5">
           <span className="text-base font-bold tracking-tight text-[#e7ecf5]">Memo</span>
           <span className="text-base font-bold tracking-tight text-[#38bdf8]">flash</span>
@@ -187,6 +192,24 @@ function LoginForm() {
               placeholder="6 caractères minimum"
             />
           </div>
+
+          {mode === "signup" && (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="firstName" className="text-sm font-medium text-[#c3cbdc]">
+                Ton prénom
+              </label>
+              <input
+                id="firstName"
+                type="text"
+                required
+                autoComplete="given-name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="rounded-lg border border-[#2a3552] bg-[#0b1120] px-4 py-3 text-base text-[#e7ecf5] outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
+                placeholder="Camille"
+              />
+            </div>
+          )}
 
           {errorMessage && (
             <p className="rounded-lg border border-red-900/50 bg-red-950/50 px-4 py-2.5 text-sm text-red-200">
