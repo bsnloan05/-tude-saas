@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "signin" | "signup";
@@ -87,13 +87,15 @@ function LoginForm() {
   const handleForgotPassword = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
-    // Client dédié en flowType "implicit" (au lieu du client PKCE partagé) :
-    // le lien envoyé par email doit pouvoir être vérifié depuis n'importe
-    // quel navigateur/appareil, pas seulement celui qui a fait la demande.
-    const supabase = createBrowserClient(
+    // Client @supabase/supabase-js "nu" (pas @supabase/ssr) : ce dernier
+    // force le flow PKCE même si on lui demande "implicit", ce qui lie le
+    // lien reçu par email au navigateur d'origine. Le client de base utilise
+    // bien le flow implicite demandé, nécessaire pour qu'un lien de
+    // réinitialisation fonctionne depuis n'importe quel appareil.
+    const supabase = createSupabaseJsClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { auth: { flowType: "implicit" } },
+      { auth: { flowType: "implicit", persistSession: false } },
     );
     // Supabase n'envoie l'email que si ce compte existe réellement, mais ne
     // révèle jamais l'un ou l'autre côté client (contre l'énumération de
