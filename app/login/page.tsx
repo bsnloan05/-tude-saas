@@ -95,31 +95,38 @@ function LoginForm() {
         className="pointer-events-none fixed -top-32 -left-32 -z-10 h-[24rem] w-[24rem] rounded-full bg-[#38bdf8]/10 blur-[130px]"
       />
 
-      <div className="relative w-full max-w-sm rounded-lg border border-[#232d45] bg-[#141b2e] p-7 shadow-sm">
-        <div className="mb-6 flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-              <path d="M13 2L4 14h6l-1 8 10-13h-6l0-7z" />
-            </svg>
-          </span>
-          <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
+      <div className="relative w-full max-w-md rounded-2xl border border-[#232d45] bg-[#141b2e] p-8 shadow-xl sm:p-10">
+        <div className="mb-8 flex items-center justify-center gap-0.5">
+          <span className="text-base font-bold tracking-tight text-[#e7ecf5]">Memo</span>
+          <span className="text-base font-bold tracking-tight text-[#38bdf8]">flash</span>
         </div>
 
-        <h1 className="mb-1 text-xl font-bold text-[#e7ecf5]">
-          {mode === "signin" ? "Connexion" : "Créer un compte"}
-        </h1>
-        <p className="mb-6 text-sm text-[#8b97b0]">
-          {mode === "signin"
-            ? "Connecte-toi pour accéder à tes fiches."
-            : "Crée un compte pour commencer à générer tes fiches."}
-        </p>
+        {mode === "signup" ? (
+          <div className="mb-8 text-center">
+            <p className="mb-3 text-4xl">🎉</p>
+            <h1 className="mb-2 text-balance text-2xl font-bold text-[#e7ecf5] sm:text-3xl">
+              Ton plan est prêt.
+            </h1>
+            <p className="mb-4 text-base text-[#8b97b0]">
+              Crée ton compte pour y accéder, ta première fiche n&apos;est plus très loin.
+            </p>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-4 py-1.5 text-sm font-semibold text-emerald-300">
+              ⏱️ Ta fiche de révision, prête en 2 minutes chrono
+            </span>
+          </div>
+        ) : (
+          <div className="mb-8 text-center">
+            <h1 className="mb-2 text-2xl font-bold text-[#e7ecf5]">Connexion</h1>
+            <p className="text-base text-[#8b97b0]">Connecte-toi pour accéder à tes fiches.</p>
+          </div>
+        )}
 
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-[#2a3552] bg-[#0b1120] px-4 py-2.5 text-sm font-medium text-[#e7ecf5] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-[#2a3552] bg-[#0b1120] px-4 py-3.5 text-base font-medium text-[#e7ecf5] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
         >
-          <svg viewBox="0 0 24 24" className="h-4 w-4">
+          <svg viewBox="0 0 24 24" className="h-5 w-5">
             <path
               fill="#4285F4"
               d="M23.49 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h6.47a5.54 5.54 0 01-2.4 3.64v3h3.88c2.27-2.09 3.54-5.17 3.54-8.67z"
@@ -140,13 +147,13 @@ function LoginForm() {
           Continuer avec Google
         </button>
 
-        <div className="my-5 flex items-center gap-3">
+        <div className="my-6 flex items-center gap-3">
           <div className="h-px flex-1 bg-[#232d45]" />
           <span className="text-xs text-[#6b7690]">ou</span>
           <div className="h-px flex-1 bg-[#232d45]" />
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="email" className="text-sm font-medium text-[#c3cbdc]">
               Email
@@ -159,7 +166,7 @@ function LoginForm() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5] outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
+              className="rounded-lg border border-[#2a3552] bg-[#0b1120] px-4 py-3 text-base text-[#e7ecf5] outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
               placeholder="toi@exemple.com"
             />
           </div>
@@ -176,18 +183,18 @@ function LoginForm() {
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5] outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
+              className="rounded-lg border border-[#2a3552] bg-[#0b1120] px-4 py-3 text-base text-[#e7ecf5] outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
               placeholder="6 caractères minimum"
             />
           </div>
 
           {errorMessage && (
-            <p className="rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-sm text-red-200">
+            <p className="rounded-lg border border-red-900/50 bg-red-950/50 px-4 py-2.5 text-sm text-red-200">
               {errorMessage}
             </p>
           )}
           {infoMessage && (
-            <p className="rounded-md border border-emerald-900/50 bg-emerald-950/50 px-3 py-2 text-sm text-emerald-200">
+            <p className="rounded-lg border border-emerald-900/50 bg-emerald-950/50 px-4 py-2.5 text-sm text-emerald-200">
               {infoMessage}
             </p>
           )}
@@ -195,7 +202,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-1 rounded-full bg-[#2563eb] px-4 py-2.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-1 rounded-full bg-[#2563eb] px-4 py-3.5 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading
               ? "Chargement..."
@@ -211,7 +218,7 @@ function LoginForm() {
             setErrorMessage("");
             setInfoMessage("");
           }}
-          className="mt-4 w-full text-center text-sm text-[#8b97b0] transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
+          className="mt-5 w-full text-center text-sm text-[#8b97b0] transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
         >
           {mode === "signin"
             ? "Pas encore de compte ? Inscris-toi"
