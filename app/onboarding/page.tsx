@@ -81,7 +81,7 @@ const GOAL_PHRASES: Record<string, string> = {
   "Avoir plus de temps libre": "avoir plus de temps libre",
 };
 
-const TOTAL_STEPS = QUESTIONS.length + 3;
+const TOTAL_STEPS = QUESTIONS.length + 4;
 
 type Testimonial = { quote: string; name: string };
 
@@ -197,6 +197,50 @@ function TestimonialStep({
   );
 }
 
+function RealisticStep({
+  targetAverage,
+  onBack,
+  onContinue,
+}: {
+  targetAverage: number;
+  onBack: () => void;
+  onContinue: () => void;
+}) {
+  return (
+    <div className="fiche-enter w-full">
+      <button
+        onClick={onBack}
+        className="mb-6 flex items-center gap-1.5 text-sm text-[#8b97b0] transition-colors duration-150 hover:text-[#e7ecf5]"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+          <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Question précédente
+      </button>
+
+      <div className="mx-auto flex max-w-2xl flex-col items-center py-12 text-center">
+        <p className="mb-4 text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">Ton cap</p>
+        <h1 className="text-balance text-3xl font-bold text-[#e7ecf5] sm:text-4xl">
+          {targetAverage}/20, c&apos;est tout à fait réaliste.
+        </h1>
+        <p className="mb-10 text-balance text-3xl font-bold text-[#38bdf8] sm:text-4xl">
+          Et Memoflash va t&apos;y aider.
+        </p>
+
+        <button
+          onClick={onContinue}
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#2563eb] px-8 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+        >
+          Continuer
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+            <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function getAverageBadge(target: number): string {
   if (target >= 18) return "Excellent";
   if (target >= 16) return "Très bien";
@@ -214,24 +258,29 @@ export default function OnboardingPage() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showTestimonial, setShowTestimonial] = useState(false);
   const [showGoalTestimonial, setShowGoalTestimonial] = useState(false);
+  const [showRealisticStep, setShowRealisticStep] = useState(false);
 
-  const isDone = !showAverageStep && !showGoalTestimonial && step >= QUESTIONS.length;
+  const isDone =
+    !showAverageStep && !showGoalTestimonial && !showRealisticStep && step >= QUESTIONS.length;
   const painPoint = answers[PAIN_POINT_INDEX];
   const goal = answers[GOAL_INDEX];
   const averageDelta = targetAverage - currentAverage;
 
   // Numéro affiché (1-indexé) : étape moyenne, puis questions, avec un
-  // témoignage inséré après "plus grosse galère" et un autre après
-  // "gagner du temps sur une seule chose" (juste avant le bilan).
+  // témoignage inséré après "plus grosse galère", un autre après "gagner
+  // du temps sur une seule chose", et l'écran "c'est réaliste" juste
+  // avant le bilan.
   const stepNumber = showAverageStep
     ? 1
     : showTestimonial
       ? PAIN_POINT_INDEX + 3
       : showGoalTestimonial
         ? QUESTIONS.length + 3
-        : step <= PAIN_POINT_INDEX
-          ? step + 2
-          : step + 3;
+        : showRealisticStep
+          ? QUESTIONS.length + 4
+          : step <= PAIN_POINT_INDEX
+            ? step + 2
+            : step + 3;
 
   const handleCurrentAverageChange = (value: number) => {
     setCurrentAverage(value);
@@ -415,7 +464,19 @@ export default function OnboardingPage() {
             setStep(GOAL_INDEX);
             setShowGoalTestimonial(false);
           }}
-          onContinue={() => setShowGoalTestimonial(false)}
+          onContinue={() => {
+            setShowGoalTestimonial(false);
+            setShowRealisticStep(true);
+          }}
+        />
+      ) : showRealisticStep ? (
+        <RealisticStep
+          targetAverage={targetAverage}
+          onBack={() => {
+            setShowGoalTestimonial(true);
+            setShowRealisticStep(false);
+          }}
+          onContinue={() => setShowRealisticStep(false)}
         />
       ) : !isDone ? (
         <div key={step} className="fiche-enter w-full max-w-4xl">
