@@ -830,7 +830,7 @@ export default function Home() {
         className="pointer-events-none fixed -top-32 -left-32 -z-10 h-[24rem] w-[24rem] rounded-full bg-[#38bdf8]/10 blur-[130px]"
       />
 
-      <main className="mt-8 flex w-full max-w-2xl flex-col items-center gap-8">
+      <main className="mt-8 flex w-full max-w-4xl flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-3 text-center">
           <h1 className="text-balance text-2xl font-bold tracking-tight text-[#e7ecf5] sm:text-3xl">
             Transforme tes cours en{" "}
