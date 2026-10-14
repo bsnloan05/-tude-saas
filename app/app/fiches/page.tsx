@@ -76,7 +76,7 @@ export default function FichesPage() {
 
   return (
     <div className="flex flex-col items-center px-4 py-12">
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-4xl">
         <h1 className="mb-8 text-2xl font-bold text-[#e7ecf5]">Mes fiches</h1>
 
         {error && (
@@ -90,7 +90,7 @@ export default function FichesPage() {
         )}
 
         {!error && fiches !== null && fiches.length === 0 && (
-          <div className="rounded-lg border border-[#232d45] bg-[#141b2e] p-8 text-center">
+          <div className="rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-8 text-center backdrop-blur-sm">
             <p className="text-sm text-[#8b97b0]">
               Tu n&apos;as encore aucune fiche enregistrée. Génère ta première
               fiche depuis la page principale !
@@ -127,7 +127,7 @@ export default function FichesPage() {
                     <li key={fiche.id} className="relative">
                       <Link
                         href={`/app/fiches/${fiche.id}`}
-                        className="block rounded-lg border border-[#232d45] bg-[#141b2e] p-4 pr-12 transition-colors transition-transform duration-150 hover:border-[#2a3552] hover:bg-[#1b2440] active:scale-[0.99]"
+                        className="block rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-4 pr-12 backdrop-blur-sm transition-colors transition-transform duration-150 hover:border-[#2a3552] hover:bg-[#1b2440] active:scale-[0.99]"
                       >
                         <p className="truncate text-sm font-medium text-[#e7ecf5]">
                           {ficheTitle(fiche.title, fiche.content)}

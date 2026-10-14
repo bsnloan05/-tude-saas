@@ -72,7 +72,7 @@ export default function FicheDetailPage() {
 
   return (
     <div className="flex flex-col items-center px-4 py-12">
-      <div className="mb-10 w-full max-w-2xl">
+      <div className="mb-10 w-full max-w-4xl">
         <Link
           href="/app/fiches"
           className="text-sm font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
@@ -81,7 +81,7 @@ export default function FicheDetailPage() {
         </Link>
       </div>
 
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-4xl">
         {error && (
           <p className="rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-sm text-red-200">
             {error}
@@ -93,7 +93,7 @@ export default function FicheDetailPage() {
         )}
 
         {!error && notes !== null && (
-          <div className="fiche-enter rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
+          <div className="fiche-enter rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-6 backdrop-blur-sm">
             <div className="mb-5 flex flex-col gap-3 border-b border-[#232d45] pb-4">
               <div className="flex items-center gap-2">
                 <input
