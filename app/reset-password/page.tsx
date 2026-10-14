@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
 function ResetPasswordForm() {
@@ -17,19 +18,38 @@ function ResetPasswordForm() {
 
   useEffect(() => {
     const tokenHash = searchParams.get("token_hash");
-    const supabase = createClient();
 
-    // Vérifié directement dans ce navigateur (verifyOtp), sans passer par un
-    // échange de code côté serveur : ça marche même si l'email a été ouvert
-    // sur un autre appareil que celui où le lien a été demandé.
     if (!tokenHash) {
       setHasSession(false);
       setCheckingSession(false);
       return;
     }
 
-    supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" }).then(({ error }) => {
-      setHasSession(!error);
+    // Vérifié avec le client @supabase/supabase-js "nu" (comme pour l'envoi
+    // du lien) : le client @supabase/ssr de l'app, configuré pour le flow
+    // PKCE, échoue à vérifier un token au format implicite même valide.
+    // La session obtenue est ensuite réinjectée dans le client normal de
+    // l'app (cookies), pour que la suite (nouveau mot de passe, accès à
+    // /app) fonctionne normalement.
+    const verifyClient = createSupabaseJsClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { persistSession: false } },
+    );
+
+    verifyClient.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" }).then(async ({ data, error }) => {
+      if (error || !data.session) {
+        setHasSession(false);
+        setCheckingSession(false);
+        return;
+      }
+
+      const supabase = createClient();
+      const { error: setSessionError } = await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
+      setHasSession(!setSessionError);
       setCheckingSession(false);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
