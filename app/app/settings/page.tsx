@@ -138,7 +138,7 @@ export default function SettingsPage() {
         <h1 className="mb-8 text-2xl font-bold text-[#e7ecf5]">Réglages</h1>
 
         {/* Bannière profil */}
-        <div className="overflow-hidden rounded-lg border border-[#232d45] bg-gradient-to-br from-[#1b2440] to-[#141b2e] p-6">
+        <div className="overflow-hidden rounded-lg border border-[#232d45] bg-gradient-to-br from-[#0d1424]/70 to-[#0d1424]/50 backdrop-blur-sm p-6">
           <div className="flex items-center gap-4">
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#2563eb] text-xl font-semibold text-white">
               {usage?.email?.[0]?.toUpperCase() ?? "?"}
@@ -162,7 +162,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Prénom */}
-        <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
+        <div className="mt-6 rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-6 backdrop-blur-sm">
           <h2 className="mb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
             Prénom
           </h2>
@@ -196,7 +196,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Forfait / usage */}
-        <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
+        <div className="mt-6 rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-6 backdrop-blur-sm">
           <h2 className="mb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
             Forfait
           </h2>
@@ -245,7 +245,7 @@ export default function SettingsPage() {
 
         {/* Mot de passe */}
         {hasPassword !== null && (
-          <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
+          <div className="mt-6 rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-6 backdrop-blur-sm">
             <h2 className="mb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
               Sécurité
             </h2>
@@ -303,7 +303,7 @@ export default function SettingsPage() {
         )}
 
         {/* Compte */}
-        <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
+        <div className="mt-6 rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-6 backdrop-blur-sm">
           <h2 className="mb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
             Compte
           </h2>

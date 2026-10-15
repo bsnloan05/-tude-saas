@@ -211,10 +211,10 @@ export default function PricingPage() {
         {PLANS.map((plan) => (
           <div
             key={plan.key}
-            className={`relative flex flex-col rounded-lg border p-6 ${
+            className={`relative flex flex-col rounded-lg border p-6 backdrop-blur-sm ${
               plan.popular
-                ? "border-[#2563eb] bg-[#141b2e] shadow-[0_0_0_1px_rgba(37,99,235,0.4)]"
-                : "border-[#232d45] bg-[#141b2e]"
+                ? "border-[#2563eb] bg-[#0d1424]/60 shadow-[0_0_0_1px_rgba(37,99,235,0.4)]"
+                : "border-[#232d45] bg-[#0d1424]/60"
             }`}
           >
             {plan.popular && (
@@ -312,7 +312,7 @@ export default function PricingPage() {
             {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
               <div
                 key={i}
-                className="w-72 shrink-0 rounded-lg border border-[#232d45] bg-[#141b2e] p-5"
+                className="w-72 shrink-0 rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-5 backdrop-blur-sm"
               >
                 <p className="text-sm text-[#c3cbdc]">
                   &laquo;&nbsp;{t.quote}&nbsp;&raquo;
