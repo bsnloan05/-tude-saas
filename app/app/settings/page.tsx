@@ -29,6 +29,7 @@ export default function SettingsPage() {
   const [usage, setUsage] = useState<{
     plan: string;
     email: string;
+    firstName: string | null;
     usedSeconds: number;
     quotaSeconds: number | null;
   } | null>(null);
@@ -39,11 +40,22 @@ export default function SettingsPage() {
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [savingFirstName, setSavingFirstName] = useState(false);
+  const [firstNameSuccess, setFirstNameSuccess] = useState(false);
 
-  useEffect(() => {
+  const refreshUsage = () => {
     fetch("/api/usage")
       .then((response) => (response.ok ? response.json() : null))
-      .then((data) => data && setUsage(data));
+      .then((data) => {
+        if (!data) return;
+        setUsage(data);
+        setFirstName(data.firstName ?? "");
+      });
+  };
+
+  useEffect(() => {
+    refreshUsage();
 
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -59,6 +71,17 @@ export default function SettingsPage() {
         });
     });
   }, []);
+
+  const handleSaveFirstName = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setFirstNameSuccess(false);
+    setSavingFirstName(true);
+    const supabase = createClient();
+    await supabase.auth.updateUser({ data: { first_name: firstName.trim() } });
+    setSavingFirstName(false);
+    setFirstNameSuccess(true);
+    refreshUsage();
+  };
 
   const handleSetPassword = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -136,6 +159,40 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Prénom */}
+        <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
+          <h2 className="mb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
+            Prénom
+          </h2>
+          <p className="mb-4 text-sm text-[#8b97b0]">
+            Affiché à la place de ton email dans la barre latérale.
+          </p>
+          <form onSubmit={handleSaveFirstName} className="flex flex-col gap-3 sm:flex-row">
+            <input
+              type="text"
+              value={firstName}
+              onChange={(e) => {
+                setFirstName(e.target.value);
+                setFirstNameSuccess(false);
+              }}
+              placeholder="Ton prénom"
+              className="w-full rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5] outline-none placeholder:text-[#6b7690] focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30 sm:flex-1"
+            />
+            <button
+              type="submit"
+              disabled={savingFirstName}
+              className="shrink-0 rounded-full bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {savingFirstName ? "Enregistrement..." : "Enregistrer"}
+            </button>
+          </form>
+          {firstNameSuccess && (
+            <p className="mt-3 rounded-md border border-emerald-900/50 bg-emerald-950/50 px-3 py-2 text-sm text-emerald-200">
+              Prénom enregistré.
+            </p>
+          )}
         </div>
 
         {/* Forfait / usage */}
