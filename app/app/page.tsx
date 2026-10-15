@@ -63,6 +63,65 @@ function formatDuration(totalSeconds: number): string {
   return minutes === 0 ? `${hours}h` : `${hours}h${minutes.toString().padStart(2, "0")}`;
 }
 
+// Petit menu "Fichier / Photo" (ou "Fichier / Galerie") qui s'ouvre au clic
+// sur un bouton d'import, au lieu d'ouvrir directement un sélecteur unique.
+function ImportMenu({
+  icon,
+  label,
+  badge,
+  isOpen,
+  onToggle,
+  onClose,
+  options,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  badge?: React.ReactNode;
+  isOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  options: { label: string; onClick: () => void }[];
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen, onClose]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        onClick={onToggle}
+        className="flex items-center gap-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#c3cbdc]"
+      >
+        {icon}
+        {label}
+        {badge}
+      </button>
+      {isOpen && (
+        <div className="absolute top-full left-1/2 z-20 mt-2 w-40 -translate-x-1/2 rounded-lg border border-[#232d45] bg-[#141b2e] p-1.5 shadow-lg">
+          {options.map((option) => (
+            <button
+              key={option.label}
+              onClick={option.onClick}
+              className="flex w-full items-center justify-center rounded-md px-3 py-2 text-sm font-medium text-[#e7ecf5] transition-colors duration-150 hover:bg-[#1b2440]"
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const router = useRouter();
   const [status, setStatus] = useState<Status>("idle");
@@ -109,7 +168,10 @@ export default function Home() {
 
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
   const pdfInputRef = useRef<HTMLInputElement | null>(null);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
   const audioInputRef = useRef<HTMLInputElement | null>(null);
+  const videoInputRef = useRef<HTMLInputElement | null>(null);
+  const [openImportMenu, setOpenImportMenu] = useState<"pdf" | "audio" | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const waveformRafRef = useRef<number | null>(null);
   const keepAliveOscillatorRef = useRef<OscillatorNode | null>(null);
@@ -748,6 +810,45 @@ export default function Home() {
     }
   };
 
+  const importPhoto = async (file: File) => {
+    setStatus("generating");
+    setChunkProgress("");
+    setIsQuotaError(false);
+    setNotes("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/import-photo", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        if (data.code === "plan_required") setIsQuotaError(true);
+        throw new Error(data.error || "L'import a échoué.");
+      }
+
+      const data = await response.json();
+      const finalNotes = data.needsChunking
+        ? await runChunkedGeneration(
+            data.chunks,
+            data.source,
+            data.requiresImportPlan,
+          )
+        : data.notes;
+
+      setNotes(finalNotes);
+      setStatus("done");
+      fetchUsage();
+    } catch (error) {
+      setStatus("error");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Une erreur est survenue.",
+      );
+    }
+  };
+
   const stopRecording = async () => {
     if (!recognitionRef.current) return;
     isRecordingRef.current = false;
@@ -1039,21 +1140,66 @@ export default function Home() {
                     }, 1500);
                   }}
                 />
-                <button
-                  onClick={() => pdfInputRef.current?.click()}
-                  className="flex items-center gap-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#c3cbdc]"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-                    <path d="M14 3v4a1 1 0 001 1h4" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M6 21h12a1 1 0 001-1V7l-5-5H6a1 1 0 00-1 1v17a1 1 0 001 1z" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Importer un PDF
-                  {usage && !hasImportAccess(usage.plan) && (
-                    <span className="rounded-full bg-[#2a3552] px-2 py-0.5 text-xs font-semibold text-[#8b97b0]">
-                      Pro / À vie
-                    </span>
-                  )}
-                </button>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (!file) return;
+                    if (file.size > 4 * 1024 * 1024) {
+                      setStatus("error");
+                      setErrorMessage("Cette photo est trop lourde (4 Mo maximum).");
+                      return;
+                    }
+                    if (usage && hasImportAccess(usage.plan)) {
+                      importPhoto(file);
+                      return;
+                    }
+                    setStatus("generating");
+                    setTimeout(() => {
+                      setShowFreePreview(true);
+                      setStatus("done");
+                    }, 1500);
+                  }}
+                />
+                <ImportMenu
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                      <path d="M14 3v4a1 1 0 001 1h4" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M6 21h12a1 1 0 001-1V7l-5-5H6a1 1 0 00-1 1v17a1 1 0 001 1z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  }
+                  label="Importer un PDF"
+                  badge={
+                    usage && !hasImportAccess(usage.plan) ? (
+                      <span className="rounded-full bg-[#2a3552] px-2 py-0.5 text-xs font-semibold text-[#8b97b0]">
+                        Pro / À vie
+                      </span>
+                    ) : undefined
+                  }
+                  isOpen={openImportMenu === "pdf"}
+                  onToggle={() => setOpenImportMenu((menu) => (menu === "pdf" ? null : "pdf"))}
+                  onClose={() => setOpenImportMenu(null)}
+                  options={[
+                    {
+                      label: "Fichier",
+                      onClick: () => {
+                        setOpenImportMenu(null);
+                        pdfInputRef.current?.click();
+                      },
+                    },
+                    {
+                      label: "Photo",
+                      onClick: () => {
+                        setOpenImportMenu(null);
+                        photoInputRef.current?.click();
+                      },
+                    },
+                  ]}
+                />
 
                 <input
                   ref={audioInputRef}
@@ -1084,21 +1230,76 @@ export default function Home() {
                     }, 1500);
                   }}
                 />
-                <button
-                  onClick={() => audioInputRef.current?.click()}
-                  className="flex items-center gap-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#c3cbdc]"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-                    <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
-                    <path d="M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.93V20H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.07A7 7 0 0019 11z" />
-                  </svg>
-                  Importer un audio
-                  {usage && !hasImportAccess(usage.plan) && (
-                    <span className="rounded-full bg-[#2a3552] px-2 py-0.5 text-xs font-semibold text-[#8b97b0]">
-                      Pro / À vie
-                    </span>
-                  )}
-                </button>
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/mp4"
+                  className="hidden"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (!file) return;
+                    if (file.type !== "video/mp4") {
+                      setStatus("error");
+                      setErrorMessage(
+                        "Seules les vidéos au format MP4 sont acceptées pour le moment (le format .mov de l'iPhone n'est pas encore pris en charge).",
+                      );
+                      return;
+                    }
+                    if (file.size > 25 * 1024 * 1024) {
+                      setStatus("error");
+                      setErrorMessage("Cette vidéo est trop lourde (25 Mo maximum).");
+                      return;
+                    }
+                    if (usage && hasImportAccess(usage.plan)) {
+                      // Même pipeline que l'audio : Groq Whisper accepte un
+                      // fichier vidéo .mp4 directement, aucune extraction
+                      // audio séparée n'est nécessaire côté serveur.
+                      importAudio(file);
+                      return;
+                    }
+                    setStatus("generating");
+                    setTimeout(() => {
+                      setShowFreePreview(true);
+                      setStatus("done");
+                    }, 1500);
+                  }}
+                />
+                <ImportMenu
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                      <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
+                      <path d="M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.93V20H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.07A7 7 0 0019 11z" />
+                    </svg>
+                  }
+                  label="Importer un audio"
+                  badge={
+                    usage && !hasImportAccess(usage.plan) ? (
+                      <span className="rounded-full bg-[#2a3552] px-2 py-0.5 text-xs font-semibold text-[#8b97b0]">
+                        Pro / À vie
+                      </span>
+                    ) : undefined
+                  }
+                  isOpen={openImportMenu === "audio"}
+                  onToggle={() => setOpenImportMenu((menu) => (menu === "audio" ? null : "audio"))}
+                  onClose={() => setOpenImportMenu(null)}
+                  options={[
+                    {
+                      label: "Fichier",
+                      onClick: () => {
+                        setOpenImportMenu(null);
+                        audioInputRef.current?.click();
+                      },
+                    },
+                    {
+                      label: "Galerie",
+                      onClick: () => {
+                        setOpenImportMenu(null);
+                        videoInputRef.current?.click();
+                      },
+                    },
+                  ]}
+                />
               </div>
             )}
             {status === "generating" && (

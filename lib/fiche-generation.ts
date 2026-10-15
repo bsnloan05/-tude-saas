@@ -203,6 +203,32 @@ export async function generateFicheFromText(
   return finalizeFromCondensed(condensed, prompts.chunkedSystemPrompt);
 }
 
+// Lit le texte visible sur une photo (page de cours imprimée ou manuscrite)
+// via un modèle Groq multimodal, avant de l'envoyer dans le même pipeline de
+// génération de fiche que pour un PDF classique.
+export async function extractTextFromImage(
+  base64DataUrl: string,
+): Promise<string> {
+  const response = await groqClient.chat.completions.create({
+    model: "qwen/qwen3.8-27b",
+    max_tokens: 4000,
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: "Recopie exactement tout le texte visible sur cette photo (page de cours, notes manuscrites ou imprimées), sans rien resumer, reformuler ni commenter. Si aucun texte n'est lisible, reponds uniquement par le mot VIDE.",
+          },
+          { type: "image_url", image_url: { url: base64DataUrl } },
+        ],
+      },
+    ],
+  });
+  const text = response.choices[0]?.message?.content?.trim() ?? "";
+  return text.toUpperCase() === "VIDE" ? "" : text;
+}
+
 export function isGroqRateLimitError(error: unknown): boolean {
   return (
     (error as { status?: number })?.status === 429 ||
