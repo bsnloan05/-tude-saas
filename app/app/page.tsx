@@ -96,7 +96,7 @@ function ImportMenu({
   }, [isOpen, onClose]);
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="flex flex-col items-center">
       <button
         onClick={onToggle}
         className="flex items-center gap-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#c3cbdc]"
@@ -106,7 +106,10 @@ function ImportMenu({
         {badge}
       </button>
       {isOpen && (
-        <div className="absolute top-full left-1/2 z-20 mt-2 w-40 -translate-x-1/2 rounded-lg border border-[#232d45] bg-[#141b2e] p-1.5 shadow-lg">
+        // En flux normal (pas "absolute") : pousse naturellement vers le bas
+        // tout ce qui suit (ex : le bouton d'import voisin, sur mobile où les
+        // deux boutons passent à la ligne) au lieu de le recouvrir.
+        <div className="mt-2 w-40 rounded-lg border border-[#232d45] bg-[#141b2e] p-1.5 shadow-lg">
           {options.map((option) => (
             <button
               key={option.label}
@@ -1110,7 +1113,7 @@ export default function Home() {
               </p>
             )}
             {(status === "idle" || status === "done") && (
-              <div className="flex flex-wrap items-center justify-center gap-4">
+              <div className="flex flex-wrap items-start justify-center gap-4">
                 <input
                   ref={pdfInputRef}
                   type="file"
