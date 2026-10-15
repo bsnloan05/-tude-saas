@@ -1002,7 +1002,7 @@ export default function Home() {
             {status === "idle" && showAltBrowserTip && (
               <p className="text-xs text-[#6b7690]">
                 Si la transcription rencontre des problèmes, essaie{" "}
-                <span className="text-[#38bdf8] underline decoration-2 underline-offset-2">
+                <span className="text-[#38bdf8]">
                   un autre navigateur
                 </span>
                 .
