@@ -14,7 +14,11 @@ const PLAN_LABELS: Record<string, string> = {
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [usage, setUsage] = useState<{ plan: string; email: string } | null>(null);
+  const [usage, setUsage] = useState<{
+    plan: string;
+    email: string;
+    firstName: string | null;
+  } | null>(null);
   const [subjects, setSubjects] = useState<Array<[string, number]> | null>(null);
 
   useEffect(() => {
@@ -130,11 +134,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           className="mt-auto flex items-center gap-2 rounded-md px-2 py-2 transition-colors duration-150 hover:bg-[#1b2440]"
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#2a3552] text-xs font-semibold text-[#c3cbdc]">
-            {usage?.email?.[0]?.toUpperCase() ?? "?"}
+            {(usage?.firstName || usage?.email)?.[0]?.toUpperCase() ?? "?"}
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-medium text-[#e7ecf5]">
-              {usage?.email ?? "Profil"}
+              {usage?.firstName || usage?.email || "Profil"}
             </span>
             <span className="block text-xs text-[#8b97b0]">
               {usage ? (PLAN_LABELS[usage.plan] ?? usage.plan) : "..."}

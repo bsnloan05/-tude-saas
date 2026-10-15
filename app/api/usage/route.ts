@@ -33,5 +33,21 @@ export async function GET() {
     0,
   );
 
-  return NextResponse.json({ plan, usedSeconds, quotaSeconds, email: user.email });
+  // Le prénom vient soit du champ saisi à l'inscription par email, soit du
+  // nom fourni par Google (format "Prénom Nom") pour une connexion OAuth.
+  // Les comptes créés avant l'ajout du champ prénom n'ont ni l'un ni
+  // l'autre : on retombe alors sur l'email côté affichage.
+  const firstName =
+    (user.user_metadata?.first_name as string | undefined) ||
+    (user.user_metadata?.full_name as string | undefined)?.split(" ")[0] ||
+    (user.user_metadata?.name as string | undefined)?.split(" ")[0] ||
+    null;
+
+  return NextResponse.json({
+    plan,
+    usedSeconds,
+    quotaSeconds,
+    email: user.email,
+    firstName,
+  });
 }
