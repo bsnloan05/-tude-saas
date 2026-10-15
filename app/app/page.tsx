@@ -1024,17 +1024,23 @@ export default function Home() {
                       setErrorMessage("Ce PDF est trop lourd (4 Mo maximum).");
                       return;
                     }
-                    importPdf(file);
+                    if (usage && hasImportAccess(usage.plan)) {
+                      importPdf(file);
+                      return;
+                    }
+                    // Par défaut (accès non confirmé, y compris le temps que
+                    // /api/usage réponde) : comme pour la transcription,
+                    // aucun appel serveur/IA, juste un aperçu flouté
+                    // générique qui pousse vers les tarifs.
+                    setStatus("generating");
+                    setTimeout(() => {
+                      setShowFreePreview(true);
+                      setStatus("done");
+                    }, 1500);
                   }}
                 />
                 <button
-                  onClick={() => {
-                    if (!usage || hasImportAccess(usage.plan)) {
-                      pdfInputRef.current?.click();
-                    } else {
-                      router.push("/pricing");
-                    }
-                  }}
+                  onClick={() => pdfInputRef.current?.click()}
                   className="flex items-center gap-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#c3cbdc]"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
@@ -1063,17 +1069,23 @@ export default function Home() {
                       setErrorMessage("Ce fichier audio est trop lourd (25 Mo maximum).");
                       return;
                     }
-                    importAudio(file);
+                    if (usage && hasImportAccess(usage.plan)) {
+                      importAudio(file);
+                      return;
+                    }
+                    // Par défaut (accès non confirmé, y compris le temps que
+                    // /api/usage réponde) : comme pour la transcription,
+                    // aucun appel serveur/IA, juste un aperçu flouté
+                    // générique qui pousse vers les tarifs.
+                    setStatus("generating");
+                    setTimeout(() => {
+                      setShowFreePreview(true);
+                      setStatus("done");
+                    }, 1500);
                   }}
                 />
                 <button
-                  onClick={() => {
-                    if (!usage || hasImportAccess(usage.plan)) {
-                      audioInputRef.current?.click();
-                    } else {
-                      router.push("/pricing");
-                    }
-                  }}
+                  onClick={() => audioInputRef.current?.click()}
                   className="flex items-center gap-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#c3cbdc]"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
