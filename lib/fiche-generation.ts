@@ -43,6 +43,7 @@ ${STRUCTURE_RULES}
 - Écris dans la même langue que la transcription.
 - Sois complet : garde tous les exemples, chiffres, dates et détails concrets donnés par le prof, une fiche trop courte n'aide pas à réviser. Ne résume pas à l'excès.
 - Corrige les hésitations, répétitions et tournures orales du prof pour obtenir un texte écrit propre.
+- La transcription vient d'une reconnaissance vocale automatique : un mot technique ou scientifique peut avoir été mal entendu et remplacé par un mot qui se prononce presque pareil mais n'a aucun sens dans la phrase. Corrige-le par le terme probable UNIQUEMENT si le contexte rend l'erreur évidente et la correction certaine ; dans le moindre doute, laisse le mot tel quel plutôt que d'inventer un terme qui n'est pas clairement suggéré par le contexte.
 - Ne rajoute aucune information qui n'est pas dans la transcription.
 - Si la transcription est trop courte ou peu compréhensible, fais de ton mieux et signale-le en une phrase à la fin.${enableDiagrams ? `\n\n${DIAGRAM_RULES}` : ""}`;
 }
@@ -55,6 +56,7 @@ export function buildFicheFromNotesSystemPrompt(enableDiagrams: boolean): string
 ${STRUCTURE_RULES}
 - Écris dans la même langue que les notes fournies.
 - Fusionne les extraits en un seul document cohérent, sans répéter les informations redondantes, mais sans en perdre le contenu : regrouper des notions proches sous une même partie ne veut pas dire les résumer à l'excès.
+- Ces notes viennent d'une transcription par reconnaissance vocale automatique : un mot technique ou scientifique peut avoir été mal entendu et remplacé par un mot qui se prononce presque pareil mais n'a aucun sens dans la phrase. Corrige-le par le terme probable UNIQUEMENT si le contexte rend l'erreur évidente et la correction certaine ; dans le moindre doute, laisse le mot tel quel plutôt que d'inventer un terme qui n'est pas clairement suggéré par le contexte.
 - Ne rajoute aucune information qui n'est pas dans les notes fournies.${enableDiagrams ? `\n\n${DIAGRAM_RULES}` : ""}`;
 }
 
