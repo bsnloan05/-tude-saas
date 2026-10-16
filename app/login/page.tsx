@@ -117,7 +117,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="isolate relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#070a12] px-4">
+    <div className="isolate relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#070a12] px-4 pt-8 pb-28">
       <div
         aria-hidden
         className="pointer-events-none fixed -right-32 -bottom-32 -z-10 h-[46rem] w-[46rem] rounded-full bg-[#2563eb]/35 blur-[150px]"
