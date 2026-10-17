@@ -23,6 +23,10 @@ function startPostHog() {
     // On n'utilise pas la fonctionnalité "Surveys" de PostHog : évite de
     // charger surveys.js (~33 Ko) sur chaque page pour rien.
     disable_surveys: true,
+    // On n'utilise pas les feature flags : évite un appel réseau
+    // supplémentaire (/flags) à chaque chargement, sur un domaine qui peut
+    // être lent/bloqué sur certains réseaux mobiles.
+    advanced_disable_flags: true,
     session_recording: {
       // On masque tout texte saisi par défaut (et pas seulement les mots de
       // passe) : plus prudent côté vie privée tant qu'aucun bandeau de

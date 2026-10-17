@@ -47,6 +47,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               const s = d.createElement("script");
               s.src = "https://client.crisp.chat/l.js";
               s.async = 1;
+              // Sur un réseau qui bloque/ralentit ce domaine, la requête
+              // peut sinon rester "en vol" très longtemps en arrière-plan.
+              // On retire le script s'il n'a pas chargé sous 4s, ce qui
+              // annule la requête en cours dans la plupart des navigateurs.
+              const giveUp = setTimeout(function () { s.remove(); }, 4000);
+              s.onload = function () { clearTimeout(giveUp); };
               d.getElementsByTagName("head")[0].appendChild(s);
             })();
           `}
