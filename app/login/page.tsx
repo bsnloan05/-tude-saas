@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
@@ -335,17 +336,31 @@ function LoginForm() {
         </form>
 
         <p className="mt-5 text-center text-sm text-[#8b97b0]">
-          {mode === "signin" ? "Pas encore de compte ? " : "Déjà un compte ? "}
-          <button
-            onClick={() => {
-              setMode(mode === "signin" ? "signup" : "signin");
-              setErrorMessage("");
-              setInfoMessage("");
-            }}
-            className="font-semibold text-[#38bdf8] transition-transform duration-150 hover:text-[#60c8fb] active:scale-95"
-          >
-            {mode === "signin" ? "Inscris-toi" : "Se connecter"}
-          </button>
+          {mode === "signin" ? (
+            <>
+              Pas encore de compte ?{" "}
+              <Link
+                href="/onboarding"
+                className="font-semibold text-[#38bdf8] transition-transform duration-150 hover:text-[#60c8fb] active:scale-95"
+              >
+                Commence le questionnaire
+              </Link>
+            </>
+          ) : (
+            <>
+              Déjà un compte ?{" "}
+              <button
+                onClick={() => {
+                  setMode("signin");
+                  setErrorMessage("");
+                  setInfoMessage("");
+                }}
+                className="font-semibold text-[#38bdf8] transition-transform duration-150 hover:text-[#60c8fb] active:scale-95"
+              >
+                Se connecter
+              </button>
+            </>
+          )}
         </p>
         </>
         )}
