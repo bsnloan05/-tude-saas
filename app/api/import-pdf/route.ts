@@ -13,9 +13,10 @@ import {
 
 export const maxDuration = 60;
 
-// Les fonctions Vercel limitent la taille du corps de requête à ~4,5 Mo :
-// on reste en dessous pour laisser de la marge à l'encodage multipart.
-const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
+const BUCKET = "audio-imports";
+// Le bucket de stockage plafonne déjà à 25 Mo ; on reste un peu en dessous
+// côté PDF pour garder de la marge.
+const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -43,35 +44,58 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const formData = await request.formData();
-  const file = formData.get("file");
+  const { path } = await request.json();
 
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Aucun fichier reçu." }, { status: 400 });
+  // On ne fait jamais confiance au chemin fourni par le client : il doit
+  // obligatoirement commencer par l'identifiant de l'utilisateur connecté,
+  // comme l'exigent déjà les règles de sécurité du stockage.
+  if (typeof path !== "string" || !path.startsWith(`${user.id}/`)) {
+    return NextResponse.json({ error: "Fichier invalide." }, { status: 400 });
   }
-  if (file.type !== "application/pdf") {
-    return NextResponse.json({ error: "Le fichier doit être un PDF." }, { status: 400 });
+
+  const cleanup = async () => {
+    await supabase.storage.from(BUCKET).remove([path]).catch(() => {});
+  };
+
+  const folder = path.slice(0, path.lastIndexOf("/"));
+  const filename = path.slice(path.lastIndexOf("/") + 1);
+  const { data: filesInFolder } = await supabase.storage.from(BUCKET).list(folder);
+  const fileInfo = filesInFolder?.find((f) => f.name === filename);
+
+  if (!fileInfo) {
+    return NextResponse.json({ error: "Fichier introuvable." }, { status: 404 });
   }
-  if (file.size > MAX_FILE_SIZE_BYTES) {
+  if ((fileInfo.metadata?.size ?? 0) > MAX_FILE_SIZE_BYTES) {
+    await cleanup();
     return NextResponse.json(
-      { error: "Ce PDF est trop lourd (4 Mo maximum)." },
+      { error: "Ce PDF est trop lourd (20 Mo maximum)." },
       { status: 400 },
     );
   }
 
   let extractedText = "";
   try {
-    const buffer = new Uint8Array(await file.arrayBuffer());
+    const { data: fileBlob, error: downloadError } = await supabase.storage
+      .from(BUCKET)
+      .download(path);
+    if (downloadError || !fileBlob) {
+      throw downloadError ?? new Error("Téléchargement impossible.");
+    }
+
+    const buffer = new Uint8Array(await fileBlob.arrayBuffer());
     const pdf = await getDocumentProxy(buffer);
     const { text } = await extractText(pdf, { mergePages: true });
     extractedText = text.trim();
   } catch (error) {
     console.error("Erreur extraction PDF:", error);
+    await cleanup();
     return NextResponse.json(
       { error: "Impossible de lire ce PDF. Vérifie qu'il n'est pas protégé par un mot de passe ou corrompu." },
       { status: 400 },
     );
   }
+
+  await cleanup();
 
   if (!extractedText) {
     return NextResponse.json(

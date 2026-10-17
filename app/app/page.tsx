@@ -787,11 +787,31 @@ export default function Home() {
     setIsQuotaError(false);
     setNotes("");
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      // Passe par le stockage plutôt que par le corps de la requête : les
+      // fonctions Vercel limitent une requête directe à ~4,5 Mo, ce qui
+      // plafonnait trop bas les PDF scannés (plusieurs pages photographiées
+      // dépassent vite cette taille). Même technique que l'import audio.
+      const path = `${user.id}/${crypto.randomUUID()}.pdf`;
+      const { error: uploadError } = await supabase.storage
+        .from("audio-imports")
+        .upload(path, file, { contentType: "application/pdf" });
+      if (uploadError) {
+        throw new Error("L'envoi du PDF a échoué.");
+      }
+
       const response = await fetch("/api/import-pdf", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
       });
 
       if (!response.ok) {
@@ -1134,9 +1154,9 @@ export default function Home() {
                     const file = event.target.files?.[0];
                     event.target.value = "";
                     if (!file) return;
-                    if (file.size > 4 * 1024 * 1024) {
+                    if (file.size > 20 * 1024 * 1024) {
                       setStatus("error");
-                      setErrorMessage("Ce PDF est trop lourd (4 Mo maximum).");
+                      setErrorMessage("Ce PDF est trop lourd (20 Mo maximum).");
                       return;
                     }
                     if (usage && hasImportAccess(usage.plan)) {
