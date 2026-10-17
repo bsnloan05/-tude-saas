@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -357,6 +357,21 @@ export default function OnboardingPage() {
             ? step + 2
             : step + 3;
 
+  // Suit la progression dans le questionnaire via le numéro d'étape affiché
+  // plutôt que chaque branche individuellement : ça capture tous les
+  // chemins possibles (témoignages, écran "c'est réaliste", etc.) sans
+  // avoir à instrumenter chaque handler un par un.
+  useEffect(() => {
+    window.posthog?.capture("onboarding_started");
+  }, []);
+
+  const lastTrackedStepRef = useRef(0);
+  useEffect(() => {
+    if (stepNumber === lastTrackedStepRef.current) return;
+    lastTrackedStepRef.current = stepNumber;
+    window.posthog?.capture("onboarding_step_reached", { step: stepNumber, total: TOTAL_STEPS });
+  }, [stepNumber]);
+
   const handleCurrentAverageChange = (value: number) => {
     setCurrentAverage(value);
     if (value > targetAverage) setTargetAverage(value);
@@ -614,7 +629,10 @@ export default function OnboardingPage() {
             `Moyenne visée calibrée : ${targetAverage}/20 (${getAverageBadge(targetAverage)})...`,
             "Préparation de ton espace Memoflash...",
           ]}
-          onDone={() => router.push("/login?mode=signup")}
+          onDone={() => {
+            window.posthog?.capture("onboarding_completed", { goal, target_average: targetAverage });
+            router.push("/login?mode=signup");
+          }}
         />
         )}
       </div>

@@ -61,6 +61,8 @@ function LoginForm() {
           // Confirmation par email désactivée : le compte est déjà actif,
           // on connecte directement plutôt que de renvoyer vers un message
           // qui parlerait d'un email de confirmation qui n'existe pas.
+          window.posthog?.identify(data.user.id, { email: data.user.email });
+          window.posthog?.capture("signup_completed");
           router.push("/app");
           router.refresh();
         } else {
@@ -69,13 +71,15 @@ function LoginForm() {
         }
       }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) {
         setErrorMessage(translateAuthError(error.message));
       } else {
+        window.posthog?.identify(data.user.id, { email: data.user.email });
+        window.posthog?.capture("login_completed");
         router.push("/app");
         router.refresh();
       }

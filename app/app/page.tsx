@@ -514,6 +514,7 @@ export default function Home() {
 
   const startRecording = async () => {
     if (!recognitionRef.current) return;
+    window.posthog?.capture("recording_started");
     setErrorMessage("");
     setIsQuotaError(false);
     setShowFreePreview(false);
@@ -677,6 +678,7 @@ export default function Home() {
 
       setNotes(finalNotes);
       setStatus("done");
+      window.posthog?.capture("fiche_generated", { source: "transcription" });
       window.localStorage.removeItem(BACKUP_STORAGE_KEY);
       fetchUsage();
     } catch (error) {
@@ -699,6 +701,7 @@ export default function Home() {
       // Court passage par "generating" avant l'aperçu flouté, pour que ça ne
       // s'affiche pas de façon instantanée et artificielle.
       setStatus("generating");
+      window.posthog?.capture("free_preview_shown", { source: "transcription" });
       setTimeout(() => {
         setShowFreePreview(true);
         setStatus("done");
@@ -709,6 +712,8 @@ export default function Home() {
   };
 
   const importAudio = async (file: File) => {
+    const source = file.type.startsWith("video/") ? "video" : "audio";
+    window.posthog?.capture("import_attempted", { source });
     setStatus("generating");
     setChunkProgress("");
     setIsQuotaError(false);
@@ -756,6 +761,7 @@ export default function Home() {
 
       setNotes(finalNotes);
       setStatus("done");
+      window.posthog?.capture("fiche_generated", { source });
       fetchUsage();
     } catch (error) {
       setStatus("error");
@@ -775,6 +781,7 @@ export default function Home() {
   };
 
   const importPdf = async (file: File) => {
+    window.posthog?.capture("import_attempted", { source: "pdf" });
     setStatus("generating");
     setChunkProgress("");
     setIsQuotaError(false);
@@ -804,6 +811,7 @@ export default function Home() {
 
       setNotes(finalNotes);
       setStatus("done");
+      window.posthog?.capture("fiche_generated", { source: "pdf" });
       fetchUsage();
     } catch (error) {
       setStatus("error");
@@ -814,6 +822,7 @@ export default function Home() {
   };
 
   const importPhoto = async (file: File) => {
+    window.posthog?.capture("import_attempted", { source: "photo" });
     setStatus("generating");
     setChunkProgress("");
     setIsQuotaError(false);
@@ -843,6 +852,7 @@ export default function Home() {
 
       setNotes(finalNotes);
       setStatus("done");
+      window.posthog?.capture("fiche_generated", { source: "photo" });
       fetchUsage();
     } catch (error) {
       setStatus("error");
@@ -854,6 +864,7 @@ export default function Home() {
 
   const stopRecording = async () => {
     if (!recognitionRef.current) return;
+    window.posthog?.capture("recording_stopped");
     isRecordingRef.current = false;
     setShowStartTip(false);
     if (chromeTipTimeoutRef.current) {
@@ -1136,6 +1147,7 @@ export default function Home() {
                     // /api/usage réponde) : comme pour la transcription,
                     // aucun appel serveur/IA, juste un aperçu flouté
                     // générique qui pousse vers les tarifs.
+                    window.posthog?.capture("free_preview_shown", { source: "pdf" });
                     setStatus("generating");
                     setTimeout(() => {
                       setShowFreePreview(true);
@@ -1161,6 +1173,7 @@ export default function Home() {
                       importPhoto(file);
                       return;
                     }
+                    window.posthog?.capture("free_preview_shown", { source: "photo" });
                     setStatus("generating");
                     setTimeout(() => {
                       setShowFreePreview(true);
@@ -1226,6 +1239,7 @@ export default function Home() {
                     // /api/usage réponde) : comme pour la transcription,
                     // aucun appel serveur/IA, juste un aperçu flouté
                     // générique qui pousse vers les tarifs.
+                    window.posthog?.capture("free_preview_shown", { source: "audio" });
                     setStatus("generating");
                     setTimeout(() => {
                       setShowFreePreview(true);
@@ -1261,6 +1275,7 @@ export default function Home() {
                       importAudio(file);
                       return;
                     }
+                    window.posthog?.capture("free_preview_shown", { source: "video" });
                     setStatus("generating");
                     setTimeout(() => {
                       setShowFreePreview(true);

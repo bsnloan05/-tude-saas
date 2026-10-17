@@ -139,6 +139,7 @@ export default function PricingPage() {
   }, []);
 
   const handleUpgrade = async (plan: PlanKey) => {
+    window.posthog?.capture("checkout_started", { plan });
     setErrorMessage("");
     setLoadingPlan(plan);
     try {

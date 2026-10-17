@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getPostHogServerClient } from "@/lib/posthog-server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -30,6 +31,10 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createAdminClient();
+  // Suivi côté serveur plutôt que client : une conversion payante ou une
+  // résiliation doit être comptée même si le client ferme l'onglet juste
+  // après, contrairement à un événement envoyé depuis le navigateur.
+  const posthogServer = getPostHogServerClient();
 
   switch (event.type) {
     case "checkout.session.completed": {
@@ -45,6 +50,11 @@ export async function POST(request: NextRequest) {
           .from("profiles")
           .update({ plan: "lifetime", stripe_customer_id: session.customer as string })
           .eq("id", userId);
+        posthogServer?.capture({
+          distinctId: userId,
+          event: "checkout_completed",
+          properties: { plan: "lifetime" },
+        });
         break;
       }
 
@@ -59,6 +69,11 @@ export async function POST(request: NextRequest) {
         .from("profiles")
         .update({ plan, stripe_customer_id: session.customer as string })
         .eq("id", userId);
+      posthogServer?.capture({
+        distinctId: userId,
+        event: "checkout_completed",
+        properties: { plan },
+      });
       break;
     }
 
@@ -78,13 +93,21 @@ export async function POST(request: NextRequest) {
     case "customer.subscription.deleted": {
       const subscription = event.data.object as Stripe.Subscription;
 
-      await supabase
+      const { data: affected } = await supabase
         .from("profiles")
         .update({ plan: "free" })
-        .eq("stripe_customer_id", subscription.customer as string);
+        .eq("stripe_customer_id", subscription.customer as string)
+        .select("id");
+      for (const profile of affected ?? []) {
+        posthogServer?.capture({
+          distinctId: profile.id,
+          event: "subscription_cancelled",
+        });
+      }
       break;
     }
   }
 
+  await posthogServer?.shutdown();
   return NextResponse.json({ received: true });
 }

@@ -29,6 +29,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     // Liste des matières pour la barre latérale : uniquement sur grand écran
     // (comme chez Woka), toujours sous la navigation principale.
     const supabase = createClient();
+
+    // Filet de sécurité pour relier les événements PostHog à la bonne
+    // personne, y compris pour une connexion Google (qui redirige avant que
+    // /login puisse identifier l'utilisateur) ou une session déjà active
+    // lors d'une simple navigation : s'exécute à chaque visite de l'app,
+    // sans effet si déjà identifié avec le même id.
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) window.posthog?.identify(user.id, { email: user.email });
+    });
+
     supabase
       .from("fiches")
       .select("subject")
