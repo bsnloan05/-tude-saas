@@ -89,7 +89,16 @@ function LoginForm() {
       if (error) {
         setErrorMessage(translateAuthError(error.message));
       } else {
-        window.posthog?.identify(data.user.id, { email: data.user.email });
+        // "has_existing_account" en propriété "set once" : posée une seule
+        // fois, à la toute première vraie connexion, jamais réécrite ensuite
+        // — donc marque la personne pour toujours, même les fois suivantes
+        // où elle reste juste connectée sans retaper ses identifiants. Sert
+        // à l'exclure complètement des entonnoirs d'acquisition PostHog.
+        window.posthog?.identify(
+          data.user.id,
+          { email: data.user.email },
+          { has_existing_account: true },
+        );
         window.posthog?.capture("login_completed");
         router.push("/app");
         router.refresh();
