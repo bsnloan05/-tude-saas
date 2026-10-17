@@ -19,6 +19,9 @@ if (POSTHOG_KEY) {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com",
     person_profiles: "identified_only",
     capture_pageview: true,
+    // On n'utilise pas la fonctionnalité "Surveys" de PostHog : évite de
+    // charger surveys.js (~33 Ko) sur chaque page pour rien.
+    disable_surveys: true,
     session_recording: {
       // On masque tout texte saisi par défaut (et pas seulement les mots de
       // passe) : plus prudent côté vie privée tant qu'aucun bandeau de

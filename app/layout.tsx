@@ -34,7 +34,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         {children}
-        <Script id="crisp-chat" strategy="afterInteractive">
+        {/* "lazyOnload" : charge le widget de chat seulement une fois le
+            reste de la page prêt, plutôt que dès l'arrivée — ce n'est pas
+            critique pour le premier affichage, et ça évite d'alourdir le
+            chargement initial de ~95 Ko sur chaque page. */}
+        <Script id="crisp-chat" strategy="lazyOnload">
           {`
             window.$crisp = [];
             window.CRISP_WEBSITE_ID = "${CRISP_WEBSITE_ID}";
