@@ -62,7 +62,17 @@ function LoginForm() {
           // Confirmation par email désactivée : le compte est déjà actif,
           // on connecte directement plutôt que de renvoyer vers un message
           // qui parlerait d'un email de confirmation qui n'existe pas.
-          window.posthog?.identify(data.user.id, { email: data.user.email });
+          // "is_new_signup" en propriété "set once" : elle ne sera jamais
+          // écrasée par les identify() suivants (reconnexion, visite de
+          // /app...), donc elle distingue de façon fiable un vrai nouveau
+          // compte d'un compte déjà existant qui reste simplement connecté
+          // sans jamais retaper ses identifiants — utile pour exclure ces
+          // derniers des entonnoirs d'acquisition dans PostHog.
+          window.posthog?.identify(
+            data.user.id,
+            { email: data.user.email },
+            { is_new_signup: true },
+          );
           window.posthog?.capture("signup_completed");
           router.push("/app");
           router.refresh();
