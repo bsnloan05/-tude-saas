@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DeferredHeroAnimation from "@/components/DeferredHeroAnimation";
 import ScrollFadeIn from "@/components/ScrollFadeIn";
 import LiveActivityBanner from "@/components/LiveActivityBanner";
 import TypewriterCycle from "@/components/TypewriterCycle";
@@ -165,12 +166,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <iframe
-            src="/memoflash-hero.html"
-            title="Démonstration animée de Memoflash"
-            className="aspect-[1400/980] w-full border-0 bg-transparent"
-            loading="lazy"
-          />
+          <DeferredHeroAnimation />
         </div>
       </main>
 
