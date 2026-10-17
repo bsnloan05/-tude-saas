@@ -1,4 +1,7 @@
-import posthog from "posthog-js";
+// Import de type uniquement (effacé à la compilation, aucun impact sur le
+// bundle) : la vraie valeur est chargée dynamiquement dans startPostHog, voir
+// plus bas.
+import type posthog from "posthog-js";
 
 declare global {
   interface Window {
@@ -8,8 +11,16 @@ declare global {
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
-function startPostHog() {
+async function startPostHog() {
   if (!POSTHOG_KEY) return;
+  // Import dynamique plutôt que statique : posthog-js pèse à lui seul plus
+  // que tout le reste du JS de la page (~170 Ko compressés, mesuré en
+  // conditions réelles). Avec un import statique, le bundler l'inclut dans
+  // le code téléchargé/analysé dès le chargement initial de CHAQUE page, même
+  // si on n'exécute .init() qu'après "load" (voir plus bas) — seule
+  // l'EXÉCUTION était différée, pas le TÉLÉCHARGEMENT du fichier. Avec un
+  // import dynamique, le fichier n'est même requis qu'à cet instant.
+  const { default: posthog } = await import("posthog-js");
   // Exposé explicitement sur window : "instrumentation-client.ts" s'exécute
   // dans son propre chunk, donc un "import posthog from 'posthog-js'" dans
   // un autre fichier peut résoudre vers une instance différente, jamais
