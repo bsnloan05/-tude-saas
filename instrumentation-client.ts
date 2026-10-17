@@ -8,7 +8,8 @@ declare global {
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
-if (POSTHOG_KEY) {
+function startPostHog() {
+  if (!POSTHOG_KEY) return;
   // Exposé explicitement sur window : "instrumentation-client.ts" s'exécute
   // dans son propre chunk, donc un "import posthog from 'posthog-js'" dans
   // un autre fichier peut résoudre vers une instance différente, jamais
@@ -31,8 +32,21 @@ if (POSTHOG_KEY) {
   });
 }
 
+// On ne démarre PostHog qu'une fois le reste de la page chargé, jamais avant.
+// Certains réseaux mobiles/DNS filtrent ou ralentissent fortement les
+// domaines d'analytics : si PostHog faisait partie des ressources chargées
+// dès le départ, le navigateur attend que CETTE requête réponde (même très
+// lentement) avant de considérer la page "chargée" — observé en conditions
+// réelles : plus de 15s de blocage dans ce cas, contre <1s normalement.
+// window.posthog reste undefined jusque-là ; tous les appels ailleurs dans
+// l'app utilisent déjà "window.posthog?.capture(...)" (sans effet si absent),
+// donc rien ne casse pendant cette courte fenêtre.
+if (document.readyState === "complete") {
+  startPostHog();
+} else {
+  window.addEventListener("load", startPostHog, { once: true });
+}
+
 export function onRouterTransitionStart(url: string) {
-  if (POSTHOG_KEY) {
-    posthog.capture("$pageview", { $current_url: window.location.origin + url });
-  }
+  window.posthog?.capture("$pageview", { $current_url: window.location.origin + url });
 }
