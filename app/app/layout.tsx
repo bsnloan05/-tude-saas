@@ -2,8 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Geist_Mono } from "next/font/google";
 import { createClient } from "@/lib/supabase/client";
 import { NO_SUBJECT_LABEL, subjectColorClass } from "@/lib/subjectColor";
+
+// Chargée ici plutôt que dans le layout racine : seul le chronomètre de
+// /app (voir page.tsx) utilise une police à chasse fixe, inutile de la
+// précharger sur les pages marketing (accueil, tarifs, connexion...).
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Gratuit",
@@ -59,7 +68,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#070a12]">
+    <div className={`${geistMono.variable} flex min-h-screen bg-[#070a12]`}>
       <aside className="hidden w-60 shrink-0 flex-col border-r border-[#232d45] px-4 py-6 lg:flex">
         <div className="flex items-center gap-2 px-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">

@@ -1,25 +1,8 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 const CRISP_WEBSITE_ID = "d06431e7-2828-4d73-ac08-7d4d67a066ef";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-});
 
 export const metadata: Metadata = {
   title: "Memoflash",
@@ -28,10 +11,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
-    >
+    <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         {children}
         {/* "lazyOnload" : charge le widget de chat seulement une fois le
