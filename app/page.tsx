@@ -5,6 +5,7 @@ import LiveActivityBanner from "@/components/LiveActivityBanner";
 import TypewriterCycle from "@/components/TypewriterCycle";
 import LanguageSelector from "@/components/LanguageSelector";
 import FaqAccordion from "@/components/FaqAccordion";
+import AutoRedirectIfLoggedIn from "@/components/AutoRedirectIfLoggedIn";
 
 const FIELDS: Array<{ label: string; icon: React.ReactNode }> = [
   {
@@ -78,6 +79,7 @@ const STEPS: Array<{ title: string; text: string; icon: React.ReactNode }> = [
 export default function LandingPage() {
   return (
     <div className="relative isolate flex min-h-screen flex-col items-center overflow-hidden bg-[#070a12] px-4">
+      <AutoRedirectIfLoggedIn />
       {/* Fond dégradé bleu sombre, façon Gemini : sombre en haut à gauche,
           halo bleu en bas à droite, pour un effet diagonal. Fixé à l'écran
           (pas à la page) pour rester cohérent même en scrollant. */}

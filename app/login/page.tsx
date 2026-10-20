@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import AutoRedirectIfLoggedIn from "@/components/AutoRedirectIfLoggedIn";
 
 type Mode = "signin" | "signup";
 
@@ -391,6 +392,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={null}>
+      <AutoRedirectIfLoggedIn />
       <LoginForm />
     </Suspense>
   );

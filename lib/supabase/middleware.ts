@@ -29,24 +29,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith("/login");
-  // Seule /app (l'outil) exige d'etre connecte : / (accueil) et /pricing
-  // restent publiques, visibles par n'importe quel visiteur.
-  const isProtectedRoute = request.nextUrl.pathname.startsWith("/app");
-
-  if (!user && isProtectedRoute) {
+  // Le filtre du proxy (voir proxy.ts) limite déjà l'exécution de cette
+  // fonction à /app : pas besoin de revérifier le chemin ici.
+  if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  const isLandingRoute = request.nextUrl.pathname === "/";
-
-  // Un visiteur deja connecte n'a pas besoin de revoir la page marketing
-  // (ni le formulaire de connexion) : direction l'outil directement.
-  if (user && (isAuthRoute || isLandingRoute)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/app";
     return NextResponse.redirect(url);
   }
 
