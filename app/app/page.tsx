@@ -967,7 +967,7 @@ export default function Home() {
 
       <main className="mt-8 flex w-full max-w-4xl flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-3 text-center">
-          <h1 className="text-balance text-2xl font-bold tracking-tight text-[#e7ecf5] sm:text-3xl">
+          <h1 className="text-balance text-3xl font-bold tracking-tight text-[#e7ecf5] sm:text-4xl">
             Transforme tes cours en{" "}
             <span className="relative inline-block">
               fiches de révision
@@ -988,21 +988,21 @@ export default function Home() {
               </svg>
             </span>
           </h1>
-          <p className="max-w-md text-[#8b97b0]">
+          <p className="max-w-md text-lg text-[#8b97b0]">
             Démarre l&apos;enregistrement pendant le cours,
             <br />
             arrête-le à la fin : ta fiche est générée automatiquement.
           </p>
 
           {usage && usage.quotaSeconds === null && (
-            <p className="mt-2 text-xs text-[#8b97b0]">
+            <p className="mt-2 text-sm text-[#8b97b0]">
               Usage illimité — {formatDuration(usage.usedSeconds)} enregistrées ce mois-ci
             </p>
           )}
 
           {usage && typeof usage.quotaSeconds === "number" && usage.quotaSeconds > 0 && (
             <div className="mt-2 flex w-full max-w-xs flex-col gap-1.5">
-              <div className="flex items-center justify-between text-xs text-[#8b97b0]">
+              <div className="flex items-center justify-between text-sm text-[#8b97b0]">
                 <span>
                   {formatDuration(usage.usedSeconds)} / {formatDuration(usage.quotaSeconds)}{" "}
                   ce mois-ci
