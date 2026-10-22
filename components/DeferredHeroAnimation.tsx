@@ -2,17 +2,24 @@
 
 import { useEffect, useState } from "react";
 
-// L'animation du canvas tourne en boucle continue (requestAnimationFrame) et
-// peut être coûteuse en calcul sur un téléphone moins puissant. Comme elle
-// est visible dès l'arrivée sur la page, l'attribut HTML "loading=lazy" ne
-// la retarde pas réellement (le navigateur la charge dès que l'élément est
-// dans l'écran). On ne lui donne donc un "src" qu'après que la page se soit
-// chargée, pour ne jamais la faire entrer en concurrence avec le contenu
-// principal (texte, bouton) pendant le premier affichage.
+// L'animation du canvas tourne en boucle continue (requestAnimationFrame,
+// jusqu'à 60 fois/seconde) et fait un vrai travail de calcul à chaque image
+// (dessin de ~1000 segments sur le canvas, mise à jour de dizaines
+// d'éléments du DOM). Mesuré en conditions réelles (Charles Proxy, voir
+// l'enquête lenteur mobile) : sur un téléphone, ça peut occuper le fil
+// principal au point de retarder de plusieurs secondes tout le reste du
+// JavaScript de la page (hydratation, pré-chargement des liens, etc.),
+// même si chaque requête réseau individuelle reste rapide. Comme elle ne
+// sert qu'à illustrer le produit (sans information essentielle), on ne la
+// charge plus du tout sur mobile — seulement sur un écran assez large pour
+// qu'elle soit de toute façon affichée (voir le `grid md:grid-cols-...` du
+// parent dans app/page.tsx, qui ne montre cette colonne qu'à partir de "md").
 export default function DeferredHeroAnimation() {
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
+    if (window.matchMedia("(max-width: 767px)").matches) return;
+
     if (document.readyState === "complete") {
       setShouldLoad(true);
       return;
@@ -26,7 +33,7 @@ export default function DeferredHeroAnimation() {
     <iframe
       src={shouldLoad ? "/memoflash-hero.html" : undefined}
       title="Démonstration animée de Memoflash"
-      className="aspect-[1400/980] w-full border-0 bg-transparent"
+      className="hidden aspect-[1400/980] w-full border-0 bg-transparent md:block"
     />
   );
 }
