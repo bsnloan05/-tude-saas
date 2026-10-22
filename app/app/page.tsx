@@ -99,7 +99,7 @@ function ImportMenu({
     <div ref={containerRef} className="flex flex-col items-center">
       <button
         onClick={onToggle}
-        className="flex items-center gap-1.5 text-sm font-medium text-[#8b97b0] transition-colors duration-150 hover:text-[#c3cbdc]"
+        className="flex items-center gap-1.5 text-base font-medium text-[#e7ecf5] transition-colors duration-150 hover:text-white"
       >
         {icon}
         {label}
@@ -1205,7 +1205,7 @@ export default function Home() {
                 />
                 <ImportMenu
                   icon={
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
                       <path d="M14 3v4a1 1 0 001 1h4" strokeLinecap="round" strokeLinejoin="round" />
                       <path d="M6 21h12a1 1 0 001-1V7l-5-5H6a1 1 0 00-1 1v17a1 1 0 001 1z" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
@@ -1307,7 +1307,7 @@ export default function Home() {
                 />
                 <ImportMenu
                   icon={
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
                       <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
                       <path d="M19 11a1 1 0 10-2 0 5 5 0 01-10 0 1 1 0 10-2 0 7 7 0 006 6.93V20H9a1 1 0 100 2h6a1 1 0 100-2h-2v-2.07A7 7 0 0019 11z" />
                     </svg>
