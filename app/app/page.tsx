@@ -995,7 +995,7 @@ export default function Home() {
           </p>
 
           {usage && usage.quotaSeconds === null && (
-            <p className="mt-2 text-sm text-[#8b97b0]">
+            <p className="mt-2 text-base text-[#8b97b0]">
               Usage illimité — {formatDuration(usage.usedSeconds)} enregistrées ce mois-ci
             </p>
           )}
