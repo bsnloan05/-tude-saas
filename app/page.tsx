@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import DeferredHeroAnimation from "@/components/DeferredHeroAnimation";
 import ScrollFadeIn from "@/components/ScrollFadeIn";
@@ -76,13 +75,6 @@ const STEPS: Array<{ title: string; text: string; icon: React.ReactNode }> = [
     ),
   },
 ];
-
-// Expérience "chargement progressif" : sans ça, Next.js fige la bannière
-// "activité récente" dans le HTML statique au moment du build (données
-// obsolètes, jamais mises à jour) au lieu de vraiment la streamer à chaque
-// visite — ce qui invaliderait le test. Avec ça, la page perd la mise en
-// cache CDN statique en échange d'un vrai flux progressif à chaque requête.
-export const dynamic = "force-dynamic";
 
 export default function LandingPage() {
   return (
@@ -262,9 +254,7 @@ export default function LandingPage() {
         <span className="text-sm text-[#8b97b0]">N&apos;écris pas, écoute seulement.</span>
       </footer>
 
-      <Suspense fallback={null}>
-        <LiveActivityBanner />
-      </Suspense>
+      <LiveActivityBanner />
     </div>
   );
 }
