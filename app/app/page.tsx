@@ -968,9 +968,9 @@ export default function Home() {
       <main className="mt-8 flex w-full max-w-4xl flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-3 text-center">
           <h1 className="text-balance text-4xl font-bold tracking-tight text-[#e7ecf5] sm:text-5xl">
-            Transforme tes cours
+            Transforme tes
             <br />
-            en{" "}
+            cours en{" "}
             <span className="relative inline-block">
               fiches de révision
               <svg
