@@ -967,7 +967,7 @@ export default function Home() {
 
       <main className="mt-8 flex w-full max-w-4xl flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-3 text-center">
-          <h1 className="text-balance text-3xl font-bold tracking-tight text-[#e7ecf5] sm:text-4xl">
+          <h1 className="text-balance text-4xl font-bold tracking-tight text-[#e7ecf5] sm:text-5xl">
             Transforme tes cours en{" "}
             <span className="relative inline-block">
               fiches de révision
@@ -988,14 +988,14 @@ export default function Home() {
               </svg>
             </span>
           </h1>
-          <p className="max-w-md text-lg text-[#8b97b0]">
+          <p className="max-w-md text-xl text-[#8b97b0]">
             Démarre l&apos;enregistrement pendant le cours,
             <br />
             arrête-le à la fin : ta fiche est générée automatiquement.
           </p>
 
           {usage && usage.quotaSeconds === null && (
-            <p className="mt-2 text-base text-[#8b97b0]">
+            <p className="mt-2 text-lg text-[#8b97b0]">
               Usage illimité — {formatDuration(usage.usedSeconds)} enregistrées ce mois-ci
             </p>
           )}
