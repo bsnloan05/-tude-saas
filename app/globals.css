@@ -265,3 +265,25 @@ body {
   }
 }
 
+/* Curseurs (moyenne actuelle/visée) : la taille par défaut du rond que
+   l'utilisateur fait glisser est trop petite pour être bien visible et
+   facile à attraper au doigt sur mobile. */
+input[type="range"].slider-thumb-lg::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background-color: var(--thumb-color, #2563eb);
+  cursor: pointer;
+}
+
+input[type="range"].slider-thumb-lg::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background-color: var(--thumb-color, #2563eb);
+  border: none;
+  cursor: pointer;
+}
+
