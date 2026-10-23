@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -73,14 +74,10 @@ const GOAL_PHRASES: Record<string, string> = {
 const TOTAL_STEPS = QUESTIONS.length + 4;
 
 function TestimonialStep({
-  currentAverage,
-  targetAverage,
   caption,
   onBack,
   onContinue,
 }: {
-  currentAverage: number;
-  targetAverage: number;
   caption: string;
   onBack: () => void;
   onContinue: () => void;
@@ -106,12 +103,17 @@ function TestimonialStep({
         </h1>
 
         <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:items-stretch sm:gap-6">
-          <div className="w-full rounded-lg border border-[#232d45] bg-[#141b2e] p-5 text-left sm:max-w-xs">
-            <p className="mb-3 text-xs font-bold tracking-wide text-[#e7ecf5] uppercase">Avant</p>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-[#8b97b0]">Moyenne actuelle :</span>
-              <span className="text-xl font-bold text-[#c3cbdc]">{currentAverage}</span>
-            </div>
+          <div className="w-full overflow-hidden rounded-lg border border-[#232d45] bg-[#141b2e] sm:max-w-xs">
+            <p className="px-5 pt-5 text-left text-xs font-bold tracking-wide text-[#e7ecf5] uppercase">
+              Avant
+            </p>
+            <Image
+              src="/avant-moyenne-preuve.jpg"
+              alt="Moyenne d'un élève avant Memoflash"
+              width={1080}
+              height={314}
+              className="mt-3 h-auto w-full"
+            />
           </div>
 
           <span className="flex h-9 w-9 shrink-0 rotate-90 items-center justify-center self-center rounded-full border border-[#3a4568] text-[#e7ecf5] sm:rotate-0">
@@ -120,14 +122,17 @@ function TestimonialStep({
             </svg>
           </span>
 
-          <div className="w-full rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 p-5 text-left sm:max-w-xs">
-            <p className="mb-3 text-xs font-semibold tracking-wide text-[#7dd3fc] uppercase">
+          <div className="w-full overflow-hidden rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 sm:max-w-xs">
+            <p className="px-5 pt-5 text-left text-xs font-semibold tracking-wide text-[#7dd3fc] uppercase">
               Avec Memoflash
             </p>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-[#8b97b0]">Moyenne visée :</span>
-              <span className="text-xl font-bold text-[#38bdf8]">{targetAverage}</span>
-            </div>
+            <Image
+              src="/apres-moyenne-preuve.jpg"
+              alt="Moyenne du même élève avec Memoflash"
+              width={1080}
+              height={248}
+              className="mt-3 h-auto w-full"
+            />
           </div>
         </div>
 
@@ -587,8 +592,6 @@ export default function OnboardingPage() {
         </div>
       ) : showGoalTestimonial ? (
         <TestimonialStep
-          currentAverage={currentAverage}
-          targetAverage={targetAverage}
           caption="Encore un témoignage d'une étudiante qui utilise déjà Memoflash. C'est le genre de résultat que tu peux viser."
           onBack={() => {
             setStep(GOAL_INDEX);
