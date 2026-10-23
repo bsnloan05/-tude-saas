@@ -103,16 +103,13 @@ function TestimonialStep({
         </h1>
 
         <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:items-stretch sm:gap-6">
-          <div className="w-full overflow-hidden rounded-lg border border-[#232d45] bg-[#141b2e] sm:max-w-sm">
-            <p className="px-5 pt-5 text-left text-xs font-bold tracking-wide text-[#e7ecf5] uppercase">
-              Avant
-            </p>
+          <div className="w-full overflow-hidden rounded-lg border border-[#232d45] sm:max-w-sm">
             <Image
               src="/avant-moyenne-preuve.jpg"
               alt="Moyenne d'un élève avant Memoflash"
               width={1080}
               height={314}
-              className="mt-3 h-auto w-full"
+              className="h-auto w-full"
             />
           </div>
 
@@ -122,16 +119,13 @@ function TestimonialStep({
             </svg>
           </span>
 
-          <div className="w-full overflow-hidden rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 sm:max-w-sm">
-            <p className="px-5 pt-5 text-left text-xs font-semibold tracking-wide text-[#7dd3fc] uppercase">
-              Avec Memoflash
-            </p>
+          <div className="w-full overflow-hidden rounded-lg border border-[#2563eb]/40 sm:max-w-sm">
             <Image
               src="/apres-moyenne-preuve.jpg"
               alt="Moyenne du même élève avec Memoflash"
               width={1080}
               height={314}
-              className="mt-3 h-auto w-full"
+              className="h-auto w-full"
             />
           </div>
         </div>
