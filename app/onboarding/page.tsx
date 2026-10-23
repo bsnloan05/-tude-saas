@@ -326,13 +326,49 @@ function getAverageBadge(target: number): string {
 // Évalue l'ampleur de l'écart entre la moyenne actuelle et la moyenne
 // visée, pour donner un retour immédiat ("c'est jouable" vs "ça va
 // demander du travail") plutôt que de laisser l'utilisateur deviner si
-// son objectif est raisonnable.
-function getEffortBadge(delta: number): { label: string; className: string } {
-  if (delta <= 0) return { label: "Déjà acquis", className: "bg-[#2a3552] text-[#c3cbdc]" };
-  if (delta <= 3) return { label: `+${delta} points — faisable`, className: "bg-emerald-500/15 text-emerald-400" };
-  if (delta <= 5) return { label: `+${delta} points — il faut bosser`, className: "bg-amber-400/15 text-amber-400" };
-  if (delta <= 8) return { label: `+${delta} points — ambitieux`, className: "bg-orange-400/15 text-orange-400" };
-  return { label: `+${delta} points — très ambitieux`, className: "bg-red-400/15 text-red-400" };
+// son objectif est raisonnable. 5 paliers, avec un titre + une
+// description qui changent, et une petite barre à 5 segments pour
+// visualiser où on se situe (même logique qu'un indicateur de "niveau
+// d'ambition" classique sur ce genre de slider).
+const EFFORT_TIERS: Array<{ label: string; title: string; description: string; color: string }> = [
+  {
+    label: "Faisable",
+    title: "Un objectif atteignable",
+    description: "Un peu de travail régulier et ça passe.",
+    color: "#34d399",
+  },
+  {
+    label: "Jouable",
+    title: "Ça demande un peu de rigueur",
+    description: "Avec de la régularité, c'est largement atteignable.",
+    color: "#a3e635",
+  },
+  {
+    label: "Il faut bosser",
+    title: "Un vrai travail de fond",
+    description: "Il va falloir s'y mettre sérieusement, mais c'est possible.",
+    color: "#fbbf24",
+  },
+  {
+    label: "Ambitieux",
+    title: "Un objectif ambitieux",
+    description: "Ça va demander un gros effort et beaucoup de régularité.",
+    color: "#fb923c",
+  },
+  {
+    label: "Très ambitieux",
+    title: "Un objectif très exigeant",
+    description: "Faisable avec une vraie discipline, mais ne te mets pas la pression.",
+    color: "#f87171",
+  },
+];
+
+function getEffortTierIndex(delta: number): number {
+  if (delta <= 2) return 0;
+  if (delta <= 4) return 1;
+  if (delta <= 6) return 2;
+  if (delta <= 8) return 3;
+  return 4;
 }
 
 export default function OnboardingPage() {
@@ -357,6 +393,7 @@ export default function OnboardingPage() {
   const painPoint = answers[PAIN_POINT_INDEX];
   const goal = answers[GOAL_INDEX];
   const averageDelta = targetAverage - currentAverage;
+  const effortTier = EFFORT_TIERS[getEffortTierIndex(averageDelta)];
 
   // Numéro affiché (1-indexé) : les deux étapes moyenne (actuelle, puis
   // visée), puis les questions, avec un témoignage inséré après "plus
@@ -541,18 +578,9 @@ export default function OnboardingPage() {
           </p>
 
           <div className="mb-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6 sm:p-8">
-            <p className="text-center text-5xl font-bold text-[#38bdf8] sm:text-6xl">
+            <p className="mb-6 text-center text-5xl font-bold text-[#38bdf8] sm:text-6xl">
               {targetAverage}
             </p>
-
-            <div className="mb-6 flex justify-center">
-              <span
-                key={averageDelta}
-                className={`badge-pop rounded-full px-3 py-1 text-sm font-semibold ${getEffortBadge(averageDelta).className}`}
-              >
-                {getEffortBadge(averageDelta).label}
-              </span>
-            </div>
 
             <div>
               <label className="mb-2 flex items-center justify-between text-sm font-semibold text-[#38bdf8]">
@@ -578,6 +606,24 @@ export default function OnboardingPage() {
                   } as React.CSSProperties
                 }
               />
+            </div>
+
+            <div className="mt-4 flex items-center gap-1.5">
+              {EFFORT_TIERS.map((tier, index) => (
+                <div
+                  key={tier.label}
+                  className="h-1.5 flex-1 rounded-full transition-colors duration-300"
+                  style={{
+                    backgroundColor:
+                      index <= getEffortTierIndex(averageDelta) ? tier.color : "#232d45",
+                  }}
+                />
+              ))}
+            </div>
+
+            <div key={effortTier.label} className="badge-pop mt-5 text-center">
+              <p className="text-base font-semibold text-[#e7ecf5]">{effortTier.title}</p>
+              <p className="mt-1 text-sm text-[#8b97b0]">{effortTier.description}</p>
             </div>
           </div>
 
