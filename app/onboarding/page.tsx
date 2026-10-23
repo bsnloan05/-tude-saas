@@ -482,8 +482,13 @@ export default function OnboardingPage() {
                 step={0.5}
                 value={currentAverage}
                 onChange={(e) => handleCurrentAverageChange(parseFloat(e.target.value))}
-                className="slider-thumb-lg h-3 w-full accent-[#2563eb]"
-                style={{ "--thumb-color": "#2563eb" } as React.CSSProperties}
+                className="slider-thumb-lg h-3 w-full"
+                style={
+                  {
+                    "--thumb-color": "#2563eb",
+                    "--range-progress": `${(currentAverage / 20) * 100}%`,
+                  } as React.CSSProperties
+                }
               />
             </div>
           </div>
@@ -545,8 +550,17 @@ export default function OnboardingPage() {
                 step={0.5}
                 value={targetAverage}
                 onChange={(e) => handleTargetAverageChange(parseFloat(e.target.value))}
-                className="slider-thumb-lg h-3 w-full accent-[#38bdf8]"
-                style={{ "--thumb-color": "#38bdf8" } as React.CSSProperties}
+                className="slider-thumb-lg h-3 w-full"
+                style={
+                  {
+                    "--thumb-color": "#38bdf8",
+                    "--range-progress": `${
+                      currentAverage >= 20
+                        ? 100
+                        : ((targetAverage - currentAverage) / (20 - currentAverage)) * 100
+                    }%`,
+                  } as React.CSSProperties
+                }
               />
             </div>
           </div>

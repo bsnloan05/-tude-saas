@@ -266,13 +266,48 @@ body {
 }
 
 /* Curseurs (moyenne actuelle/visée) : la taille par défaut du rond que
-   l'utilisateur fait glisser est trop petite pour être bien visible et
-   facile à attraper au doigt sur mobile. */
+   l'utilisateur fait glisser (et de la barre elle-même) est trop petite
+   pour être bien visible et facile à attraper au doigt sur mobile. La
+   barre native de Safari/Chrome ignore la hauteur de l'input lui-même
+   (elle reste fine quoi qu'il arrive), donc on reprend tout le rendu à la
+   main plutôt que de juste ajuster accent-color/height.
+   --range-progress est calculé en JS (pourcentage de la valeur actuelle). */
+input[type="range"].slider-thumb-lg {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+input[type="range"].slider-thumb-lg::-webkit-slider-runnable-track {
+  height: 12px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--thumb-color, #2563eb) 0%,
+    var(--thumb-color, #2563eb) var(--range-progress, 50%),
+    #232d45 var(--range-progress, 50%),
+    #232d45 100%
+  );
+}
+
+input[type="range"].slider-thumb-lg::-moz-range-track {
+  height: 12px;
+  border-radius: 9999px;
+  background-color: #232d45;
+}
+
+input[type="range"].slider-thumb-lg::-moz-range-progress {
+  height: 12px;
+  border-radius: 9999px;
+  background-color: var(--thumb-color, #2563eb);
+}
+
 input[type="range"].slider-thumb-lg::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 26px;
   height: 26px;
+  margin-top: -7px;
   border-radius: 9999px;
   background-color: var(--thumb-color, #2563eb);
   cursor: pointer;
@@ -285,13 +320,5 @@ input[type="range"].slider-thumb-lg::-moz-range-thumb {
   background-color: var(--thumb-color, #2563eb);
   border: none;
   cursor: pointer;
-}
-
-input[type="range"].slider-thumb-lg::-webkit-slider-runnable-track {
-  border-radius: 9999px;
-}
-
-input[type="range"].slider-thumb-lg::-moz-range-track {
-  border-radius: 9999px;
 }
 
