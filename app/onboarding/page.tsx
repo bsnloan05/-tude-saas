@@ -548,9 +548,20 @@ export default function OnboardingPage() {
           </p>
 
           <div className="mb-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6 sm:p-8">
-            <p className="mb-6 text-center text-5xl font-bold text-[#38bdf8] sm:text-6xl">
-              {targetAverage}
-            </p>
+            <div className="mb-6 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-bold text-[#38bdf8] sm:text-xl">
+                  Moyenne visée :
+                </span>
+                <span className="text-3xl font-bold text-[#38bdf8] sm:text-4xl">
+                  {targetAverage}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-[#8b97b0]">Moyenne actuelle :</span>
+                <span className="text-base font-semibold text-[#8b97b0]">{currentAverage}</span>
+              </div>
+            </div>
 
             <div>
               <label className="mb-2 flex items-center justify-between text-sm font-semibold text-[#38bdf8]">
