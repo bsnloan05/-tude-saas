@@ -287,3 +287,11 @@ input[type="range"].slider-thumb-lg::-moz-range-thumb {
   cursor: pointer;
 }
 
+input[type="range"].slider-thumb-lg::-webkit-slider-runnable-track {
+  border-radius: 9999px;
+}
+
+input[type="range"].slider-thumb-lg::-moz-range-track {
+  border-radius: 9999px;
+}
+
