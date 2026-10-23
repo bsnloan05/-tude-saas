@@ -3,13 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Nunito } from "next/font/google";
-
-// Police ronde/arrondie proche de celle du bulletin envoyé par le client
-// (capture d'écran), différente de la police par défaut du reste du
-// site — utilisée uniquement pour reproduire ce visuel précis sur
-// l'écran "avant/après".
-const nunito = Nunito({ subsets: ["latin"], weight: ["600", "800"] });
 
 type Question = {
   question: string;
@@ -85,14 +78,14 @@ const TOTAL_STEPS = QUESTIONS.length + 4;
 // alignement), seuls les chiffres changent.
 function MoyenneCard({ eleve, classe }: { eleve: string; classe: string }) {
   return (
-    <div className={`${nunito.className} w-full rounded-lg bg-[#ececec] p-5 text-left sm:max-w-sm`}>
+    <div className="w-full rounded-lg bg-[#ececec] p-5 text-left sm:max-w-sm">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-lg font-extrabold text-[#245541]">Moyenne générale élève :</span>
-        <span className="shrink-0 text-xl font-extrabold text-[#245541]">{eleve}</span>
+        <span className="text-lg font-bold text-[#1f5c45]">Moyenne générale élève :</span>
+        <span className="shrink-0 text-xl font-bold text-[#1f5c45]">{eleve}</span>
       </div>
       <div className="mt-2 flex items-baseline justify-between gap-3">
-        <span className="text-base font-semibold text-[#4b5563]">Moyenne générale classe :</span>
-        <span className="shrink-0 text-base font-semibold text-[#4b5563]">{classe}</span>
+        <span className="text-base text-[#4b5563]">Moyenne générale classe :</span>
+        <span className="shrink-0 text-base text-[#4b5563]">{classe}</span>
       </div>
     </div>
   );
