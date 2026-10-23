@@ -716,7 +716,7 @@ export default function Home() {
       // Court passage par "generating" avant la redirection, pour garder le
       // petit effet d'espoir/suspense plutôt qu'un renvoi instantané.
       setStatus("generating");
-      window.posthog?.capture("free_preview_shown", { source: "transcription" });
+      window.posthog?.capture("free_paywall_redirect", { source: "transcription" });
       setTimeout(() => {
         router.push("/pricing?from=transcription");
       }, 1500);
@@ -1199,7 +1199,7 @@ export default function Home() {
                     // /api/usage réponde) : comme pour la transcription,
                     // aucun appel serveur/IA, redirection directe vers les
                     // tarifs.
-                    window.posthog?.capture("free_preview_shown", { source: "pdf" });
+                    window.posthog?.capture("free_paywall_redirect", { source: "pdf" });
                     setStatus("generating");
                     setTimeout(() => {
                       router.push("/pricing?from=pdf");
@@ -1224,7 +1224,7 @@ export default function Home() {
                       importPhoto(file);
                       return;
                     }
-                    window.posthog?.capture("free_preview_shown", { source: "photo" });
+                    window.posthog?.capture("free_paywall_redirect", { source: "photo" });
                     setStatus("generating");
                     setTimeout(() => {
                       router.push("/pricing?from=photo");
@@ -1289,7 +1289,7 @@ export default function Home() {
                     // /api/usage réponde) : comme pour la transcription,
                     // aucun appel serveur/IA, redirection directe vers les
                     // tarifs.
-                    window.posthog?.capture("free_preview_shown", { source: "audio" });
+                    window.posthog?.capture("free_paywall_redirect", { source: "audio" });
                     setStatus("generating");
                     setTimeout(() => {
                       router.push("/pricing?from=audio");
@@ -1324,7 +1324,7 @@ export default function Home() {
                       importAudio(file);
                       return;
                     }
-                    window.posthog?.capture("free_preview_shown", { source: "video" });
+                    window.posthog?.capture("free_paywall_redirect", { source: "video" });
                     setStatus("generating");
                     setTimeout(() => {
                       router.push("/pricing?from=video");
