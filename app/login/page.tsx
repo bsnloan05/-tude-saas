@@ -30,7 +30,6 @@ function LoginForm() {
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
   const [errorMessage, setErrorMessage] = useState(searchParams.get("error") ?? "");
   const [infoMessage, setInfoMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,7 +48,6 @@ function LoginForm() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { first_name: firstName } },
       });
       if (error) {
         setErrorMessage(translateAuthError(error.message));
@@ -312,24 +310,6 @@ function LoginForm() {
               </button>
             )}
           </div>
-
-          {mode === "signup" && (
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="firstName" className="text-sm font-medium text-[#c3cbdc]">
-                Ton prénom
-              </label>
-              <input
-                id="firstName"
-                type="text"
-                required
-                autoComplete="given-name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="rounded-lg border border-[#2a3552] bg-[#0b1120] px-4 py-3 text-base text-[#e7ecf5] outline-none focus:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb]/30"
-                placeholder="Camille"
-              />
-            </div>
-          )}
 
           {errorMessage && (
             <p className="rounded-lg border border-red-900/50 bg-red-950/50 px-4 py-2.5 text-sm text-red-200">
