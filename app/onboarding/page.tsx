@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -73,6 +72,25 @@ const GOAL_PHRASES: Record<string, string> = {
 
 const TOTAL_STEPS = QUESTIONS.length + 4;
 
+// Reproduit le visuel d'un bulletin (capture d'écran envoyée par un
+// client) en vrai HTML plutôt qu'en image : les deux cartes "avant" et
+// "après" sont ainsi garanties strictement identiques (police, taille,
+// alignement), seuls les chiffres changent.
+function MoyenneCard({ eleve, classe }: { eleve: string; classe: string }) {
+  return (
+    <div className="w-full rounded-lg bg-[#ececec] p-5 text-left sm:max-w-sm">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-lg font-bold text-[#1f5c45]">Moyenne générale élève :</span>
+        <span className="shrink-0 text-xl font-bold text-[#1f5c45]">{eleve}</span>
+      </div>
+      <div className="mt-2 flex items-baseline justify-between gap-3">
+        <span className="text-base text-[#4b5563]">Moyenne générale classe :</span>
+        <span className="shrink-0 text-base text-[#4b5563]">{classe}</span>
+      </div>
+    </div>
+  );
+}
+
 function TestimonialStep({
   caption,
   onBack,
@@ -103,15 +121,7 @@ function TestimonialStep({
         </h1>
 
         <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:items-stretch sm:gap-6">
-          <div className="w-full overflow-hidden rounded-lg border border-[#232d45] sm:max-w-sm">
-            <Image
-              src="/avant-moyenne-preuve.jpg"
-              alt="Moyenne d'un élève avant Memoflash"
-              width={1080}
-              height={314}
-              className="h-auto w-full"
-            />
-          </div>
+          <MoyenneCard eleve="12,33" classe="10,44" />
 
           <span className="flex h-9 w-9 shrink-0 rotate-90 items-center justify-center self-center rounded-full border border-[#3a4568] text-[#e7ecf5] sm:rotate-0">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
@@ -119,15 +129,7 @@ function TestimonialStep({
             </svg>
           </span>
 
-          <div className="w-full overflow-hidden rounded-lg border border-[#2563eb]/40 sm:max-w-sm">
-            <Image
-              src="/apres-moyenne-preuve.jpg"
-              alt="Moyenne du même élève avec Memoflash"
-              width={1080}
-              height={314}
-              className="h-auto w-full"
-            />
-          </div>
+          <MoyenneCard eleve="17,12" classe="13,94" />
         </div>
 
         <p className="mb-8 max-w-xl text-sm text-[#8b97b0]">{caption}</p>
