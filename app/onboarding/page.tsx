@@ -323,6 +323,18 @@ function getAverageBadge(target: number): string {
   return "Passable";
 }
 
+// Évalue l'ampleur de l'écart entre la moyenne actuelle et la moyenne
+// visée, pour donner un retour immédiat ("c'est jouable" vs "ça va
+// demander du travail") plutôt que de laisser l'utilisateur deviner si
+// son objectif est raisonnable.
+function getEffortBadge(delta: number): { label: string; className: string } {
+  if (delta <= 0) return { label: "Déjà acquis", className: "bg-[#2a3552] text-[#c3cbdc]" };
+  if (delta <= 3) return { label: `+${delta} points — faisable`, className: "bg-emerald-500/15 text-emerald-400" };
+  if (delta <= 5) return { label: `+${delta} points — il faut bosser`, className: "bg-amber-400/15 text-amber-400" };
+  if (delta <= 8) return { label: `+${delta} points — ambitieux`, className: "bg-orange-400/15 text-orange-400" };
+  return { label: `+${delta} points — très ambitieux`, className: "bg-red-400/15 text-red-400" };
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [showCurrentAverageStep, setShowCurrentAverageStep] = useState(true);
@@ -529,14 +541,18 @@ export default function OnboardingPage() {
           </p>
 
           <div className="mb-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6 sm:p-8">
-            <p className="mb-6 text-center text-5xl font-bold text-[#38bdf8] sm:text-6xl">
+            <p className="text-center text-5xl font-bold text-[#38bdf8] sm:text-6xl">
               {targetAverage}
-              {averageDelta > 0 && (
-                <span className="ml-2 text-lg font-semibold text-emerald-400">
-                  (+{averageDelta})
-                </span>
-              )}
             </p>
+
+            <div className="mb-6 flex justify-center">
+              <span
+                key={averageDelta}
+                className={`badge-pop rounded-full px-3 py-1 text-sm font-semibold ${getEffortBadge(averageDelta).className}`}
+              >
+                {getEffortBadge(averageDelta).label}
+              </span>
+            </div>
 
             <div>
               <label className="mb-2 flex items-center justify-between text-sm font-semibold text-[#38bdf8]">
