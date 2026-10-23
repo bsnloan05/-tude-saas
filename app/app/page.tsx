@@ -149,6 +149,7 @@ export default function Home() {
   const finalTranscriptRef = useRef("");
   const latestTranscriptRef = useRef("");
   const pendingInterimRef = useRef("");
+  const recognitionStoppedResolveRef = useRef<(() => void) | null>(null);
   const sessionDurationRef = useRef(0);
   const isRecordingRef = useRef(false);
   const restartIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -337,6 +338,14 @@ export default function Home() {
         pendingInterimRef.current = "";
         latestTranscriptRef.current = finalTranscriptRef.current;
         setLiveTranscript(latestTranscriptRef.current);
+      }
+
+      // Si stopRecording() attend que ce arrêt soit bien terminé (pour être
+      // sûr d'avoir le texte final ci-dessus avant de lancer la génération),
+      // on le débloque maintenant.
+      if (recognitionStoppedResolveRef.current) {
+        recognitionStoppedResolveRef.current();
+        recognitionStoppedResolveRef.current = null;
       }
 
       // Le navigateur peut arrêter l'écoute tout seul (silence, limite interne,
@@ -881,6 +890,10 @@ export default function Home() {
     if (!recognitionRef.current) return;
     window.posthog?.capture("recording_stopped");
     isRecordingRef.current = false;
+    // Change l'état tout de suite (avant même d'attendre la finalisation
+    // ci-dessous) : ça désactive le bouton immédiatement et évite un double
+    // clic pendant le court instant où on attend la toute dernière phrase.
+    setStatus("generating");
     setShowStartTip(false);
     if (chromeTipTimeoutRef.current) {
       clearTimeout(chromeTipTimeoutRef.current);
@@ -894,10 +907,22 @@ export default function Home() {
       clearInterval(backupIntervalRef.current);
       backupIntervalRef.current = null;
     }
-    // On garde la sauvegarde jusqu'à ce que la fiche soit générée avec
-    // succès (voir generateFiche) : si l'onglet est fermé pendant une
-    // génération en attente (ex. pic de trafic), le texte reste récupérable.
+    // recognition.stop() est asynchrone : le navigateur finalise encore
+    // quelques instants la toute dernière phrase en cours (le bout de
+    // parole juste avant d'appuyer sur Stop) avant de déclencher "onend",
+    // qui est le moment où ce texte est vraiment ajouté à la transcription
+    // (voir plus haut). Lire latestTranscriptRef juste après stop(), sans
+    // attendre, coupait systématiquement les derniers mots prononcés — on
+    // attend donc ce signal (avec un filet de sécurité en cas de souci
+    // navigateur) avant de considérer la transcription comme complète.
     recognitionRef.current.stop();
+    await new Promise<void>((resolve) => {
+      const fallback = setTimeout(resolve, 2000);
+      recognitionStoppedResolveRef.current = () => {
+        clearTimeout(fallback);
+        resolve();
+      };
+    });
     stopWaveform();
     sessionDurationRef.current = recordingSeconds;
     fetch("/api/recording/stop", { method: "POST" }).catch(() => {});
