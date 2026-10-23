@@ -270,7 +270,17 @@ export default function Home() {
     }
 
     const recognition = new SpeechRecognitionCtor();
-    recognition.continuous = true;
+    // Bug connu de WebKit (Safari, Mac et iPhone) : avec continuous=true,
+    // onresult ne se déclenche parfois jamais (le micro a l'air d'écouter,
+    // mais rien n'est jamais transcrit). Sur Chrome, continuous=true
+    // fonctionne bien et reste inchangé. Sur Safari (et les autres
+    // navigateurs non-Chrome), on utilise continuous=false — comme on
+    // relance déjà automatiquement l'écoute à chaque "onend" (voir plus
+    // bas), l'expérience reste continue pour l'utilisateur, juste sans ce
+    // bug.
+    const ua = navigator.userAgent;
+    const isChromeEngine = /Chrome/.test(ua) && !/Edg|OPR/.test(ua);
+    recognition.continuous = isChromeEngine;
     recognition.interimResults = true;
     recognition.lang = "fr-FR";
 
