@@ -468,7 +468,7 @@ export default function OnboardingPage() {
           </p>
 
           <div className="mb-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6 sm:p-8">
-            <p className="mb-6 text-5xl font-bold text-[#e7ecf5] sm:text-6xl">{currentAverage}</p>
+            <p className="mb-6 text-center text-5xl font-bold text-[#e7ecf5] sm:text-6xl">{currentAverage}</p>
 
             <div>
               <label className="mb-2 flex items-center justify-between text-sm font-semibold text-[#8b97b0]">
@@ -523,7 +523,7 @@ export default function OnboardingPage() {
           </p>
 
           <div className="mb-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6 sm:p-8">
-            <p className="mb-6 text-5xl font-bold text-[#38bdf8] sm:text-6xl">
+            <p className="mb-6 text-center text-5xl font-bold text-[#38bdf8] sm:text-6xl">
               {targetAverage}
               {averageDelta > 0 && (
                 <span className="ml-2 text-lg font-semibold text-emerald-400">
