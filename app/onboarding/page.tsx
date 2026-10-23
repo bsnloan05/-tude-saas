@@ -71,7 +71,7 @@ const GOAL_PHRASES: Record<string, string> = {
   "Avoir plus de temps libre": "avoir plus de temps libre",
 };
 
-const TOTAL_STEPS = QUESTIONS.length + 4;
+const TOTAL_STEPS = QUESTIONS.length + 5;
 
 type Testimonial = { quote: string; name: string };
 
@@ -325,7 +325,8 @@ function getAverageBadge(target: number): string {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [showAverageStep, setShowAverageStep] = useState(true);
+  const [showCurrentAverageStep, setShowCurrentAverageStep] = useState(true);
+  const [showTargetAverageStep, setShowTargetAverageStep] = useState(false);
   const [currentAverage, setCurrentAverage] = useState(11);
   const [targetAverage, setTargetAverage] = useState(14);
   const [step, setStep] = useState(0);
@@ -336,26 +337,32 @@ export default function OnboardingPage() {
   const [showRealisticStep, setShowRealisticStep] = useState(false);
 
   const isDone =
-    !showAverageStep && !showGoalTestimonial && !showRealisticStep && step >= QUESTIONS.length;
+    !showCurrentAverageStep &&
+    !showTargetAverageStep &&
+    !showGoalTestimonial &&
+    !showRealisticStep &&
+    step >= QUESTIONS.length;
   const painPoint = answers[PAIN_POINT_INDEX];
   const goal = answers[GOAL_INDEX];
   const averageDelta = targetAverage - currentAverage;
 
-  // Numéro affiché (1-indexé) : étape moyenne, puis questions, avec un
-  // témoignage inséré après "plus grosse galère", un autre après "gagner
-  // du temps sur une seule chose", et l'écran "c'est réaliste" juste
-  // avant le bilan.
-  const stepNumber = showAverageStep
+  // Numéro affiché (1-indexé) : les deux étapes moyenne (actuelle, puis
+  // visée), puis les questions, avec un témoignage inséré après "plus
+  // grosse galère", un autre après "gagner du temps sur une seule chose",
+  // et l'écran "c'est réaliste" juste avant le bilan.
+  const stepNumber = showCurrentAverageStep
     ? 1
-    : showTestimonial
-      ? PAIN_POINT_INDEX + 3
-      : showGoalTestimonial
-        ? QUESTIONS.length + 3
-        : showRealisticStep
+    : showTargetAverageStep
+      ? 2
+      : showTestimonial
+        ? PAIN_POINT_INDEX + 4
+        : showGoalTestimonial
           ? QUESTIONS.length + 4
-          : step <= PAIN_POINT_INDEX
-            ? step + 2
-            : step + 3;
+          : showRealisticStep
+            ? QUESTIONS.length + 5
+            : step <= PAIN_POINT_INDEX
+              ? step + 3
+              : step + 4;
 
   // Suit la progression dans le questionnaire via le numéro d'étape affiché
   // plutôt que chaque branche individuellement : ça capture tous les
@@ -448,51 +455,22 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {showAverageStep ? (
+        {showCurrentAverageStep ? (
         <div className="fiche-enter w-full max-w-4xl">
           <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
             Ton objectif
           </p>
           <h1 className="mb-2 text-balance text-3xl font-bold text-[#e7ecf5] sm:text-4xl">
-            Quelle moyenne vises-tu ?
+            Quelle est ta moyenne actuelle ?
           </h1>
           <p className="mb-6 text-base text-[#8b97b0]">
-            Dis-nous où tu en es, et où tu veux aller.
+            On commence par où tu en es.
           </p>
 
           <div className="mb-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6 sm:p-8">
-            <div className="mb-6 flex items-center gap-6 sm:gap-8">
-              <div>
-                <p className="mb-1 text-sm font-semibold tracking-wide text-[#8b97b0] uppercase">
-                  Actuelle
-                </p>
-                <p className="text-5xl font-bold text-[#e7ecf5] sm:text-6xl">{currentAverage}</p>
-              </div>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="h-7 w-7 text-[#8b97b0] sm:h-9 sm:w-9"
-              >
-                <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <div>
-                <p className="mb-1 text-sm font-semibold tracking-wide text-[#38bdf8] uppercase">
-                  Visée
-                </p>
-                <p className="text-5xl font-bold text-[#38bdf8] sm:text-6xl">
-                  {targetAverage}
-                  {averageDelta > 0 && (
-                    <span className="ml-2 text-lg font-semibold text-emerald-400">
-                      (+{averageDelta})
-                    </span>
-                  )}
-                </p>
-              </div>
-            </div>
+            <p className="mb-6 text-5xl font-bold text-[#e7ecf5] sm:text-6xl">{currentAverage}</p>
 
-            <div className="mb-5">
+            <div>
               <label className="mb-2 flex items-center justify-between text-sm font-semibold text-[#8b97b0]">
                 <span>Ta moyenne actuelle</span>
                 <span>{currentAverage}/20</span>
@@ -507,6 +485,52 @@ export default function OnboardingPage() {
                 className="h-2 w-full accent-[#2563eb]"
               />
             </div>
+          </div>
+
+          <button
+            onClick={() => {
+              setShowCurrentAverageStep(false);
+              setShowTargetAverageStep(true);
+            }}
+            className="flex h-12 w-full items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+          >
+            Continuer
+          </button>
+        </div>
+      ) : showTargetAverageStep ? (
+        <div className="fiche-enter w-full max-w-4xl">
+          <button
+            onClick={() => {
+              setShowTargetAverageStep(false);
+              setShowCurrentAverageStep(true);
+            }}
+            className="mb-6 flex items-center gap-1.5 text-sm text-[#8b97b0] transition-colors duration-150 hover:text-[#e7ecf5]"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+              <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Question précédente
+          </button>
+
+          <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
+            Ton objectif
+          </p>
+          <h1 className="mb-2 text-balance text-3xl font-bold text-[#e7ecf5] sm:text-4xl">
+            Quelle moyenne vises-tu ?
+          </h1>
+          <p className="mb-6 text-base text-[#8b97b0]">
+            Tu es actuellement à {currentAverage}/20. Et où tu veux aller ?
+          </p>
+
+          <div className="mb-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6 sm:p-8">
+            <p className="mb-6 text-5xl font-bold text-[#38bdf8] sm:text-6xl">
+              {targetAverage}
+              {averageDelta > 0 && (
+                <span className="ml-2 text-lg font-semibold text-emerald-400">
+                  (+{averageDelta})
+                </span>
+              )}
+            </p>
 
             <div>
               <label className="mb-2 flex items-center justify-between text-sm font-semibold text-[#38bdf8]">
@@ -515,7 +539,7 @@ export default function OnboardingPage() {
               </label>
               <input
                 type="range"
-                min={0}
+                min={currentAverage}
                 max={20}
                 step={0.5}
                 value={targetAverage}
@@ -526,7 +550,7 @@ export default function OnboardingPage() {
           </div>
 
           <button
-            onClick={() => setShowAverageStep(false)}
+            onClick={() => setShowTargetAverageStep(false)}
             className="flex h-12 w-full items-center justify-center rounded-full bg-[#2563eb] text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
           >
             Continuer
