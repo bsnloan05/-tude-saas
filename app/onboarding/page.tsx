@@ -72,39 +72,15 @@ const GOAL_PHRASES: Record<string, string> = {
 
 const TOTAL_STEPS = QUESTIONS.length + 4;
 
-type Testimonial = { quote: string; name: string };
-
-// Vrai témoignage déjà utilisé sur /pricing (TESTIMONIALS), choisi ici
-// selon la réponse pour que le témoignage affiché colle au mieux au sujet.
-const GOAL_TESTIMONIALS: Record<string, Testimonial> = {
-  "Réviser plus efficacement": {
-    quote: "Mes cours sont bien mieux structurés grâce à l'option où j'ai accès à toutes mes fiches.",
-    name: "Chloé",
-  },
-  "Moins stresser": {
-    quote: "Je comprends beaucoup mieux mes cours.",
-    name: "Dounia",
-  },
-  "Avoir de meilleures notes": {
-    quote:
-      "Je comprends beaucoup mieux les cours : j'écoute le prof, et en rentrant, je relis directement ma fiche.",
-    name: "Eliot",
-  },
-  "Avoir plus de temps libre": {
-    quote: "Mes cours sont beaucoup plus structurés.",
-    name: "Clara",
-  },
-};
-
 function TestimonialStep({
-  testimonial,
-  avantText,
+  currentAverage,
+  targetAverage,
   caption,
   onBack,
   onContinue,
 }: {
-  testimonial: Testimonial;
-  avantText: string;
+  currentAverage: number;
+  targetAverage: number;
   caption: string;
   onBack: () => void;
   onContinue: () => void;
@@ -132,7 +108,10 @@ function TestimonialStep({
         <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:items-stretch sm:gap-6">
           <div className="w-full rounded-lg border border-[#232d45] bg-[#141b2e] p-5 text-left sm:max-w-xs">
             <p className="mb-3 text-xs font-bold tracking-wide text-[#e7ecf5] uppercase">Avant</p>
-            <p className="text-sm text-[#c3cbdc]">{avantText}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-[#8b97b0]">Moyenne actuelle :</span>
+              <span className="text-xl font-bold text-[#c3cbdc]">{currentAverage}</span>
+            </div>
           </div>
 
           <span className="flex h-9 w-9 shrink-0 rotate-90 items-center justify-center self-center rounded-full border border-[#3a4568] text-[#e7ecf5] sm:rotate-0">
@@ -145,8 +124,10 @@ function TestimonialStep({
             <p className="mb-3 text-xs font-semibold tracking-wide text-[#7dd3fc] uppercase">
               Avec Memoflash
             </p>
-            <p className="text-sm font-medium text-[#e7ecf5]">« {testimonial.quote} »</p>
-            <p className="mt-3 text-sm font-semibold text-[#38bdf8]">— {testimonial.name}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-[#8b97b0]">Moyenne visée :</span>
+              <span className="text-xl font-bold text-[#38bdf8]">{targetAverage}</span>
+            </div>
           </div>
         </div>
 
@@ -548,20 +529,9 @@ export default function OnboardingPage() {
           </p>
 
           <div className="mb-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6 sm:p-8">
-            <div className="mb-6 flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-[#38bdf8] sm:text-xl">
-                  Moyenne visée :
-                </span>
-                <span className="text-3xl font-bold text-[#38bdf8] sm:text-4xl">
-                  {targetAverage}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[#8b97b0]">Moyenne actuelle :</span>
-                <span className="text-base font-semibold text-[#8b97b0]">{currentAverage}</span>
-              </div>
-            </div>
+            <p className="mb-6 text-center text-5xl font-bold text-[#38bdf8] sm:text-6xl">
+              {targetAverage}
+            </p>
 
             <div>
               <label className="mb-2 flex items-center justify-between text-sm font-semibold text-[#38bdf8]">
@@ -617,8 +587,8 @@ export default function OnboardingPage() {
         </div>
       ) : showGoalTestimonial ? (
         <TestimonialStep
-          testimonial={GOAL_TESTIMONIALS[goal] ?? GOAL_TESTIMONIALS["Réviser plus efficacement"]}
-          avantText="Du temps perdu à tout réécrire, pour des révisions qui restent approximatives."
+          currentAverage={currentAverage}
+          targetAverage={targetAverage}
           caption="Encore un témoignage d'une étudiante qui utilise déjà Memoflash. C'est le genre de résultat que tu peux viser."
           onBack={() => {
             setStep(GOAL_INDEX);
