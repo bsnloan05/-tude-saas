@@ -61,7 +61,6 @@ const QUESTIONS: Question[] = [
   },
 ];
 
-const PAIN_POINT_INDEX = 4;
 const GOAL_INDEX = 6;
 
 const GOAL_PHRASES: Record<string, string> = {
@@ -71,32 +70,12 @@ const GOAL_PHRASES: Record<string, string> = {
   "Avoir plus de temps libre": "avoir plus de temps libre",
 };
 
-const TOTAL_STEPS = QUESTIONS.length + 5;
+const TOTAL_STEPS = QUESTIONS.length + 4;
 
 type Testimonial = { quote: string; name: string };
 
-// Vrais témoignages déjà utilisés sur /pricing (TESTIMONIALS), choisis ici
+// Vrai témoignage déjà utilisé sur /pricing (TESTIMONIALS), choisi ici
 // selon la réponse pour que le témoignage affiché colle au mieux au sujet.
-const PAIN_POINT_TESTIMONIALS: Record<string, Testimonial> = {
-  "Je n'arrive pas à tout noter à temps": {
-    quote:
-      "Je comprends beaucoup mieux les cours : j'écoute le prof, et en rentrant, je relis directement ma fiche.",
-    name: "Eliot",
-  },
-  "Je décroche ou je m'endors pendant le cours": {
-    quote: "Je comprends beaucoup mieux mes cours.",
-    name: "Dounia",
-  },
-  "Je révise à la dernière minute dans le chaos": {
-    quote: "Mes cours sont bien mieux structurés grâce à l'option où j'ai accès à toutes mes fiches.",
-    name: "Chloé",
-  },
-  "Mes notes sont illisibles après coup": {
-    quote: "Mes cours sont beaucoup plus structurés.",
-    name: "Clara",
-  },
-};
-
 const GOAL_TESTIMONIALS: Record<string, Testimonial> = {
   "Réviser plus efficacement": {
     quote: "Mes cours sont bien mieux structurés grâce à l'option où j'ai accès à toutes mes fiches.",
@@ -380,7 +359,6 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [showTestimonial, setShowTestimonial] = useState(false);
   const [showGoalTestimonial, setShowGoalTestimonial] = useState(false);
   const [showRealisticStep, setShowRealisticStep] = useState(false);
 
@@ -390,28 +368,22 @@ export default function OnboardingPage() {
     !showGoalTestimonial &&
     !showRealisticStep &&
     step >= QUESTIONS.length;
-  const painPoint = answers[PAIN_POINT_INDEX];
   const goal = answers[GOAL_INDEX];
   const averageDelta = targetAverage - currentAverage;
   const effortTier = EFFORT_TIERS[getEffortTierIndex(averageDelta)];
 
   // Numéro affiché (1-indexé) : les deux étapes moyenne (actuelle, puis
-  // visée), puis les questions, avec un témoignage inséré après "plus
-  // grosse galère", un autre après "gagner du temps sur une seule chose",
-  // et l'écran "c'est réaliste" juste avant le bilan.
+  // visée), puis les questions, avec un témoignage après "gagner du temps
+  // sur une seule chose", et l'écran "c'est réaliste" juste avant le bilan.
   const stepNumber = showCurrentAverageStep
     ? 1
     : showTargetAverageStep
       ? 2
-      : showTestimonial
-        ? PAIN_POINT_INDEX + 4
-        : showGoalTestimonial
+      : showGoalTestimonial
+        ? QUESTIONS.length + 3
+        : showRealisticStep
           ? QUESTIONS.length + 4
-          : showRealisticStep
-            ? QUESTIONS.length + 5
-            : step <= PAIN_POINT_INDEX
-              ? step + 3
-              : step + 4;
+          : step + 3;
 
   // Suit la progression dans le questionnaire via le numéro d'étape affiché
   // plutôt que chaque branche individuellement : ça capture tous les
@@ -441,7 +413,6 @@ export default function OnboardingPage() {
     // Un court flash visuel (case cochée) avant de passer à la question
     // suivante, pour que le clic se sente confirmé plutôt qu'instantané.
     setSelectedOption(option);
-    const wasPainPointStep = step === PAIN_POINT_INDEX;
     const wasGoalStep = step === GOAL_INDEX;
     setTimeout(() => {
       setAnswers((prev) => {
@@ -451,7 +422,6 @@ export default function OnboardingPage() {
       });
       setStep((current) => current + 1);
       setSelectedOption(null);
-      if (wasPainPointStep) setShowTestimonial(true);
       if (wasGoalStep) setShowGoalTestimonial(true);
     }, 220);
   };
@@ -634,19 +604,6 @@ export default function OnboardingPage() {
             Continuer
           </button>
         </div>
-      ) : showTestimonial ? (
-        <TestimonialStep
-          testimonial={
-            PAIN_POINT_TESTIMONIALS[painPoint] ?? PAIN_POINT_TESTIMONIALS["Je n'arrive pas à tout noter à temps"]
-          }
-          avantText="Des notes prises à la va-vite, et un prof qui a déjà enchaîné sur autre chose."
-          caption="Le témoignage d'une étudiante qui utilise déjà Memoflash. C'est exactement ce que tu peux ressentir, toi aussi."
-          onBack={() => {
-            setStep(PAIN_POINT_INDEX);
-            setShowTestimonial(false);
-          }}
-          onContinue={() => setShowTestimonial(false)}
-        />
       ) : showGoalTestimonial ? (
         <TestimonialStep
           testimonial={GOAL_TESTIMONIALS[goal] ?? GOAL_TESTIMONIALS["Réviser plus efficacement"]}
@@ -674,13 +631,7 @@ export default function OnboardingPage() {
         <div key={step} className="fiche-enter w-full max-w-4xl">
           {step > 0 && (
             <button
-              onClick={() => {
-                if (step === PAIN_POINT_INDEX + 1) {
-                  setShowTestimonial(true);
-                } else {
-                  setStep((current) => current - 1);
-                }
-              }}
+              onClick={() => setStep((current) => current - 1)}
               className="mb-6 flex items-center gap-1.5 text-sm text-[#8b97b0] transition-colors duration-150 hover:text-[#e7ecf5]"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
