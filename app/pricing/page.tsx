@@ -38,6 +38,9 @@ const PLANS: Array<{
   // c'est un paiement unique) : on affiche "0€" tel quel, complété par
   // perDayNote pour rappeler que ça ne coûte plus jamais rien ensuite.
   perDay: string;
+  // "/jour" par défaut ; "à vie" précise "ensuite" (comme chez trendsaas.ai)
+  // pour bien faire comprendre que le 0€ vient après un paiement unique.
+  perDayLabel?: string;
   perDayNote?: string;
   quota: string;
   features: Feature[];
@@ -78,7 +81,8 @@ const PLANS: Array<{
     price: "59,99€",
     period: "une fois",
     perDay: "0€",
-    perDayNote: "Et 0€/mois aussi, pour toujours.",
+    perDayLabel: "/jour, ensuite",
+    perDayNote: "Pour toujours, après ton paiement unique.",
     quota: "Usage illimité, pour toujours",
     features: [
       ...STANDARD_FEATURES,
@@ -241,9 +245,9 @@ export default function PricingPage() {
                 {plan.name}
               </span>
             </h2>
-            <div className="mb-1 flex items-center gap-1.5 text-base text-[#8b97b0]">
+            <div className="mb-1 flex items-center gap-1.5 text-base font-semibold text-[#c3cbdc]">
               {plan.oldPrice && (
-                <span className="text-xs text-[#6b7690] line-through">{plan.oldPrice}</span>
+                <span className="text-xs font-normal text-[#6b7690] line-through">{plan.oldPrice}</span>
               )}
               <span>
                 {plan.price} {plan.period}
@@ -251,7 +255,7 @@ export default function PricingPage() {
             </div>
             <div className="mb-1 flex items-baseline gap-2">
               <span className="text-4xl font-bold text-[#e7ecf5]">{plan.perDay}</span>
-              <span className="text-sm text-[#8b97b0]">/jour</span>
+              <span className="text-sm text-[#8b97b0]">{plan.perDayLabel ?? "/jour"}</span>
             </div>
             {plan.perDayNote && (
               <p className="mb-1 text-xs text-[#6b7690]">{plan.perDayNote}</p>
