@@ -32,6 +32,13 @@ const PLANS: Array<{
   // prix actuel pour montrer la baisse.
   oldPrice?: string;
   period: string;
+  // Mis en avant visuellement (gros chiffre) : le prix ramené à la journée,
+  // plus parlant qu'un prix mensuel/trimestriel pour donner une impression
+  // d'accessibilité. Pour "à vie", pas de calcul (ça n'a pas de sens vu que
+  // c'est un paiement unique) : on affiche "0€" tel quel, complété par
+  // perDayNote pour rappeler que ça ne coûte plus jamais rien ensuite.
+  perDay: string;
+  perDayNote?: string;
   quota: string;
   features: Feature[];
   cta: string;
@@ -44,6 +51,7 @@ const PLANS: Array<{
     price: "11,99€",
     oldPrice: "16,99€",
     period: "/mois",
+    perDay: "0,40€",
     quota: "Usage illimité",
     features: STANDARD_FEATURES,
     cta: "Passer à Standard",
@@ -54,6 +62,7 @@ const PLANS: Array<{
     nameColor: "text-[#38bdf8]",
     price: "29,99€",
     period: "/3 mois",
+    perDay: "0,33€",
     quota: "Usage illimité",
     features: [
       ...STANDARD_FEATURES,
@@ -68,6 +77,8 @@ const PLANS: Array<{
     nameColor: "text-amber-400",
     price: "59,99€",
     period: "une fois",
+    perDay: "0€",
+    perDayNote: "Et 0€/mois aussi, pour toujours.",
     quota: "Usage illimité, pour toujours",
     features: [
       ...STANDARD_FEATURES,
@@ -230,13 +241,21 @@ export default function PricingPage() {
                 {plan.name}
               </span>
             </h2>
-            {plan.oldPrice && (
-              <span className="text-xs text-[#6b7690] line-through">{plan.oldPrice}</span>
-            )}
-            <div className="mb-1 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-[#e7ecf5]">{plan.price}</span>
-              <span className="text-sm text-[#8b97b0]">{plan.period}</span>
+            <div className="mb-1 flex items-center gap-1.5 text-sm text-[#8b97b0]">
+              {plan.oldPrice && (
+                <span className="text-xs text-[#6b7690] line-through">{plan.oldPrice}</span>
+              )}
+              <span>
+                {plan.price} {plan.period}
+              </span>
             </div>
+            <div className="mb-1 flex items-baseline gap-2">
+              <span className="text-4xl font-bold text-[#e7ecf5]">{plan.perDay}</span>
+              <span className="text-sm text-[#8b97b0]">/jour</span>
+            </div>
+            {plan.perDayNote && (
+              <p className="mb-1 text-xs text-[#6b7690]">{plan.perDayNote}</p>
+            )}
             <p className="mb-3 text-sm text-[#8b97b0]">{plan.quota}</p>
             {plan.features && (
               <ul className="mb-6 flex flex-col gap-1.5">
