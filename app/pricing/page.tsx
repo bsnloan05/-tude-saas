@@ -241,7 +241,7 @@ export default function PricingPage() {
                 {plan.name}
               </span>
             </h2>
-            <div className="mb-1 flex items-center gap-1.5 text-sm text-[#8b97b0]">
+            <div className="mb-1 flex items-center gap-1.5 text-base text-[#8b97b0]">
               {plan.oldPrice && (
                 <span className="text-xs text-[#6b7690] line-through">{plan.oldPrice}</span>
               )}
