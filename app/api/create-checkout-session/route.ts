@@ -42,17 +42,23 @@ export async function POST(request: NextRequest) {
   // pas de vrai objet "client" par défaut (seulement un paiement "orphelin"
   // regroupé sous un badge "Invité" dans le dashboard) : "customer_creation"
   // force sa création, pour que stripe_customer_id soit toujours renseigné.
+  //
+  // ui_mode "embedded_page" : le formulaire de paiement s'affiche dans une
+  // fenêtre intégrée directement sur memoflash.io (une iframe Stripe),
+  // plutôt que de rediriger vers checkout.stripe.com. Un seul "return_url"
+  // couvre tous les cas (succès, échec, abandon) : la page qui le reçoit
+  // vérifie elle-même le statut de la session pour savoir quoi afficher.
   const session = await stripe.checkout.sessions.create({
     mode: plan === "lifetime" ? "payment" : "subscription",
+    ui_mode: "embedded_page" as const,
     ...(plan === "lifetime" ? { customer_creation: "always" as const } : {}),
     line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
     client_reference_id: user.id,
     customer_email: user.email,
     metadata: { plan },
     custom_text: { submit: { message: reassuranceMessage } },
-    success_url: `${origin}/app?checkout=success`,
-    cancel_url: `${origin}/pricing?checkout=cancelled`,
+    return_url: `${origin}/app?checkout_session_id={CHECKOUT_SESSION_ID}`,
   });
 
-  return NextResponse.json({ url: session.url });
+  return NextResponse.json({ clientSecret: session.client_secret });
 }

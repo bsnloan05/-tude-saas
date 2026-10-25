@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import EmbeddedCheckoutModal from "@/components/EmbeddedCheckoutModal";
 
 type PlanKey = "standard" | "trimestriel" | "lifetime";
 
@@ -143,6 +144,7 @@ export default function PricingPage() {
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [fromTranscription, setFromTranscription] = useState(false);
+  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
 
   useEffect(() => {
     // Lu via window.location plutôt que useSearchParams() pour ne pas avoir
@@ -174,11 +176,14 @@ export default function PricingPage() {
       }
 
       const data = await response.json();
-      window.location.href = data.url;
+      // Ouvre le paiement dans une fenêtre intégrée sur place plutôt que de
+      // rediriger vers checkout.stripe.com : on ne quitte jamais memoflash.io.
+      setCheckoutClientSecret(data.clientSecret);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Une erreur est survenue.",
       );
+    } finally {
       setLoadingPlan(null);
     }
   };
@@ -363,6 +368,13 @@ export default function PricingPage() {
           ))}
         </div>
       </div>
+
+      {checkoutClientSecret && (
+        <EmbeddedCheckoutModal
+          clientSecret={checkoutClientSecret}
+          onClose={() => setCheckoutClientSecret(null)}
+        />
+      )}
     </div>
   );
 }
