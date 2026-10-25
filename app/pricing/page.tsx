@@ -189,7 +189,7 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="isolate relative flex min-h-screen flex-col items-center overflow-hidden bg-[#070a12] px-4 py-8 sm:py-16">
+    <div className="isolate relative flex min-h-screen flex-col items-center overflow-hidden bg-[#070a12] px-4 py-6 sm:py-16">
       <div
         aria-hidden
         className="pointer-events-none fixed -right-32 -bottom-32 -z-10 h-[46rem] w-[46rem] rounded-full bg-[#2563eb]/35 blur-[150px]"
@@ -199,7 +199,7 @@ export default function PricingPage() {
         className="pointer-events-none fixed -top-32 -left-32 -z-10 h-[24rem] w-[24rem] rounded-full bg-[#38bdf8]/10 blur-[130px]"
       />
 
-      <div className="mb-6 flex w-full max-w-4xl items-center justify-between sm:mb-10">
+      <div className="mb-4 flex w-full max-w-4xl items-center justify-between sm:mb-10">
         <Link
           href="/"
           className="text-sm font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
@@ -209,10 +209,10 @@ export default function PricingPage() {
         <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
       </div>
 
-      <h1 className="mb-2 text-center text-2xl font-bold text-[#e7ecf5] sm:text-3xl">
+      <h1 className="mb-1 text-center text-xl font-bold text-[#e7ecf5] sm:mb-2 sm:text-3xl">
         Choisis ton forfait
       </h1>
-      <p className="mb-6 text-center text-sm text-[#8b97b0] sm:mb-10 sm:text-base">
+      <p className="mb-4 text-center text-xs text-[#8b97b0] sm:mb-10 sm:text-base">
         Sans engagement, résiliable à tout moment.
       </p>
 
@@ -228,11 +228,11 @@ export default function PricingPage() {
         </p>
       )}
 
-      <div className="grid w-full max-w-4xl gap-4 sm:grid-cols-3 sm:gap-6">
+      <div className="grid w-full max-w-4xl gap-3 sm:grid-cols-3 sm:gap-6">
         {PLANS.map((plan) => (
           <div
             key={plan.key}
-            className={`relative flex flex-col rounded-lg border p-4 backdrop-blur-sm sm:p-6 ${
+            className={`relative flex flex-col rounded-lg border p-3 backdrop-blur-sm sm:p-6 ${
               plan.popular
                 ? "border-[#2563eb] bg-[#0d1424]/60 shadow-[0_0_0_1px_rgba(37,99,235,0.4)]"
                 : "border-[#232d45] bg-[#0d1424]/60"
@@ -243,14 +243,14 @@ export default function PricingPage() {
                 Le plus populaire
               </span>
             )}
-            <h2 className="mb-2 text-sm font-semibold tracking-wide uppercase sm:mb-4">
+            <h2 className="mb-1.5 text-xs font-semibold tracking-wide uppercase sm:mb-4 sm:text-sm">
               <span
                 className={`name-glow inline-block rounded-full px-3 py-1 ${plan.nameColor}`}
               >
                 {plan.name}
               </span>
             </h2>
-            <div className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-[#c3cbdc] sm:text-base">
+            <div className="mb-0.5 flex items-center gap-1.5 text-xs font-semibold text-[#c3cbdc] sm:mb-1 sm:text-base">
               {plan.oldPrice && (
                 <span className="text-xs font-normal text-[#6b7690] line-through">{plan.oldPrice}</span>
               )}
@@ -258,20 +258,20 @@ export default function PricingPage() {
                 {plan.price} {plan.period}
               </span>
             </div>
-            <div className="mb-1 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-[#e7ecf5] sm:text-4xl">{plan.perDay}</span>
-              <span className="text-sm text-[#8b97b0]">{plan.perDayLabel ?? "/jour"}</span>
+            <div className="mb-0.5 flex items-baseline gap-2 sm:mb-1">
+              <span className="text-2xl font-bold text-[#e7ecf5] sm:text-4xl">{plan.perDay}</span>
+              <span className="text-xs text-[#8b97b0] sm:text-sm">{plan.perDayLabel ?? "/jour"}</span>
             </div>
             {plan.perDayNote && (
-              <p className="mb-1 text-xs text-[#6b7690]">{plan.perDayNote}</p>
+              <p className="mb-0.5 text-xs text-[#6b7690] sm:mb-1">{plan.perDayNote}</p>
             )}
-            <p className="mb-2 text-sm text-[#8b97b0] sm:mb-3">{plan.quota}</p>
+            <p className="mb-1.5 text-xs text-[#8b97b0] sm:mb-3 sm:text-sm">{plan.quota}</p>
             {plan.features && (
-              <ul className="mb-4 flex flex-col gap-1 sm:mb-6 sm:gap-1.5">
+              <ul className="mb-3 flex flex-col gap-0.5 sm:mb-6 sm:gap-1.5">
                 {plan.features.map((feature) => (
                   <li
                     key={feature.text}
-                    className={`flex items-center gap-1.5 rounded-md text-sm ${
+                    className={`flex items-center gap-1.5 rounded-md text-xs sm:text-sm ${
                       feature.highlighted
                         ? "highlight-glow -mx-1.5 px-1.5 py-0.5 font-semibold text-[#7dd3fc]"
                         : "text-[#c3cbdc]"
@@ -282,7 +282,7 @@ export default function PricingPage() {
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
-                      className={`h-3.5 w-3.5 shrink-0 ${
+                      className={`h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5 ${
                         feature.highlighted ? "text-[#7dd3fc]" : "text-[#38bdf8]"
                       }`}
                     >
@@ -303,7 +303,7 @@ export default function PricingPage() {
             <button
               onClick={() => handleUpgrade(plan.key)}
               disabled={loadingPlan !== null}
-              className={`mt-auto rounded-full px-4 py-2.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`mt-auto rounded-full px-4 py-2 text-xs font-semibold text-white transition-colors transition-transform duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:py-2.5 sm:text-sm ${
                 plan.popular
                   ? "bg-[#2563eb] hover:bg-[#1d4ed8]"
                   : "bg-[#2a3552] hover:bg-[#33406b]"
