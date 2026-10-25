@@ -51,6 +51,10 @@ export async function POST(request: NextRequest) {
   const session = await stripe.checkout.sessions.create({
     mode: plan === "lifetime" ? "payment" : "subscription",
     ui_mode: "embedded_page" as const,
+    // "card" seul : Apple Pay et Google Pay s'affichent quand même (ce sont
+    // des portefeuilles rattachés à "card", pas des types à part), mais ça
+    // exclut Link, Klarna, etc., qui sinon apparaissent par défaut.
+    payment_method_types: ["card"],
     ...(plan === "lifetime" ? { customer_creation: "always" as const } : {}),
     line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
     client_reference_id: user.id,
