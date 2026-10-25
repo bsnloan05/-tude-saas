@@ -189,7 +189,7 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="isolate relative flex min-h-screen flex-col items-center overflow-hidden bg-[#070a12] px-4 py-16">
+    <div className="isolate relative flex min-h-screen flex-col items-center overflow-hidden bg-[#070a12] px-4 py-8 sm:py-16">
       <div
         aria-hidden
         className="pointer-events-none fixed -right-32 -bottom-32 -z-10 h-[46rem] w-[46rem] rounded-full bg-[#2563eb]/35 blur-[150px]"
@@ -199,7 +199,7 @@ export default function PricingPage() {
         className="pointer-events-none fixed -top-32 -left-32 -z-10 h-[24rem] w-[24rem] rounded-full bg-[#38bdf8]/10 blur-[130px]"
       />
 
-      <div className="mb-10 flex w-full max-w-4xl items-center justify-between">
+      <div className="mb-6 flex w-full max-w-4xl items-center justify-between sm:mb-10">
         <Link
           href="/"
           className="text-sm font-medium text-[#8b97b0] transition-colors transition-transform duration-150 hover:text-[#e7ecf5] active:scale-95"
@@ -209,30 +209,30 @@ export default function PricingPage() {
         <span className="text-sm font-semibold text-[#e7ecf5]">Memoflash</span>
       </div>
 
-      <h1 className="mb-2 text-center text-3xl font-bold text-[#e7ecf5]">
+      <h1 className="mb-2 text-center text-2xl font-bold text-[#e7ecf5] sm:text-3xl">
         Choisis ton forfait
       </h1>
-      <p className="mb-10 text-center text-[#8b97b0]">
+      <p className="mb-6 text-center text-sm text-[#8b97b0] sm:mb-10 sm:text-base">
         Sans engagement, résiliable à tout moment.
       </p>
 
       {fromTranscription && (
-        <p className="mb-6 rounded-md border border-[#2563eb]/40 bg-[#2563eb]/10 px-3 py-2 text-center text-sm text-[#7dd3fc]">
+        <p className="mb-4 rounded-md border border-[#2563eb]/40 bg-[#2563eb]/10 px-3 py-2 text-center text-sm text-[#7dd3fc] sm:mb-6">
           Ton cours est bien enregistré — choisis un forfait pour générer ta fiche, rien n&apos;est perdu.
         </p>
       )}
 
       {errorMessage && (
-        <p className="mb-6 rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-sm text-red-200">
+        <p className="mb-4 rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-sm text-red-200 sm:mb-6">
           {errorMessage}
         </p>
       )}
 
-      <div className="grid w-full max-w-4xl gap-6 sm:grid-cols-3">
+      <div className="grid w-full max-w-4xl gap-4 sm:grid-cols-3 sm:gap-6">
         {PLANS.map((plan) => (
           <div
             key={plan.key}
-            className={`relative flex flex-col rounded-lg border p-6 backdrop-blur-sm ${
+            className={`relative flex flex-col rounded-lg border p-4 backdrop-blur-sm sm:p-6 ${
               plan.popular
                 ? "border-[#2563eb] bg-[#0d1424]/60 shadow-[0_0_0_1px_rgba(37,99,235,0.4)]"
                 : "border-[#232d45] bg-[#0d1424]/60"
@@ -243,14 +243,14 @@ export default function PricingPage() {
                 Le plus populaire
               </span>
             )}
-            <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase">
+            <h2 className="mb-2 text-sm font-semibold tracking-wide uppercase sm:mb-4">
               <span
                 className={`name-glow inline-block rounded-full px-3 py-1 ${plan.nameColor}`}
               >
                 {plan.name}
               </span>
             </h2>
-            <div className="mb-1 flex items-center gap-1.5 text-base font-semibold text-[#c3cbdc]">
+            <div className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-[#c3cbdc] sm:text-base">
               {plan.oldPrice && (
                 <span className="text-xs font-normal text-[#6b7690] line-through">{plan.oldPrice}</span>
               )}
@@ -259,15 +259,15 @@ export default function PricingPage() {
               </span>
             </div>
             <div className="mb-1 flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-[#e7ecf5]">{plan.perDay}</span>
+              <span className="text-3xl font-bold text-[#e7ecf5] sm:text-4xl">{plan.perDay}</span>
               <span className="text-sm text-[#8b97b0]">{plan.perDayLabel ?? "/jour"}</span>
             </div>
             {plan.perDayNote && (
               <p className="mb-1 text-xs text-[#6b7690]">{plan.perDayNote}</p>
             )}
-            <p className="mb-3 text-sm text-[#8b97b0]">{plan.quota}</p>
+            <p className="mb-2 text-sm text-[#8b97b0] sm:mb-3">{plan.quota}</p>
             {plan.features && (
-              <ul className="mb-6 flex flex-col gap-1.5">
+              <ul className="mb-4 flex flex-col gap-1 sm:mb-6 sm:gap-1.5">
                 {plan.features.map((feature) => (
                   <li
                     key={feature.text}
@@ -315,7 +315,7 @@ export default function PricingPage() {
         ))}
       </div>
 
-      <div className="mt-8 flex flex-col items-center gap-2 text-xs text-[#6b7690] sm:flex-row sm:gap-5">
+      <div className="mt-6 flex flex-col items-center gap-2 text-xs text-[#6b7690] sm:mt-8 sm:flex-row sm:gap-5">
         <div className="flex items-center gap-2">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
             <rect x="3" y="11" width="18" height="10" rx="2" />
@@ -332,8 +332,8 @@ export default function PricingPage() {
         </div>
       </div>
 
-      <div className="mt-20 w-full max-w-4xl border-t border-[#232d45] pt-12">
-        <h2 className="mb-8 text-center text-xl font-bold text-[#e7ecf5]">
+      <div className="mt-12 w-full max-w-4xl border-t border-[#232d45] pt-8 sm:mt-20 sm:pt-12">
+        <h2 className="mb-5 text-center text-lg font-bold text-[#e7ecf5] sm:mb-8 sm:text-xl">
           Ce qu&apos;en disent nos étudiants
         </h2>
         <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
@@ -353,11 +353,11 @@ export default function PricingPage() {
         </div>
       </div>
 
-      <div className="mt-20 w-full max-w-2xl border-t border-[#232d45] pt-12">
-        <h2 className="mb-8 text-center text-xl font-bold text-[#e7ecf5]">
+      <div className="mt-12 w-full max-w-2xl border-t border-[#232d45] pt-8 sm:mt-20 sm:pt-12">
+        <h2 className="mb-5 text-center text-lg font-bold text-[#e7ecf5] sm:mb-8 sm:text-xl">
           Questions fréquentes
         </h2>
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 sm:gap-6">
           {FAQ.map((item) => (
             <div key={item.question}>
               <h3 className="mb-1.5 text-sm font-semibold text-[#e7ecf5]">
