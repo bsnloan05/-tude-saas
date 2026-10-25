@@ -28,6 +28,15 @@ export async function POST(request: NextRequest) {
 
   const origin = request.nextUrl.origin;
 
+  // Petit message de réassurance juste au-dessus du bouton de paiement,
+  // au moment précis où l'hésitation est la plus forte. Reprend ce qui est
+  // déjà affiché sur /pricing (vrai, vérifiable), pas une garantie qu'on
+  // n'offre pas réellement (contrairement à un "satisfait ou remboursé").
+  const reassuranceMessage =
+    plan === "lifetime"
+      ? "Paiement unique, accès à vie : aucun autre prélèvement ensuite."
+      : "Sans engagement : résiliable à tout moment depuis ton espace client.";
+
   // "lifetime" est un paiement unique (pas d'abonnement), "standard" reste
   // un abonnement mensuel classique. Pour un paiement unique, Stripe ne crée
   // pas de vrai objet "client" par défaut (seulement un paiement "orphelin"
@@ -40,6 +49,7 @@ export async function POST(request: NextRequest) {
     client_reference_id: user.id,
     customer_email: user.email,
     metadata: { plan },
+    custom_text: { submit: { message: reassuranceMessage } },
     success_url: `${origin}/app?checkout=success`,
     cancel_url: `${origin}/pricing?checkout=cancelled`,
   });
