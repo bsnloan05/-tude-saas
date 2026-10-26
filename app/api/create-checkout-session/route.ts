@@ -40,21 +40,24 @@ export async function POST(request: NextRequest) {
 
   // Un compte déjà payant (abonné ou à vie) ne doit jamais se voir proposer
   // le tarif "normal" gonflé du minuteur : pour lui, le prix de base reste
-  // le seul prix affiché ET facturable, quel que soit l'état du cookie.
+  // le seul prix affiché ET facturable, quel que soit l'état du minuteur.
   const { data: profile } = await supabase
     .from("profiles")
-    .select("plan")
+    .select("plan, pricing_timer_started_at")
     .eq("id", user.id)
     .single();
   const isPaidCustomer = Boolean(profile?.plan) && profile!.plan !== "free";
 
-  // Le prix réellement facturé dépend de ce cookie (posé à la première
-  // arrivée sur /pricing), pas juste de ce que le client affiche — sinon
-  // n'importe qui pourrait garder le prix réduit indéfiniment en modifiant
-  // le JS côté navigateur. Si le cookie est absent (jamais passé par
-  // /pricing, ou supprimé volontairement), on applique le tarif normal par
-  // sécurité plutôt que de risquer d'offrir la réduction par défaut.
-  const timerStartedAt = Number(request.cookies.get("pricing_timer_start")?.value);
+  // Le prix réellement facturé dépend de cette date posée sur le compte (à
+  // la première arrivée sur /pricing en étant connecté, voir
+  // /api/pricing-timer), pas d'un cookie — un cookie reste coincé sur le
+  // navigateur et ne redémarre pas pour un nouveau compte créé sur le même
+  // appareil. Si la date est absente (jamais passé par /pricing connecté
+  // avant d'arriver ici), on applique le tarif normal par sécurité plutôt
+  // que de risquer d'offrir la réduction par défaut.
+  const timerStartedAt = profile?.pricing_timer_started_at
+    ? new Date(profile.pricing_timer_started_at).getTime()
+    : NaN;
   const withinDiscountWindow =
     Number.isFinite(timerStartedAt) && Date.now() - timerStartedAt < PRICING_TIMER_WINDOW_MS;
   const priceId =

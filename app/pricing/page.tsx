@@ -205,13 +205,41 @@ export default function PricingPage() {
   }, []);
 
   useEffect(() => {
-    const startedAt = readPricingTimerStart();
-    const tick = () => {
-      setRemainingMs(Math.max(0, PRICING_TIMER_MS - (Date.now() - startedAt)));
+    let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | undefined;
+
+    const startTicking = (startedAt: number) => {
+      const tick = () => {
+        if (cancelled) return;
+        setRemainingMs(Math.max(0, PRICING_TIMER_MS - (Date.now() - startedAt)));
+      };
+      tick();
+      interval = setInterval(tick, 1000);
     };
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
+
+    // Le minuteur est posé sur le compte (pas un cookie) dès qu'on est
+    // connecté : un cookie reste coincé sur le navigateur et ne redémarre
+    // pas pour un nouveau compte créé sur le même appareil. Le cookie ne
+    // sert plus qu'à afficher un minuteur cohérent avant même d'avoir un
+    // compte (le vrai prix facturé, lui, ignore le cookie — voir
+    // /api/create-checkout-session).
+    fetch("/api/pricing-timer")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        const startedAt = data?.startedAt
+          ? new Date(data.startedAt).getTime()
+          : readPricingTimerStart();
+        startTicking(startedAt);
+      })
+      .catch(() => {
+        if (!cancelled) startTicking(readPricingTimerStart());
+      });
+
+    return () => {
+      cancelled = true;
+      if (interval) clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
