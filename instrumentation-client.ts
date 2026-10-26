@@ -44,13 +44,6 @@ async function startPostHog() {
       // consentement n'est en place.
       maskAllInputs: true,
     },
-    // Verrou explicite, indépendant des réglages du dashboard PostHog :
-    // l'enregistrement de session ne démarre JAMAIS automatiquement, sur
-    // aucune page. Seul /pricing le démarre manuellement (voir
-    // app/pricing/page.tsx) — notamment pour ne jamais risquer d'ajouter de
-    // latence ou de bug sur /app pendant un enregistrement/une génération
-    // de fiche en cours.
-    disable_session_recording: true,
   });
 }
 

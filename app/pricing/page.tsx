@@ -205,17 +205,6 @@ export default function PricingPage() {
   }, []);
 
   useEffect(() => {
-    // Enregistrement de session (PostHog) démarré ici uniquement, et arrêté
-    // explicitement en quittant la page — voir instrumentation-client.ts :
-    // aucune autre page du site ne le démarre, pour ne jamais risquer
-    // d'ajouter de latence pendant la transcription/génération sur /app.
-    window.posthog?.startSessionRecording();
-    return () => {
-      window.posthog?.stopSessionRecording();
-    };
-  }, []);
-
-  useEffect(() => {
     const startedAt = readPricingTimerStart();
     const tick = () => {
       setRemainingMs(Math.max(0, PRICING_TIMER_MS - (Date.now() - startedAt)));
