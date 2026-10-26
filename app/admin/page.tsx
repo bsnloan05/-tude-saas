@@ -90,6 +90,39 @@ async function getDailySales(): Promise<{
   return { today: dayCounts.get(todayKey) ?? 0, days };
 }
 
+// Sessions de paiement créées aujourd'hui mais jamais finalisées ("passer
+// à..." cliqué, sans aller au bout) — pour voir rapidement qui a hésité sans
+// avoir à fouiller dans le dashboard Stripe, dont le "Vérifier une session"
+// ne montre que l'historique d'un seul client à la fois.
+async function getAbandonedCheckoutsToday(): Promise<
+  {
+    createdAt: string;
+    email: string | null;
+    plan: string;
+    amount: number;
+  }[]
+> {
+  const todayStartUnix = Math.floor(new Date(startOfDayParis()).getTime() / 1000);
+  const sessions = await stripe.checkout.sessions.list({
+    limit: 100,
+    created: { gte: todayStartUnix },
+  });
+
+  return sessions.data
+    .filter((s) => s.status !== "complete")
+    .map((s) => ({
+      createdAt: new Date(s.created * 1000).toLocaleTimeString("fr-FR", {
+        timeZone: "Europe/Paris",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      email: s.customer_email,
+      plan: PLAN_LABELS[(s.metadata?.plan as string) ?? ""] ?? s.metadata?.plan ?? "?",
+      amount: (s.amount_total ?? 0) / 100,
+    }))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
 // Revenu récurrent mensuel réel : lit les abonnements actifs directement
 // sur Stripe (vrai prix payé par chaque client, pas une estimation basée
 // sur le prix affiché aujourd'hui) et normalise tout en équivalent mensuel.
@@ -239,6 +272,7 @@ export default async function AdminPage() {
     succeededPaymentIntents,
     invoicePaymentIntentIds,
     dailySales,
+    abandonedCheckoutsToday,
   ] = await Promise.all([
     fetchAllProfiles(admin),
     admin.from("fiches").select("*", { count: "exact", head: true }),
@@ -250,6 +284,7 @@ export default async function AdminPage() {
     getSucceededPaymentIntents(),
     getInvoicePaymentIntentIds(),
     getDailySales(),
+    getAbandonedCheckoutsToday(),
   ]);
 
   const lifetimeRevenueCents = getLifetimeRevenueCents(
@@ -391,6 +426,39 @@ export default async function AdminPage() {
             <span className="text-xs font-normal text-[#8b97b0]">aujourd&apos;hui</span>
           </p>
           <DailyBarChart days={dailySales.days} color="bg-[#38bdf8]" unitLabel="vente(s)" />
+        </div>
+
+        <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
+          <h2 className="mb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
+            Paniers abandonnés aujourd&apos;hui
+          </h2>
+          <p className="mb-4 text-2xl font-bold text-[#e7ecf5]">
+            {abandonedCheckoutsToday.length}{" "}
+            <span className="text-xs font-normal text-[#8b97b0]">
+              {abandonedCheckoutsToday.length === 1
+                ? "personne a cliqué sans payer"
+                : "personnes ont cliqué sans payer"}
+            </span>
+          </p>
+          {abandonedCheckoutsToday.length === 0 ? (
+            <p className="text-sm text-[#6b7690]">Rien à signaler pour l&apos;instant.</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {abandonedCheckoutsToday.map((row, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-md bg-[#0d1424] px-3 py-2 text-sm"
+                >
+                  <span className="text-[#6b7690]">{row.createdAt}</span>
+                  <span className="truncate px-2 text-[#c3cbdc]">{row.email ?? "?"}</span>
+                  <span className="shrink-0 text-[#8b97b0]">{row.plan}</span>
+                  <span className="shrink-0 font-semibold text-[#e7ecf5]">
+                    {row.amount.toFixed(2)}€
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="mt-6 rounded-lg border border-[#232d45] bg-[#141b2e] p-6">
