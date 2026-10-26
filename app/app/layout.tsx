@@ -31,15 +31,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [subjects, setSubjects] = useState<Array<[string, number]> | null>(null);
 
   useEffect(() => {
-    // Coupe-circuit explicite : quel que soit le réglage par défaut du
-    // projet PostHog (activé pour /pricing, voir ce fichier là-bas),
-    // l'enregistrement de session ne tourne JAMAIS sur /app — surtout
-    // pendant une transcription/génération de fiche en cours, où on ne
-    // veut prendre aucun risque de latence ou de bug supplémentaire.
-    window.posthog?.stopSessionRecording();
-  }, []);
-
-  useEffect(() => {
     fetch("/api/usage")
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => data && setUsage(data));
