@@ -191,9 +191,6 @@ export default function PricingPage() {
   // Initialisé à la durée pleine (pas 0) pour éviter un flash vers le tarif
   // normal avant que l'effet ci-dessous n'ait lu le cookie.
   const [remainingMs, setRemainingMs] = useState(PRICING_TIMER_MS);
-  // Un compte déjà payant (abonné ou à vie) ne doit jamais voir le minuteur
-  // ni le tarif gonflé — seulement les prix de base, en permanence.
-  const [isPaidCustomer, setIsPaidCustomer] = useState(false);
 
   useEffect(() => {
     // Lu via window.location plutôt que useSearchParams() pour ne pas avoir
@@ -214,23 +211,7 @@ export default function PricingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    // 401 (pas connecté) ou erreur réseau : on laisse simplement
-    // isPaidCustomer à false, comme pour un visiteur anonyme classique.
-    fetch("/api/usage")
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
-        if (data?.plan && data.plan !== "free") setIsPaidCustomer(true);
-      })
-      .catch(() => {});
-  }, []);
-
-  const discountActive = !isPaidCustomer && remainingMs > 0;
-  // Prix de base (11,99€/29,99€/59,99€) affiché soit pendant le minuteur,
-  // soit en permanence pour un client déjà payant ; le tarif gonflé
-  // (fullPrice) n'apparaît que pour un visiteur non-payant dont le minuteur
-  // est écoulé.
-  const showBasePrice = isPaidCustomer || discountActive;
+  const discountActive = remainingMs > 0;
 
   const handleUpgrade = async (plan: PlanKey) => {
     window.posthog?.capture("checkout_started", { plan });
@@ -305,35 +286,33 @@ export default function PricingPage() {
         </p>
       )}
 
-      {!isPaidCustomer && (
-        <div
-          className={`mb-4 flex w-full max-w-4xl items-center justify-between rounded-md border px-4 py-3 sm:mb-6 ${
-            discountActive
-              ? "border-emerald-500/40 bg-emerald-500/5"
-              : "border-[#232d45] bg-[#0d1424]/60"
-          }`}
-        >
-          {discountActive ? (
-            <>
-              <span className="flex items-center gap-2 sm:gap-3">
-                <span className="text-xl font-extrabold text-emerald-400 sm:text-2xl">
-                  {PLANS.find((p) => p.popular)?.discountPercent}
-                </span>
-                <span className="text-xs text-[#c3cbdc] sm:text-sm">
-                  Ta réduction est réservée
-                </span>
+      <div
+        className={`mb-4 flex w-full max-w-4xl items-center justify-between rounded-md border px-4 py-3 sm:mb-6 ${
+          discountActive
+            ? "border-emerald-500/40 bg-emerald-500/5"
+            : "border-[#232d45] bg-[#0d1424]/60"
+        }`}
+      >
+        {discountActive ? (
+          <>
+            <span className="flex items-center gap-2 sm:gap-3">
+              <span className="text-xl font-extrabold text-emerald-400 sm:text-2xl">
+                {PLANS.find((p) => p.popular)?.discountPercent}
               </span>
-              <span className="font-mono text-lg font-bold text-[#e7ecf5] tabular-nums sm:text-xl">
-                {formatCountdown(remainingMs)}
+              <span className="text-xs text-[#c3cbdc] sm:text-sm">
+                Ta réduction est réservée
               </span>
-            </>
-          ) : (
-            <span className="text-xs text-[#8b97b0] sm:text-sm">
-              Réduction expirée — tarif normal appliqué
             </span>
-          )}
-        </div>
-      )}
+            <span className="font-mono text-lg font-bold text-[#e7ecf5] tabular-nums sm:text-xl">
+              {formatCountdown(remainingMs)}
+            </span>
+          </>
+        ) : (
+          <span className="text-xs text-[#8b97b0] sm:text-sm">
+            Réduction expirée — tarif normal appliqué
+          </span>
+        )}
+      </div>
 
       <div className="grid w-full max-w-4xl gap-3 sm:grid-cols-3 sm:gap-6">
         {PLANS.map((plan) => (
@@ -367,12 +346,12 @@ export default function PricingPage() {
                 <span className="text-xs font-normal text-[#6b7690] line-through">{plan.fullPrice}</span>
               )}
               <span>
-                {showBasePrice ? plan.price : plan.fullPrice} {plan.period}
+                {discountActive ? plan.price : plan.fullPrice} {plan.period}
               </span>
             </div>
             <div className="mb-0.5 flex items-baseline gap-2 sm:mb-1">
               <span className="text-2xl font-bold text-[#e7ecf5] sm:text-4xl">
-                {showBasePrice ? plan.perDay : plan.fullPerDay}
+                {discountActive ? plan.perDay : plan.fullPerDay}
               </span>
               <span className="text-xs text-[#8b97b0] sm:text-sm">{plan.perDayLabel ?? "/jour"}</span>
             </div>

@@ -38,16 +38,6 @@ export async function POST(request: NextRequest) {
 
   const origin = request.nextUrl.origin;
 
-  // Un compte déjà payant (abonné ou à vie) ne doit jamais se voir proposer
-  // le tarif "normal" gonflé du minuteur : pour lui, le prix de base reste
-  // le seul prix affiché ET facturable, quel que soit l'état du cookie.
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("plan")
-    .eq("id", user.id)
-    .single();
-  const isPaidCustomer = Boolean(profile?.plan) && profile!.plan !== "free";
-
   // Le prix réellement facturé dépend de ce cookie (posé à la première
   // arrivée sur /pricing), pas juste de ce que le client affiche — sinon
   // n'importe qui pourrait garder le prix réduit indéfiniment en modifiant
@@ -57,8 +47,7 @@ export async function POST(request: NextRequest) {
   const timerStartedAt = Number(request.cookies.get("pricing_timer_start")?.value);
   const withinDiscountWindow =
     Number.isFinite(timerStartedAt) && Date.now() - timerStartedAt < PRICING_TIMER_WINDOW_MS;
-  const priceId =
-    isPaidCustomer || withinDiscountWindow ? PRICE_IDS[plan] : FULL_PRICE_IDS[plan];
+  const priceId = withinDiscountWindow ? PRICE_IDS[plan] : FULL_PRICE_IDS[plan];
 
   // Petit message de réassurance juste au-dessus du bouton de paiement,
   // au moment précis où l'hésitation est la plus forte. Reprend ce qui est
