@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // Pose la date de première arrivée sur /pricing une seule fois par compte
 // (jamais réinitialisée ensuite, même si le visiteur revient des jours
@@ -17,7 +18,16 @@ export async function GET() {
     return NextResponse.json({ error: "Non connecté." }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
+  // Client admin (clé service role) : la lecture/écriture avec le client
+  // normal échouait silencieusement, bloquée par les règles de sécurité
+  // (RLS) de la table "profiles" — résultat, le minuteur ne démarrait
+  // jamais vraiment, et le tarif plein (200€ au lieu de 59,99€) s'appliquait
+  // par sécurité faute de date enregistrée. Confirmé en base : tous les
+  // comptes créés avaient "pricing_timer_started_at" resté à null malgré
+  // plusieurs passages sur /pricing.
+  const admin = createAdminClient();
+
+  const { data: profile } = await admin
     .from("profiles")
     .select("pricing_timer_started_at")
     .eq("id", user.id)
@@ -28,10 +38,15 @@ export async function GET() {
   }
 
   const startedAt = new Date().toISOString();
-  await supabase
+  const { error } = await admin
     .from("profiles")
     .update({ pricing_timer_started_at: startedAt })
     .eq("id", user.id);
+
+  if (error) {
+    console.error("Échec de l'écriture de pricing_timer_started_at:", error);
+    return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
+  }
 
   return NextResponse.json({ startedAt });
 }
