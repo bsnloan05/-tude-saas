@@ -8,21 +8,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 function mapPriceToPlan(
   priceId: string | undefined,
 ): "standard" | "premium" | "trimestriel" | "free" {
-  // Chaque forfait a deux price IDs Stripe possibles : le tarif réduit
-  // (pendant le minuteur de /pricing) et le tarif normal (une fois écoulé).
-  // Les deux doivent mapper vers le même forfait, sinon un client ayant payé
-  // le tarif normal resterait coincé sur "free" côté webhook.
-  if (
-    priceId === process.env.STRIPE_PRICE_STANDARD ||
-    priceId === process.env.STRIPE_PRICE_STANDARD_FULL
-  )
-    return "standard";
+  if (priceId === process.env.STRIPE_PRICE_STANDARD) return "standard";
   if (priceId === process.env.STRIPE_PRICE_PREMIUM) return "premium";
-  if (
-    priceId === process.env.STRIPE_PRICE_TRIMESTRIEL ||
-    priceId === process.env.STRIPE_PRICE_TRIMESTRIEL_FULL
-  )
-    return "trimestriel";
+  if (priceId === process.env.STRIPE_PRICE_TRIMESTRIEL) return "trimestriel";
   return "free";
 }
 

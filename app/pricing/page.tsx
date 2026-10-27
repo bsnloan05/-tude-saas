@@ -27,15 +27,11 @@ const PLANS: Array<{
   key: PlanKey;
   name: string;
   nameColor: string;
-  // Prix pendant les 10 premières minutes sur /pricing (voir PRICING_TIMER_MS
-  // plus bas) : c'est ce qui est réellement facturé, pas juste affiché, tant
-  // que le cookie posé au premier chargement n'a pas 10 minutes.
   price: string;
-  // Prix appliqué une fois le minuteur écoulé — redevient le prix affiché ET
-  // facturé pour toute nouvelle souscription, de façon permanente (pas un
-  // prix promo du premier mois).
-  fullPrice: string;
-  discountPercent: string;
+  // Ancien prix réellement pratiqué avant la baisse (jamais un prix inventé
+  // pour l'occasion, ce serait illégal en France) : affiché barré à côté du
+  // prix actuel pour montrer la baisse.
+  oldPrice?: string;
   period: string;
   // Mis en avant visuellement (gros chiffre) : le prix ramené à la journée,
   // plus parlant qu'un prix mensuel/trimestriel pour donner une impression
@@ -43,7 +39,6 @@ const PLANS: Array<{
   // c'est un paiement unique) : on affiche "0€" tel quel, complété par
   // perDayNote pour rappeler que ça ne coûte plus jamais rien ensuite.
   perDay: string;
-  fullPerDay: string;
   // "/jour" par défaut ; "à vie" précise "ensuite" (comme chez trendsaas.ai)
   // pour bien faire comprendre que le 0€ vient après un paiement unique.
   perDayLabel?: string;
@@ -58,11 +53,9 @@ const PLANS: Array<{
     name: "Standard",
     nameColor: "text-[#c3cbdc]",
     price: "11,99€",
-    fullPrice: "24€",
-    discountPercent: "-50%",
+    oldPrice: "16,99€",
     period: "/mois",
     perDay: "0,40€",
-    fullPerDay: "0,80€",
     quota: "Usage illimité",
     features: STANDARD_FEATURES,
     cta: "Passer à Standard",
@@ -72,11 +65,8 @@ const PLANS: Array<{
     name: "Pro",
     nameColor: "text-[#38bdf8]",
     price: "29,99€",
-    fullPrice: "75€",
-    discountPercent: "-60%",
     period: "/3 mois",
     perDay: "0,33€",
-    fullPerDay: "0,83€",
     quota: "Usage illimité",
     features: [
       ...STANDARD_FEATURES,
@@ -90,11 +80,8 @@ const PLANS: Array<{
     name: "À vie",
     nameColor: "text-amber-400",
     price: "59,99€",
-    fullPrice: "200€",
-    discountPercent: "-70%",
     period: "une fois",
     perDay: "0€",
-    fullPerDay: "0€",
     perDayLabel: "/jour, ensuite",
     perDayNote: "Pour toujours, après ton paiement unique.",
     quota: "Usage illimité, pour toujours",
@@ -108,36 +95,6 @@ const PLANS: Array<{
     popular: true,
   },
 ];
-
-// Durée pendant laquelle le prix réduit reste affiché ET facturable, à
-// partir de la première arrivée sur /pricing (voir le cookie
-// "pricing_timer_start", relu aussi côté serveur dans
-// /api/create-checkout-session pour que ce soit le prix réellement payé,
-// pas juste ce qui est affiché).
-const PRICING_TIMER_MS = 10 * 60 * 1000;
-const PRICING_TIMER_COOKIE = "pricing_timer_start";
-
-function readPricingTimerStart(): number {
-  const match = document.cookie.match(
-    new RegExp(`(?:^|; )${PRICING_TIMER_COOKIE}=([^;]*)`),
-  );
-  if (match) {
-    const existing = Number(decodeURIComponent(match[1]));
-    if (Number.isFinite(existing)) return existing;
-  }
-  const now = Date.now();
-  // 1 an : une fois posé, le cookie ne doit plus jamais redémarrer le
-  // minuteur, même si le visiteur revient sur /pricing des jours après.
-  document.cookie = `${PRICING_TIMER_COOKIE}=${now}; path=/; max-age=31536000`;
-  return now;
-}
-
-function formatCountdown(ms: number): string {
-  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
 
 const TESTIMONIALS = [
   {
@@ -188,9 +145,6 @@ export default function PricingPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [fromTranscription, setFromTranscription] = useState(false);
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
-  // Initialisé à la durée pleine (pas 0) pour éviter un flash vers le tarif
-  // normal avant que l'effet ci-dessous n'ait lu le cookie.
-  const [remainingMs, setRemainingMs] = useState(PRICING_TIMER_MS);
 
   useEffect(() => {
     // Lu via window.location plutôt que useSearchParams() pour ne pas avoir
@@ -200,18 +154,6 @@ export default function PricingPage() {
       new URLSearchParams(window.location.search).get("from") === "transcription",
     );
   }, []);
-
-  useEffect(() => {
-    const startedAt = readPricingTimerStart();
-    const tick = () => {
-      setRemainingMs(Math.max(0, PRICING_TIMER_MS - (Date.now() - startedAt)));
-    };
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const discountActive = remainingMs > 0;
 
   const handleUpgrade = async (plan: PlanKey) => {
     window.posthog?.capture("checkout_started", { plan });
@@ -286,19 +228,6 @@ export default function PricingPage() {
         </p>
       )}
 
-      <div className="mb-4 flex w-full max-w-4xl items-center justify-between rounded-md border border-[#232d45] bg-[#0d1424]/60 px-3 py-2 text-xs sm:mb-6 sm:text-sm">
-        {discountActive ? (
-          <>
-            <span className="text-[#7dd3fc]">Prix réduits réservés pour le moment</span>
-            <span className="font-mono font-semibold text-[#e7ecf5] tabular-nums">
-              {formatCountdown(remainingMs)}
-            </span>
-          </>
-        ) : (
-          <span className="text-[#8b97b0]">Réduction expirée — tarif normal appliqué</span>
-        )}
-      </div>
-
       <div className="grid w-full max-w-4xl gap-3 sm:grid-cols-3 sm:gap-6">
         {PLANS.map((plan) => (
           <div
@@ -314,30 +243,23 @@ export default function PricingPage() {
                 Le plus populaire
               </span>
             )}
-            <h2 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase sm:mb-4 sm:text-sm">
+            <h2 className="mb-1.5 text-xs font-semibold tracking-wide uppercase sm:mb-4 sm:text-sm">
               <span
                 className={`name-glow inline-block rounded-full px-3 py-1 ${plan.nameColor}`}
               >
                 {plan.name}
               </span>
-              {discountActive && (
-                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-400 normal-case sm:text-xs">
-                  {plan.discountPercent}
-                </span>
-              )}
             </h2>
             <div className="mb-0.5 flex items-center gap-1.5 text-xs font-semibold text-[#c3cbdc] sm:mb-1 sm:text-base">
-              {discountActive && (
-                <span className="text-xs font-normal text-[#6b7690] line-through">{plan.fullPrice}</span>
+              {plan.oldPrice && (
+                <span className="text-xs font-normal text-[#6b7690] line-through">{plan.oldPrice}</span>
               )}
               <span>
-                {discountActive ? plan.price : plan.fullPrice} {plan.period}
+                {plan.price} {plan.period}
               </span>
             </div>
             <div className="mb-0.5 flex items-baseline gap-2 sm:mb-1">
-              <span className="text-2xl font-bold text-[#e7ecf5] sm:text-4xl">
-                {discountActive ? plan.perDay : plan.fullPerDay}
-              </span>
+              <span className="text-2xl font-bold text-[#e7ecf5] sm:text-4xl">{plan.perDay}</span>
               <span className="text-xs text-[#8b97b0] sm:text-sm">{plan.perDayLabel ?? "/jour"}</span>
             </div>
             {plan.perDayNote && (

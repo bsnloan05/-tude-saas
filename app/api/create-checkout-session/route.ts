@@ -10,16 +10,6 @@ const PRICE_IDS: Record<string, string> = {
   lifetime: process.env.STRIPE_PRICE_LIFETIME!,
 };
 
-// Tarif appliqué une fois le minuteur de réduction de /pricing écoulé —
-// facturé pour de bon, pas juste affiché différemment.
-const FULL_PRICE_IDS: Record<string, string> = {
-  standard: process.env.STRIPE_PRICE_STANDARD_FULL!,
-  trimestriel: process.env.STRIPE_PRICE_TRIMESTRIEL_FULL!,
-  lifetime: process.env.STRIPE_PRICE_LIFETIME_FULL!,
-};
-
-const PRICING_TIMER_WINDOW_MS = 10 * 60 * 1000;
-
 export async function POST(request: NextRequest) {
   const { plan } = await request.json();
 
@@ -37,17 +27,6 @@ export async function POST(request: NextRequest) {
   }
 
   const origin = request.nextUrl.origin;
-
-  // Le prix réellement facturé dépend de ce cookie (posé à la première
-  // arrivée sur /pricing), pas juste de ce que le client affiche — sinon
-  // n'importe qui pourrait garder le prix réduit indéfiniment en modifiant
-  // le JS côté navigateur. Si le cookie est absent (jamais passé par
-  // /pricing, ou supprimé volontairement), on applique le tarif normal par
-  // sécurité plutôt que de risquer d'offrir la réduction par défaut.
-  const timerStartedAt = Number(request.cookies.get("pricing_timer_start")?.value);
-  const withinDiscountWindow =
-    Number.isFinite(timerStartedAt) && Date.now() - timerStartedAt < PRICING_TIMER_WINDOW_MS;
-  const priceId = withinDiscountWindow ? PRICE_IDS[plan] : FULL_PRICE_IDS[plan];
 
   // Petit message de réassurance juste au-dessus du bouton de paiement,
   // au moment précis où l'hésitation est la plus forte. Reprend ce qui est
@@ -73,7 +52,7 @@ export async function POST(request: NextRequest) {
     mode: plan === "lifetime" ? "payment" : "subscription",
     ui_mode: "embedded_page" as const,
     ...(plan === "lifetime" ? { customer_creation: "always" as const } : {}),
-    line_items: [{ price: priceId, quantity: 1 }],
+    line_items: [{ price: PRICE_IDS[plan], quantity: 1 }],
     client_reference_id: user.id,
     customer_email: user.email,
     metadata: { plan },
