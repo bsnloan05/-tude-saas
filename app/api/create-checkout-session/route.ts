@@ -1,7 +1,6 @@
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -39,16 +38,10 @@ export async function POST(request: NextRequest) {
 
   const origin = request.nextUrl.origin;
 
-  // Client admin : la mise à jour de pricing_timer_started_at échouait
-  // silencieusement avec le client normal (RLS) — par cohérence et
-  // sécurité, on lit aussi cette donnée avec le client admin ici, pour ne
-  // jamais risquer de rater sa valeur réelle pour les mêmes raisons.
-  const admin = createAdminClient();
-
   // Un compte déjà payant (abonné ou à vie) ne doit jamais se voir proposer
   // le tarif "normal" gonflé du minuteur : pour lui, le prix de base reste
   // le seul prix affiché ET facturable, quel que soit l'état du minuteur.
-  const { data: profile } = await admin
+  const { data: profile } = await supabase
     .from("profiles")
     .select("plan, pricing_timer_started_at")
     .eq("id", user.id)
