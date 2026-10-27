@@ -223,32 +223,17 @@ export default function PricingPage() {
     // sert plus qu'à afficher un minuteur cohérent avant même d'avoir un
     // compte (le vrai prix facturé, lui, ignore le cookie — voir
     // /api/create-checkout-session).
-    //
-    // Important : un 401 (pas connecté) est le SEUL cas où retomber sur le
-    // cookie est sûr, puisqu'il n'y a alors aucun compte pour facturer quoi
-    // que ce soit. Toute autre erreur (connecté, mais la date n'a pas pu
-    // être lue/posée) doit afficher "expiré" plutôt que le cookie — sinon
-    // l'affichage pourrait montrer un prix réduit que le serveur, lui, ne
-    // facturerait jamais réellement (voir /api/create-checkout-session, qui
-    // ne regarde plus que le compte, jamais le cookie).
     fetch("/api/pricing-timer")
-      .then((response) => {
-        if (response.status === 401) return { loggedOut: true as const };
-        if (!response.ok) return null;
-        return response.json();
-      })
+      .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
         if (cancelled) return;
-        if (data?.startedAt) {
-          startTicking(new Date(data.startedAt).getTime());
-        } else if (data?.loggedOut) {
-          startTicking(readPricingTimerStart());
-        } else {
-          setRemainingMs(0);
-        }
+        const startedAt = data?.startedAt
+          ? new Date(data.startedAt).getTime()
+          : readPricingTimerStart();
+        startTicking(startedAt);
       })
       .catch(() => {
-        if (!cancelled) setRemainingMs(0);
+        if (!cancelled) startTicking(readPricingTimerStart());
       });
 
     return () => {
