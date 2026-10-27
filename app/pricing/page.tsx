@@ -286,31 +286,16 @@ export default function PricingPage() {
         </p>
       )}
 
-      <div
-        className={`mb-4 flex w-full max-w-4xl items-center justify-between rounded-md border px-4 py-3 sm:mb-6 ${
-          discountActive
-            ? "border-emerald-500/40 bg-emerald-500/5"
-            : "border-[#232d45] bg-[#0d1424]/60"
-        }`}
-      >
+      <div className="mb-4 flex w-full max-w-4xl items-center justify-between rounded-md border border-[#232d45] bg-[#0d1424]/60 px-3 py-2 text-xs sm:mb-6 sm:text-sm">
         {discountActive ? (
           <>
-            <span className="flex items-center gap-2 sm:gap-3">
-              <span className="text-xl font-extrabold text-emerald-400 sm:text-2xl">
-                {PLANS.find((p) => p.popular)?.discountPercent}
-              </span>
-              <span className="text-xs text-[#c3cbdc] sm:text-sm">
-                Ta réduction est réservée
-              </span>
-            </span>
-            <span className="font-mono text-lg font-bold text-[#e7ecf5] tabular-nums sm:text-xl">
+            <span className="text-[#7dd3fc]">Prix réduits réservés pour le moment</span>
+            <span className="font-mono font-semibold text-[#e7ecf5] tabular-nums">
               {formatCountdown(remainingMs)}
             </span>
           </>
         ) : (
-          <span className="text-xs text-[#8b97b0] sm:text-sm">
-            Réduction expirée — tarif normal appliqué
-          </span>
+          <span className="text-[#8b97b0]">Réduction expirée — tarif normal appliqué</span>
         )}
       </div>
 
