@@ -240,9 +240,13 @@ export default function PricingPage() {
           <circle cx="12" cy="12" r="9" />
         </svg>
         <p className="text-sm text-[#c3cbdc]">
-          <span className="font-semibold text-emerald-400">Pas convaincu ? Remboursé sous 7 jours.</span>{" "}
-          Si Memoflash ne te convient pas, écris-nous dans les 7 jours suivant ton achat — on te
-          rembourse intégralement, sans justification à fournir.
+          <span className="font-semibold text-emerald-400">Pas convaincu ? Remboursé sous 24h.</span>{" "}
+          Sur les forfaits Standard et Pro : écris-nous à{" "}
+          <a href="mailto:memoflash@outlook.fr" className="underline hover:text-[#e7ecf5]">
+            memoflash@outlook.fr
+          </a>{" "}
+          dans les 24h suivant ton achat en nous expliquant pourquoi — on étudie ta demande et te
+          rembourse si ta raison est valable.
         </p>
       </div>
 
