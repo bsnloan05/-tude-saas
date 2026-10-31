@@ -234,13 +234,13 @@ export default function PricingPage() {
           fill="none"
           stroke="currentColor"
           strokeWidth="1.8"
-          className="mt-0.5 h-6 w-6 shrink-0 text-emerald-400"
+          className="mt-1 h-7 w-7 shrink-0 text-emerald-400"
         >
           <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
           <circle cx="12" cy="12" r="9" />
         </svg>
         <div>
-          <p className="text-base font-bold text-green-400 sm:text-lg">
+          <p className="text-xl font-bold text-green-400 sm:text-2xl">
             Pas convaincu ? On te rembourse intégralement.
           </p>
           <span className="mt-2 inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
