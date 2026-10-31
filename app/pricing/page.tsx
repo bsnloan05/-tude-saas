@@ -234,26 +234,16 @@ export default function PricingPage() {
           fill="none"
           stroke="currentColor"
           strokeWidth="1.8"
-          className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400"
+          className="mt-0.5 h-6 w-6 shrink-0 text-emerald-400"
         >
           <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
           <circle cx="12" cy="12" r="9" />
         </svg>
         <div>
-          <p className="font-semibold text-emerald-400">
+          <p className="text-base font-bold text-green-400 sm:text-lg">
             Pas convaincu ? On te rembourse intégralement.
           </p>
-          <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              className="h-3 w-3"
-            >
-              <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="12" cy="12" r="9" />
-            </svg>
+          <span className="mt-2 inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
             Garantie 24h
           </span>
           <p className="mt-2 text-sm text-[#8b97b0]">
