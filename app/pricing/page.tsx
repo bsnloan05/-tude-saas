@@ -228,6 +228,24 @@ export default function PricingPage() {
         </p>
       )}
 
+      <div className="mb-4 flex w-full max-w-4xl items-start gap-3 rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-4 sm:mb-6">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400"
+        >
+          <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="12" cy="12" r="9" />
+        </svg>
+        <p className="text-sm text-[#c3cbdc]">
+          <span className="font-semibold text-emerald-400">Pas convaincu ? Remboursé sous 7 jours.</span>{" "}
+          Si Memoflash ne te convient pas, écris-nous dans les 7 jours suivant ton achat — on te
+          rembourse intégralement, sans justification à fournir.
+        </p>
+      </div>
+
       <div className="grid w-full max-w-4xl gap-3 sm:grid-cols-3 sm:gap-6">
         {PLANS.map((plan) => (
           <div
