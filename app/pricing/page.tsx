@@ -239,15 +239,20 @@ export default function PricingPage() {
           <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
           <circle cx="12" cy="12" r="9" />
         </svg>
-        <p className="text-sm text-[#c3cbdc]">
-          <span className="font-semibold text-emerald-400">Pas convaincu ? Remboursé sous 24h.</span>{" "}
-          Sur les forfaits Standard et Pro : écris-nous à{" "}
-          <a href="mailto:memoflash@outlook.fr" className="underline hover:text-[#e7ecf5]">
-            memoflash@outlook.fr
-          </a>{" "}
-          dans les 24h suivant ton achat en nous expliquant pourquoi — on étudie ta demande et te
-          rembourse si ta raison est valable.
-        </p>
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-emerald-400">Pas convaincu ? On te rembourse.</span>
+            <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
+              Garantie 24h
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-[#8b97b0]">
+            Forfaits Standard et Pro.{" "}
+            <Link href="/remboursement" className="underline hover:text-[#c3cbdc]">
+              Sous conditions — les voir
+            </Link>
+          </p>
+        </div>
       </div>
 
       <div className="grid w-full max-w-4xl gap-3 sm:grid-cols-3 sm:gap-6">
@@ -345,13 +350,13 @@ export default function PricingPage() {
           </svg>
           Paiement sécurisé par Stripe — aucune donnée bancaire stockée par Memoflash
         </div>
-        <div className="flex items-center gap-2">
+        <Link href="/remboursement" className="flex items-center gap-2 hover:text-[#c3cbdc]">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
             <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
             <circle cx="12" cy="12" r="9" />
           </svg>
-          Satisfait ou remboursé
-        </div>
+          Remboursé sous conditions
+        </Link>
       </div>
 
       <div className="mt-12 w-full max-w-4xl border-t border-[#232d45] pt-8 sm:mt-20 sm:pt-12">
