@@ -228,33 +228,33 @@ export default function PricingPage() {
         </p>
       )}
 
-      <div className="mb-4 flex w-full max-w-4xl items-start gap-3 rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-4 sm:mb-6">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          className="mt-1 h-7 w-7 shrink-0 text-emerald-400"
-        >
-          <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="12" cy="12" r="9" />
-        </svg>
-        <div>
-          <p className="text-xl font-bold text-green-400 sm:text-2xl">
-            Pas convaincu ? On te rembourse intégralement.
-          </p>
-          <span className="mt-2 inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
+      <div className="mb-4 w-full max-w-4xl rounded-lg border border-emerald-500/70 bg-emerald-500/10 p-4 sm:mb-6">
+        <p className="text-xl font-bold text-green-400 sm:text-2xl">
+          Pas convaincu ? On te rembourse intégralement.
+        </p>
+        <div className="mt-2 flex items-center gap-1.5">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            className="h-4 w-4 shrink-0 text-emerald-300"
+          >
+            <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="12" cy="12" r="9" />
+          </svg>
+          <span className="inline-flex items-center rounded-full border border-emerald-400/80 bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-200">
             Garantie 24h
           </span>
-          <p className="mt-2 text-sm text-[#8b97b0]">
-            Tu utilises Memoflash sur tes cours, le résultat ne te convient pas : écris-nous une
-            raison valable dans les 24h suivant ton achat (forfaits Standard et Pro), on étudie ta
-            demande et on te rembourse.{" "}
-            <Link href="/remboursement" className="text-[10px] underline hover:text-[#c3cbdc]">
-              Sous conditions — les voir
-            </Link>
-          </p>
         </div>
+        <p className="mt-2 text-sm text-[#8b97b0]">
+          Tu utilises Memoflash sur tes cours, le résultat ne te convient pas : écris-nous une
+          raison valable dans les 24h suivant ton achat (forfaits Standard et Pro), on étudie ta
+          demande et on te rembourse.{" "}
+          <Link href="/remboursement" className="text-[10px] underline hover:text-[#c3cbdc]">
+            Sous conditions — les voir
+          </Link>
+        </p>
       </div>
 
       <div className="grid w-full max-w-4xl gap-3 sm:grid-cols-3 sm:gap-6">
