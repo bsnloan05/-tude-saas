@@ -7,45 +7,19 @@ import LanguageSelector from "@/components/LanguageSelector";
 import FaqAccordion from "@/components/FaqAccordion";
 import AutoRedirectIfLoggedIn from "@/components/AutoRedirectIfLoggedIn";
 
-const FIELDS: Array<{ label: string; icon: React.ReactNode }> = [
-  {
-    label: "Droit",
-    icon: (
-      <path d="M12 3v18M5 7l-3 6a3 3 0 006 0l-3-6zM19 7l-3 6a3 3 0 006 0l-3-6zM5 7h14M8 21h8" />
-    ),
-  },
-  {
-    label: "Médecine",
-    icon: <path d="M3 12h4l2-5 4 10 2-5h6" />,
-  },
-  {
-    label: "Prépa",
-    icon: (
-      <>
-        <path d="M2 9l10-5 10 5-10 5L2 9z" />
-        <path d="M6 11v5c0 1.5 2.5 3 6 3s6-1.5 6-3v-5" />
-      </>
-    ),
-  },
-  {
-    label: "Sciences",
-    icon: (
-      <>
-        <path d="M9 2v6L3.5 18a2 2 0 001.8 3h13.4a2 2 0 001.8-3L15 8V2" />
-        <path d="M9 2h6M7 15h10" />
-      </>
-    ),
-  },
-  {
-    label: "Économie",
-    icon: <path d="M4 18l5-6 4 4 7-9M14 7h6v6" />,
-  },
-  {
-    label: "Lettres",
-    icon: (
-      <path d="M4 5c3-1.5 6-1.5 8 0v14c-2-1.5-5-1.5-8 0V5zM20 5c-3-1.5-6-1.5-8 0v14c2-1.5 5-1.5 8 0V5z" />
-    ),
-  },
+const LOGOS: Array<{ name: string; src: string }> = [
+  { name: "ENT", src: "/logos/ent.jpg" },
+  { name: "Pronote", src: "/logos/pronote.png" },
+  { name: "Université de Lille", src: "/logos/universite-lille.webp" },
+  { name: "EduConnect", src: "/logos/educonnect.png" },
+  { name: "Région Hauts-de-France", src: "/logos/hauts-de-france.webp" },
+  { name: "Région Île-de-France", src: "/logos/ile-de-france.webp" },
+  { name: "CROUS", src: "/logos/crous.svg" },
+  { name: "Université Paris-Dauphine", src: "/logos/dauphine.png" },
+  { name: "Sorbonne Université", src: "/logos/sorbonne.svg" },
+  { name: "Sciences Po", src: "/logos/sciences-po.jpg" },
+  { name: "Parcoursup", src: "/logos/parcoursup.jpg" },
+  { name: "Pix", src: "/logos/pix.svg" },
 ];
 
 const STEPS: Array<{ title: string; text: string; icon: React.ReactNode }> = [
@@ -178,24 +152,20 @@ export default function LandingPage() {
             Memoflash fonctionne pour toutes les filières
           </p>
           <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-            <div className="animate-marquee flex w-max items-center gap-14">
-              {[...FIELDS, ...FIELDS].map((field, i) => (
+            <div className="animate-marquee flex w-max items-center gap-6">
+              {[...LOGOS, ...LOGOS].map((logo, i) => (
                 <span
                   key={i}
-                  className="flex shrink-0 items-center gap-2.5 text-lg font-semibold text-[#8b97b0]"
+                  className="flex h-12 w-28 shrink-0 items-center justify-center rounded-lg bg-white/95 px-3 py-2 sm:h-14 sm:w-32"
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-5 w-5"
-                  >
-                    {field.icon}
-                  </svg>
-                  {field.label}
+                  {/* eslint-disable-next-line @next/next/no-img-element -- logos
+                      viennent de sources externes variées (SVG, JPEG, WEBP) sans
+                      dimensions connues à l'avance, Image nécessite l'une des deux. */}
+                  <img
+                    src={logo.src}
+                    alt={logo.name}
+                    className="h-full w-full object-contain"
+                  />
                 </span>
               ))}
             </div>
