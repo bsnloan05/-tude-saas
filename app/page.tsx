@@ -152,12 +152,9 @@ export default function LandingPage() {
             Memoflash fonctionne pour toutes les filières
           </p>
           <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-            <div className="animate-marquee flex w-max items-center gap-6">
+            <div className="animate-marquee flex w-max items-center gap-10">
               {[...LOGOS, ...LOGOS].map((logo, i) => (
-                <span
-                  key={i}
-                  className="flex h-12 w-28 shrink-0 items-center justify-center rounded-lg bg-white/95 px-3 py-2 sm:h-14 sm:w-32"
-                >
+                <span key={i} className="flex h-10 w-24 shrink-0 items-center sm:h-12 sm:w-28">
                   {/* eslint-disable-next-line @next/next/no-img-element -- logos
                       viennent de sources externes variées (SVG, JPEG, WEBP) sans
                       dimensions connues à l'avance, Image nécessite l'une des deux. */}
