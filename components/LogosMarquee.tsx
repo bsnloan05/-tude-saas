@@ -16,9 +16,9 @@ const LOGOS: Array<{ name: string; src: string }> = [
 export default function LogosMarquee({ size = "default" }: { size?: "default" | "compact" }) {
   const itemClassName =
     size === "compact"
-      ? "flex h-7 w-16 shrink-0 items-center sm:h-8 sm:w-20"
+      ? "flex h-9 w-20 shrink-0 items-center sm:h-10 sm:w-24"
       : "flex h-14 w-32 shrink-0 items-center sm:h-16 sm:w-40";
-  const gapClassName = size === "compact" ? "gap-7" : "gap-12";
+  const gapClassName = size === "compact" ? "gap-9" : "gap-12";
 
   return (
     <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
