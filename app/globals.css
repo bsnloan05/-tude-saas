@@ -204,6 +204,11 @@ body {
 
 .animate-marquee {
   animation: marquee 28s linear infinite;
+  /* Force cette rangée sur sa propre couche GPU : avec des images (au lieu
+     d'icônes SVG vectorielles), le navigateur doit recomposer chaque frame
+     à partir de contenu plus lourd à peindre, ce qui peut saccader
+     l'animation translateX sans cette indication. */
+  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
