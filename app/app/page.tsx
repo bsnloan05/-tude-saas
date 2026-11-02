@@ -1371,10 +1371,7 @@ export default function Home() {
             )}
             {(status === "idle" || status === "done") && (
               <div className="mt-6 w-full max-w-2xl">
-                <p className="mb-4 text-center text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
-                  Memoflash fonctionne pour toutes les filières
-                </p>
-                <LogosMarquee />
+                <LogosMarquee size="compact" />
               </div>
             )}
             {status === "generating" && (
