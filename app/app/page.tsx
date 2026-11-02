@@ -1369,11 +1369,6 @@ export default function Home() {
                 />
               </div>
             )}
-            {(status === "idle" || status === "done") && (
-              <div className="mt-6 w-full max-w-2xl">
-                <LogosMarquee size="compact" />
-              </div>
-            )}
             {status === "generating" && (
               <div className="flex flex-col items-center gap-1.5">
                 <div className="flex items-center gap-2">
@@ -1439,6 +1434,10 @@ export default function Home() {
             )}
           </div>
         )}
+
+        <div className="w-full max-w-2xl print:hidden">
+          <LogosMarquee size="compact" />
+        </div>
 
         {status === "recording" && (
           <div className="w-full border-t border-[#232d45] pt-4 print:hidden">
