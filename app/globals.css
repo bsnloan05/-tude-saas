@@ -195,10 +195,10 @@ body {
 
 @keyframes marquee {
   from {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
@@ -207,8 +207,14 @@ body {
   /* Force cette rangée sur sa propre couche GPU : avec des images (au lieu
      d'icônes SVG vectorielles), le navigateur doit recomposer chaque frame
      à partir de contenu plus lourd à peindre, ce qui peut saccader
-     l'animation translateX sans cette indication. */
+     l'animation sans ces indications. translate3d (plutôt que translateX)
+     et backface-visibility forcent Safari/macOS à promouvoir une vraie
+     couche GPU au lieu de repeindre sur le CPU à chaque frame — un
+     comportement déjà correct sous Chrome/mobile, mais pas garanti sous
+     Safari desktop sans cette indication explicite. */
   will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
