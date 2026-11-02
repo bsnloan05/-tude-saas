@@ -69,6 +69,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className={`${geistMono.variable} flex min-h-screen bg-[#070a12]`}>
+      {/* Repère de marque fixe en haut à droite : visible en permanence sur
+          grand écran (captures d'écran, partage), sans gêner la navigation
+          (pointer-events-none). Masqué sous lg où l'espace est trop
+          restreint et où la barre mobile porte déjà le nom. */}
+      <span className="pointer-events-none fixed top-4 right-5 z-20 hidden text-base font-bold tracking-tight lg:block">
+        <span className="bg-gradient-to-r from-[#2563eb] to-[#38bdf8] bg-clip-text text-transparent">
+          memoflash.io
+        </span>
+      </span>
+
       <aside className="hidden w-60 shrink-0 flex-col border-r border-[#232d45] px-4 py-6 lg:flex">
         <div className="flex items-center gap-2 px-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2563eb] text-white">
