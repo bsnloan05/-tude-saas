@@ -14,15 +14,21 @@ const LOGOS: Array<{ name: string; src: string }> = [
 ];
 
 export default function LogosMarquee({ size = "default" }: { size?: "default" | "compact" }) {
+  // mr-* (porté par chaque logo) plutôt que gap sur le conteneur : avec gap,
+  // les 24 logos dupliqués n'ont que 23 espacements entre eux (nombre
+  // impair), donc translateX(-50%) ne tombe jamais exactement sur la
+  // répétition du motif (décalage d'un demi-espacement) — d'où le saut
+  // visible à chaque boucle. En mettant la marge sur chaque élément (y
+  // compris le dernier), les deux moitiés ont une largeur strictement
+  // identique et la boucle devient parfaitement continue.
   const itemClassName =
     size === "compact"
-      ? "flex h-9 w-20 shrink-0 items-center sm:h-10 sm:w-24"
-      : "flex h-14 w-32 shrink-0 items-center sm:h-16 sm:w-40";
-  const gapClassName = size === "compact" ? "gap-9" : "gap-12";
+      ? "flex h-9 w-20 shrink-0 items-center mr-9 sm:h-10 sm:w-24"
+      : "flex h-14 w-32 shrink-0 items-center mr-12 sm:h-16 sm:w-40";
 
   return (
     <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-      <div className={`animate-marquee flex w-max items-center ${gapClassName}`}>
+      <div className="animate-marquee flex w-max items-center">
         {[...LOGOS, ...LOGOS].map((logo, i) => (
           <span key={i} className={itemClassName}>
             {/* eslint-disable-next-line @next/next/no-img-element -- logos
