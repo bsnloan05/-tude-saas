@@ -14,7 +14,7 @@ export default function DeferredHeroAnimation() {
 
   useEffect(() => {
     if (document.readyState === "complete") {
-      setShouldLoad(true);
+      queueMicrotask(() => setShouldLoad(true));
       return;
     }
     const onLoad = () => setShouldLoad(true);

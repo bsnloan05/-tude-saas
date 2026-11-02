@@ -150,8 +150,10 @@ export default function PricingPage() {
     // Lu via window.location plutôt que useSearchParams() pour ne pas avoir
     // besoin d'un Suspense boundary : purement cosmétique, pas critique au
     // premier rendu.
-    setFromTranscription(
-      new URLSearchParams(window.location.search).get("from") === "transcription",
+    queueMicrotask(() =>
+      setFromTranscription(
+        new URLSearchParams(window.location.search).get("from") === "transcription",
+      ),
     );
   }, []);
 

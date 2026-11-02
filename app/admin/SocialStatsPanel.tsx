@@ -25,7 +25,13 @@ export default function SocialStatsPanel() {
   };
 
   useEffect(() => {
-    load();
+    (async () => {
+      const res = await fetch("/api/admin/social-stats");
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data.stats ?? []);
+      }
+    })();
   }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {

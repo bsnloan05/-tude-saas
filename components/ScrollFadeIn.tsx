@@ -20,7 +20,7 @@ export default function ScrollFadeIn({
       "(prefers-reduced-motion: reduce)",
     ).matches;
     if (prefersReducedMotion) {
-      setVisible(true);
+      queueMicrotask(() => setVisible(true));
       return;
     }
 

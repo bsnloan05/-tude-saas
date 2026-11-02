@@ -20,8 +20,10 @@ function ResetPasswordForm() {
     const tokenHash = searchParams.get("token_hash");
 
     if (!tokenHash) {
-      setHasSession(false);
-      setCheckingSession(false);
+      queueMicrotask(() => {
+        setHasSession(false);
+        setCheckingSession(false);
+      });
       return;
     }
 

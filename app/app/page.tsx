@@ -154,7 +154,11 @@ export default function Home() {
   const sessionDurationRef = useRef(0);
   const isRecordingRef = useRef(false);
   const restartIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const lastActivityRef = useRef<number>(Date.now());
+  // Initialisé à 0 (pas Date.now(), impur pendant le rendu) : toujours
+  // réaffecté à une vraie valeur par startRecording() avant d'être lu par le
+  // minuteur de détection de silence (voir plus bas), donc la valeur de
+  // départ ici n'a aucune incidence fonctionnelle.
+  const lastActivityRef = useRef<number>(0);
   const [micSilent, setMicSilent] = useState(false);
   const [showStartTip, setShowStartTip] = useState(false);
   const [showChromeModal, setShowChromeModal] = useState(false);
@@ -251,11 +255,13 @@ export default function Home() {
     const ua = navigator.userAgent;
     const isIPhone = /iPhone|iPod/.test(ua);
     const isChrome = /Chrome/.test(ua) && !/Edg|OPR/.test(ua);
-    setNeedsChromeHint(!isIPhone && !isChrome);
     // Sur Chrome (déjà le navigateur recommandé), un rappel discret plutôt
     // qu'une pop-up bloquante : utile seulement si jamais ça pose problème,
     // pas besoin d'ajouter de friction à tout le monde pour un cas rare.
-    setShowAltBrowserTip(!isIPhone && isChrome);
+    queueMicrotask(() => {
+      setNeedsChromeHint(!isIPhone && !isChrome);
+      setShowAltBrowserTip(!isIPhone && isChrome);
+    });
     // iPadOS se fait souvent passer pour un Mac dans le user-agent (depuis
     // iPadOS 13) : on le détecte aussi via le tactile, absent sur un vrai Mac.
     isIPadRef.current =
@@ -266,7 +272,7 @@ export default function Home() {
     const SpeechRecognitionCtor =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionCtor) {
-      setIsSupported(false);
+      queueMicrotask(() => setIsSupported(false));
       return;
     }
 
@@ -407,7 +413,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchUsage();
+    queueMicrotask(() => fetchUsage());
   }, []);
 
   useEffect(() => {
@@ -421,7 +427,7 @@ export default function Home() {
       const isFresh =
         backup?.transcript?.trim() &&
         Date.now() - backup.savedAt < BACKUP_MAX_AGE_MS;
-      if (isFresh) setRecoveredSession(backup);
+      if (isFresh) queueMicrotask(() => setRecoveredSession(backup));
       else window.localStorage.removeItem(BACKUP_STORAGE_KEY);
     } catch {
       window.localStorage.removeItem(BACKUP_STORAGE_KEY);
@@ -443,7 +449,7 @@ export default function Home() {
 
   useEffect(() => {
     if (status !== "generating") {
-      setElapsedSeconds(0);
+      queueMicrotask(() => setElapsedSeconds(0));
       return;
     }
     const interval = setInterval(() => {
@@ -454,7 +460,7 @@ export default function Home() {
 
   useEffect(() => {
     if (status !== "recording") {
-      setRecordingSeconds(0);
+      queueMicrotask(() => setRecordingSeconds(0));
       return;
     }
     const interval = setInterval(() => {
@@ -465,7 +471,7 @@ export default function Home() {
 
   useEffect(() => {
     if (status !== "recording") {
-      setMicSilent(false);
+      queueMicrotask(() => setMicSilent(false));
       return;
     }
     // Si la reconnaissance vocale ne détecte plus aucune parole pendant un
@@ -1459,6 +1465,16 @@ export default function Home() {
                 Voir les tarifs
               </Link>
             ) : (
+              // latestTranscriptRef est lu volontairement pendant le rendu, pas
+              // par oubli : sa valeur est déjà à jour de façon synchrone au
+              // moment où ce bloc s'affiche (après un arrêt d'enregistrement ou
+              // un clic sur "Réessayer", tous deux avant le prochain rendu), donc
+              // aucun décalage possible. Le refléter via un state introduirait un
+              // vrai risque de retard d'un rendu sur le chemin le plus sensible
+              // de l'app (régénérer ce state à chaque onresult, plusieurs fois
+              // par seconde pendant tout l'enregistrement, pour un bouton qui ne
+              // s'affiche qu'en cas d'erreur) sans bénéfice réel.
+              // eslint-disable-next-line react-hooks/refs
               latestTranscriptRef.current.trim() && (
                 <button
                   onClick={retryGeneration}

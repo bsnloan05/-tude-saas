@@ -19,12 +19,14 @@ export default function TypewriterCycle({
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
-    setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    queueMicrotask(() =>
+      setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches),
+    );
   }, []);
 
   useEffect(() => {
     if (reducedMotion) {
-      setDisplayed(words[0]);
+      queueMicrotask(() => setDisplayed(words[0]));
       return;
     }
 
