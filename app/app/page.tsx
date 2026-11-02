@@ -6,6 +6,7 @@ import Link from "next/link";
 import { marked } from "marked";
 import { createClient } from "@/lib/supabase/client";
 import FicheContent from "@/components/FicheContent";
+import LogosMarquee from "@/components/LogosMarquee";
 import { downloadFichePdf } from "@/lib/downloadFichePdf";
 import { hasImportAccess } from "@/lib/plans";
 
@@ -1366,6 +1367,14 @@ export default function Home() {
                     },
                   ]}
                 />
+              </div>
+            )}
+            {(status === "idle" || status === "done") && (
+              <div className="mt-6 w-full max-w-2xl">
+                <p className="mb-4 text-center text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
+                  Memoflash fonctionne pour toutes les filières
+                </p>
+                <LogosMarquee />
               </div>
             )}
             {status === "generating" && (
