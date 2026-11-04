@@ -37,6 +37,7 @@ export default function LogosMarquee({ size = "default" }: { size?: "default" | 
             <img
               src={logo.src}
               alt={logo.name}
+              loading="lazy"
               decoding="async"
               draggable={false}
               className="h-full w-full object-contain"
