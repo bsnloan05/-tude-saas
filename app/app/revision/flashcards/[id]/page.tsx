@@ -70,49 +70,49 @@ export default function FlashcardsPracticePage() {
 
   return (
     <div className="flex flex-col items-center px-4 py-12">
-      <div className="w-full max-w-xl">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="w-full max-w-3xl">
+        <div className="mb-8 flex items-center justify-between">
           <Link
             href="/app/revision"
-            className="text-sm font-medium text-[#8b97b0] transition-colors hover:text-[#e7ecf5]"
+            className="text-base font-medium text-[#8b97b0] transition-colors hover:text-[#e7ecf5]"
           >
             ← Révision
           </Link>
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="text-sm font-medium text-red-300 transition-colors hover:text-red-200 disabled:opacity-50"
+            className="text-base font-medium text-red-300 transition-colors hover:text-red-200 disabled:opacity-50"
           >
             Supprimer
           </button>
         </div>
 
-        <h1 className="mb-1 text-xl font-bold text-[#e7ecf5]">{title}</h1>
-        <p className="mb-6 text-sm text-[#8b97b0]">
+        <h1 className="mb-1 text-3xl font-bold text-[#e7ecf5]">{title}</h1>
+        <p className="mb-8 text-base text-[#8b97b0]">
           Carte {index + 1} / {cards.length}
         </p>
 
         <button
           onClick={() => setFlipped((f) => !f)}
-          className="flex min-h-56 w-full flex-col items-center justify-center rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-8 text-center transition-colors duration-150 hover:bg-[#121a30]"
+          className="flex min-h-80 w-full flex-col items-center justify-center rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-12 text-center transition-colors duration-150 hover:bg-[#121a30]"
         >
-          <span className="mb-3 text-xs font-semibold tracking-wide text-[#6b7690] uppercase">
+          <span className="mb-5 text-sm font-semibold tracking-wide text-[#6b7690] uppercase">
             {flipped ? "Réponse" : "Question"}
           </span>
-          <span className="text-lg font-medium text-[#e7ecf5]">
+          <span className="text-2xl font-medium text-[#e7ecf5]">
             {flipped ? card.back : card.front}
           </span>
-          <span className="mt-4 text-xs text-[#6b7690]">Clique pour retourner</span>
+          <span className="mt-6 text-sm text-[#6b7690]">Clique pour retourner</span>
         </button>
 
-        <div className="mt-6 flex items-center justify-between gap-3">
+        <div className="mt-8 flex items-center justify-between gap-4">
           <button
             onClick={() => {
               setIndex((i) => Math.max(0, i - 1));
               setFlipped(false);
             }}
             disabled={index === 0}
-            className="rounded-full border border-[#2a3552] px-5 py-2 text-sm font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full border border-[#2a3552] px-7 py-3 text-base font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Précédent
           </button>
@@ -122,7 +122,7 @@ export default function FlashcardsPracticePage() {
               setFlipped(false);
             }}
             disabled={index === cards.length - 1}
-            className="rounded-full bg-[#2563eb] px-5 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full bg-[#2563eb] px-7 py-3 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Suivant
           </button>

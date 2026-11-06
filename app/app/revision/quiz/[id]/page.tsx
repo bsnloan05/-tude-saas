@@ -108,31 +108,31 @@ export default function QuizPracticePage() {
 
   return (
     <div className="flex flex-col items-center px-4 py-12">
-      <div className="w-full max-w-xl">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="w-full max-w-3xl">
+        <div className="mb-8 flex items-center justify-between">
           <Link
             href="/app/revision"
-            className="text-sm font-medium text-[#8b97b0] transition-colors hover:text-[#e7ecf5]"
+            className="text-base font-medium text-[#8b97b0] transition-colors hover:text-[#e7ecf5]"
           >
             ← Révision
           </Link>
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="text-sm font-medium text-red-300 transition-colors hover:text-red-200 disabled:opacity-50"
+            className="text-base font-medium text-red-300 transition-colors hover:text-red-200 disabled:opacity-50"
           >
             Supprimer
           </button>
         </div>
 
-        <h1 className="mb-1 text-xl font-bold text-[#e7ecf5]">{title}</h1>
-        <p className="mb-6 text-sm text-[#8b97b0]">
+        <h1 className="mb-1 text-3xl font-bold text-[#e7ecf5]">{title}</h1>
+        <p className="mb-8 text-base text-[#8b97b0]">
           Question {index + 1} / {questions.length}
         </p>
 
-        <div className="rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-6">
-          <p className="mb-5 text-base font-medium text-[#e7ecf5]">{q.question}</p>
-          <div className="flex flex-col gap-2.5">
+        <div className="rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-10">
+          <p className="mb-8 text-xl font-medium text-[#e7ecf5]">{q.question}</p>
+          <div className="flex flex-col gap-3.5">
             {q.options.map((option, optionIndex) => {
               const isCorrect = optionIndex === q.correctIndex;
               const isSelected = optionIndex === selected;
@@ -155,7 +155,7 @@ export default function QuizPracticePage() {
                     if (isCorrect) setScore((s) => s + 1);
                   }}
                   disabled={selected !== null}
-                  className={`rounded-md border px-4 py-2.5 text-left text-sm font-medium transition-colors duration-150 disabled:cursor-default ${style}`}
+                  className={`rounded-md border px-5 py-3.5 text-left text-base font-medium transition-colors duration-150 disabled:cursor-default ${style}`}
                 >
                   {option}
                 </button>
@@ -165,7 +165,7 @@ export default function QuizPracticePage() {
         </div>
 
         {selected !== null && (
-          <div className="mt-6 flex justify-end">
+          <div className="mt-8 flex justify-end">
             <button
               onClick={() => {
                 if (index + 1 < questions.length) {
@@ -175,7 +175,7 @@ export default function QuizPracticePage() {
                   setFinished(true);
                 }
               }}
-              className="rounded-full bg-[#2563eb] px-5 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+              className="rounded-full bg-[#2563eb] px-7 py-3 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
             >
               {index + 1 < questions.length ? "Suivant" : "Voir le score"}
             </button>
