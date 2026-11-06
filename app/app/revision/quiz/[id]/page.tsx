@@ -78,23 +78,23 @@ export default function QuizPracticePage() {
 
   if (finished) {
     return (
-      <div className="flex flex-col items-center px-4 py-12">
-        <div className="w-full max-w-xl text-center">
-          <h1 className="mb-2 text-xl font-bold text-[#e7ecf5]">{title}</h1>
-          <p className="mb-8 text-sm text-[#8b97b0]">Quiz terminé</p>
-          <p className="mb-8 text-4xl font-bold text-[#38bdf8]">
+      <div className="flex flex-col items-center px-4 py-16">
+        <div className="w-full max-w-2xl text-center">
+          <h1 className="mb-3 text-3xl font-bold text-[#e7ecf5]">{title}</h1>
+          <p className="mb-10 text-base text-[#8b97b0]">Quiz terminé</p>
+          <p className="mb-12 text-7xl font-bold text-[#38bdf8]">
             {score} / {questions.length}
           </p>
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center justify-center gap-4">
             <button
               onClick={restart}
-              className="rounded-full bg-[#2563eb] px-5 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+              className="rounded-full bg-[#2563eb] px-8 py-3.5 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
             >
               Recommencer
             </button>
             <Link
               href="/app/revision"
-              className="rounded-full border border-[#2a3552] px-5 py-2 text-sm font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
+              className="rounded-full border border-[#2a3552] px-8 py-3.5 text-base font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
             >
               Retour à Révision
             </Link>
