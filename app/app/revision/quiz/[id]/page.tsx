@@ -22,12 +22,18 @@ export default function QuizPracticePage() {
   const [finished, setFinished] = useState(false);
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
+  // Résultat de la tentative précédente (avant celle en cours), affiché à
+  // côté du score actuel une fois le quiz terminé. null tant qu'il n'y a
+  // jamais eu de tentative précédente sur ce quiz.
+  const [previousScore, setPreviousScore] = useState<{ score: number; total: number } | null>(
+    null,
+  );
 
   useEffect(() => {
     const supabase = createClient();
     supabase
       .from("quiz_sets")
-      .select("title, questions")
+      .select("title, questions, last_score, last_total")
       .eq("id", params.id)
       .single()
       .then(({ data, error }) => {
@@ -37,6 +43,9 @@ export default function QuizPracticePage() {
         }
         setTitle(data.title || "Quiz");
         setQuestions(data.questions);
+        if (typeof data.last_score === "number" && typeof data.last_total === "number") {
+          setPreviousScore({ score: data.last_score, total: data.last_total });
+        }
       });
   }, [params.id]);
 
@@ -48,7 +57,20 @@ export default function QuizPracticePage() {
     router.push("/app/revision");
   };
 
+  const finishQuiz = (finalScore: number) => {
+    setFinished(true);
+    const supabase = createClient();
+    supabase
+      .from("quiz_sets")
+      .update({ last_score: finalScore, last_total: questions?.length ?? 0 })
+      .eq("id", params.id)
+      .then(() => {});
+  };
+
   const restart = () => {
+    // La note qu'on vient d'afficher devient la "précédente" pour la
+    // prochaine tentative, avant de remettre le score courant à zéro.
+    if (questions) setPreviousScore({ score, total: questions.length });
     setIndex(0);
     setSelected(null);
     setScore(0);
@@ -82,8 +104,13 @@ export default function QuizPracticePage() {
         <div className="w-full max-w-2xl text-center">
           <h1 className="mb-3 text-3xl font-bold text-[#e7ecf5]">{title}</h1>
           <p className="mb-10 text-base text-[#8b97b0]">Quiz terminé</p>
-          <p className="mb-12 text-7xl font-bold text-[#38bdf8]">
+          <p className="mb-3 text-7xl font-bold text-[#38bdf8]">
             {score} / {questions.length}
+          </p>
+          <p className="mb-12 text-sm text-[#6b7690]">
+            {previousScore
+              ? `Tentative précédente : ${previousScore.score} / ${previousScore.total}`
+              : "Première tentative sur ce quiz"}
           </p>
           <div className="flex items-center justify-center gap-4">
             <button
@@ -172,7 +199,7 @@ export default function QuizPracticePage() {
                   setIndex((i) => i + 1);
                   setSelected(null);
                 } else {
-                  setFinished(true);
+                  finishQuiz(score);
                 }
               }}
               className="rounded-full bg-[#2563eb] px-7 py-3 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
