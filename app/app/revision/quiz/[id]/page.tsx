@@ -104,14 +104,34 @@ export default function QuizPracticePage() {
         <div className="w-full max-w-2xl text-center">
           <h1 className="mb-3 text-3xl font-bold text-[#e7ecf5]">{title}</h1>
           <p className="mb-10 text-base text-[#8b97b0]">Quiz terminé</p>
-          <p className="mb-3 text-7xl font-bold text-[#38bdf8]">
-            {score} / {questions.length}
-          </p>
-          <p className="mb-12 text-sm text-[#6b7690]">
-            {previousScore
-              ? `Tentative précédente : ${previousScore.score} / ${previousScore.total}`
-              : "Première tentative sur ce quiz"}
-          </p>
+          {(() => {
+            // Bleu = meilleur score des deux, rouge = le moins bon. Si égal
+            // (ou pas de tentative précédente), les deux/le score actuel
+            // restent en bleu, par défaut neutre.
+            const currentColor =
+              previousScore && score < previousScore.score ? "text-red-400" : "text-[#38bdf8]";
+            const previousColor =
+              previousScore && score > previousScore.score ? "text-red-400" : "text-[#38bdf8]";
+            return (
+              <>
+                <p className={`mb-3 text-7xl font-bold ${currentColor}`}>
+                  {score} / {questions.length}
+                </p>
+                <p className="mb-12 text-base text-[#8b97b0]">
+                  {previousScore ? (
+                    <>
+                      Tentative précédente :{" "}
+                      <span className={`font-semibold ${previousColor}`}>
+                        {previousScore.score} / {previousScore.total}
+                      </span>
+                    </>
+                  ) : (
+                    "Première tentative sur ce quiz"
+                  )}
+                </p>
+              </>
+            );
+          })()}
           <div className="flex items-center justify-center gap-4">
             <button
               onClick={restart}
