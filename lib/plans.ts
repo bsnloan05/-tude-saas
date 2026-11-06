@@ -25,3 +25,10 @@ const IMPORT_PLANS: ReadonlySet<string> = new Set(["trimestriel", "lifetime"]);
 export function hasImportAccess(plan: string | null | undefined): boolean {
   return !!plan && IMPORT_PLANS.has(plan);
 }
+
+// Révision (flashcards/quiz) : accessible à tous les forfaits payants
+// (Standard inclus), contrairement à l'import PDF/audio réservé à
+// Trimestriel/À vie.
+export function hasRevisionAccess(plan: string | null | undefined): boolean {
+  return !!plan && plan !== "free";
+}

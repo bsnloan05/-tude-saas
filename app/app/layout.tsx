@@ -111,6 +111,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             Mes fiches
           </Link>
           <Link
+            href="/app/revision"
+            className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0">
+              <rect x="3" y="3" width="13" height="13" rx="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M8 21h10a2 2 0 002-2V9" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Révision
+          </Link>
+          <Link
             href="/pricing"
             className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-[#c3cbdc] transition-colors duration-150 hover:bg-[#1b2440] hover:text-[#e7ecf5]"
           >
@@ -216,6 +226,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
             <path d="M4 5a2 2 0 012-2h11a1 1 0 011 1v15a1 1 0 01-1 1H6a2 2 0 00-2 2V5z" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M4 19.5A2 2 0 016 18h12" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
+        <Link
+          href="/app/revision"
+          aria-label="Révision"
+          className="flex flex-col items-center gap-0.5 p-2 text-[#8b97b0] transition-colors duration-150 hover:text-[#e7ecf5]"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
+            <rect x="3" y="3" width="13" height="13" rx="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M8 21h10a2 2 0 002-2V9" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </Link>
         <Link
