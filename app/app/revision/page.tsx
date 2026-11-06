@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { hasRevisionAccess } from "@/lib/plans";
 
 interface SetRow {
   id: string;
@@ -21,15 +20,10 @@ function formatDate(iso: string): string {
 }
 
 export default function RevisionHubPage() {
-  const [plan, setPlan] = useState<string | null>(null);
   const [flashcardSets, setFlashcardSets] = useState<SetRow[] | null>(null);
   const [quizSets, setQuizSets] = useState<SetRow[] | null>(null);
 
   useEffect(() => {
-    fetch("/api/usage")
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => setPlan(data?.plan ?? "free"));
-
     const supabase = createClient();
     supabase
       .from("flashcard_sets")
@@ -60,25 +54,6 @@ export default function RevisionHubPage() {
         );
       });
   }, []);
-
-  if (plan !== null && !hasRevisionAccess(plan)) {
-    return (
-      <div className="flex flex-col items-center px-4 py-12">
-        <div className="w-full max-w-2xl rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-8 text-center">
-          <h1 className="mb-2 text-xl font-bold text-[#e7ecf5]">Révision</h1>
-          <p className="mb-5 text-sm text-[#8b97b0]">
-            Les flashcards et quiz sont réservés aux forfaits payants.
-          </p>
-          <Link
-            href="/pricing"
-            className="inline-block rounded-full bg-[#2563eb] px-5 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
-          >
-            Voir les tarifs
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col items-center px-4 py-12">

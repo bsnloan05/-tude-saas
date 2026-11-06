@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ficheTitle } from "@/lib/ficheTitle";
+import { hasRevisionAccess } from "@/lib/plans";
 
 interface Fiche {
   id: string;
@@ -26,9 +27,14 @@ export default function RevisionCreate({ type }: { type: "flashcards" | "quiz" }
   const [progress, setProgress] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isPlanError, setIsPlanError] = useState(false);
+  const [plan, setPlan] = useState<string | null>(null);
   const pdfInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
+    fetch("/api/usage")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => setPlan(data?.plan ?? "free"));
+
     const supabase = createClient();
     supabase
       .from("fiches")
@@ -36,6 +42,19 @@ export default function RevisionCreate({ type }: { type: "flashcards" | "quiz" }
       .order("created_at", { ascending: false })
       .then(({ data }) => setFiches(data ?? []));
   }, []);
+
+  // Laisse les comptes gratuits voir et essayer cette page (choisir une
+  // fiche, importer un PDF) : le mur de paiement n'arrive qu'au moment de
+  // vraiment lancer la génération, comme pour la transcription et l'import
+  // PDF/audio classiques sur /app.
+  const redirectToPaywall = () => {
+    window.posthog?.capture("free_paywall_redirect", { source: `revision_${type}` });
+    setStatus("generating");
+    setProgress("Redirection...");
+    setTimeout(() => {
+      router.push("/pricing?from=revision");
+    }, 1500);
+  };
 
   const label = type === "flashcards" ? "flashcards" : "quiz";
   const endpoint = `/api/revision/${type}`;
@@ -120,6 +139,10 @@ export default function RevisionCreate({ type }: { type: "flashcards" | "quiz" }
   const handlePickFiche = () => {
     const fiche = fiches?.find((f) => f.id === selectedFicheId);
     if (!fiche) return;
+    if (!hasRevisionAccess(plan)) {
+      redirectToPaywall();
+      return;
+    }
     generateFrom(fiche.content, ficheTitle(fiche.title, fiche.content), fiche.id);
   };
 
@@ -127,6 +150,10 @@ export default function RevisionCreate({ type }: { type: "flashcards" | "quiz" }
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
+    if (!hasRevisionAccess(plan)) {
+      redirectToPaywall();
+      return;
+    }
     if (file.size > 20 * 1024 * 1024) {
       setStatus("error");
       setErrorMessage("Ce PDF est trop lourd (20 Mo maximum).");
