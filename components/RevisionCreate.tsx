@@ -176,17 +176,17 @@ export default function RevisionCreate({ type }: { type: "flashcards" | "quiz" }
 
   if (status === "generating") {
     return (
-      <div className="flex flex-col items-center gap-2 rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-8 text-center">
-        <span className="h-2 w-2 animate-pulse rounded-full bg-[#38bdf8]" />
-        <p className="text-sm text-[#8b97b0]">{progress}</p>
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-12 text-center">
+        <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#38bdf8]" />
+        <p className="text-base text-[#8b97b0]">{progress}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {errorMessage && (
-        <div className="rounded-md border border-red-900/50 bg-red-950/50 px-3 py-2 text-sm text-red-200">
+        <div className="rounded-md border border-red-900/50 bg-red-950/50 px-4 py-3 text-base text-red-200">
           <p>{errorMessage}</p>
           {isPlanError && (
             <Link
@@ -199,22 +199,22 @@ export default function RevisionCreate({ type }: { type: "flashcards" | "quiz" }
         </div>
       )}
 
-      <div className="rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-5">
-        <h2 className="mb-3 text-sm font-semibold text-[#e7ecf5]">
+      <div className="rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-8">
+        <h2 className="mb-5 text-lg font-semibold text-[#e7ecf5]">
           Depuis une fiche existante
         </h2>
         {fiches === null ? (
-          <p className="text-sm text-[#8b97b0]">Chargement...</p>
+          <p className="text-base text-[#8b97b0]">Chargement...</p>
         ) : fiches.length === 0 ? (
-          <p className="text-sm text-[#8b97b0]">
+          <p className="text-base text-[#8b97b0]">
             Tu n&apos;as encore aucune fiche. Importe plutôt un PDF ci-dessous.
           </p>
         ) : (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
             <select
               value={selectedFicheId}
               onChange={(event) => setSelectedFicheId(event.target.value)}
-              className="min-w-0 flex-1 rounded-md border border-[#2a3552] bg-[#0b1120] px-3 py-2 text-sm text-[#e7ecf5]"
+              className="min-w-0 flex-1 rounded-md border border-[#2a3552] bg-[#0b1120] px-4 py-3 text-base text-[#e7ecf5]"
             >
               <option value="">Choisis une fiche...</option>
               {fiches.map((fiche) => (
@@ -226,7 +226,7 @@ export default function RevisionCreate({ type }: { type: "flashcards" | "quiz" }
             <button
               onClick={handlePickFiche}
               disabled={!selectedFicheId}
-              className="rounded-full bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-full bg-[#2563eb] px-6 py-3 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Générer
             </button>
@@ -234,8 +234,8 @@ export default function RevisionCreate({ type }: { type: "flashcards" | "quiz" }
         )}
       </div>
 
-      <div className="rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-5">
-        <h2 className="mb-3 text-sm font-semibold text-[#e7ecf5]">
+      <div className="rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-8">
+        <h2 className="mb-5 text-lg font-semibold text-[#e7ecf5]">
           Depuis un nouveau PDF
         </h2>
         <input
@@ -247,7 +247,7 @@ export default function RevisionCreate({ type }: { type: "flashcards" | "quiz" }
         />
         <button
           onClick={() => pdfInputRef.current?.click()}
-          className="rounded-full border border-[#2a3552] px-4 py-2 text-sm font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
+          className="rounded-full border border-[#2a3552] px-6 py-3 text-base font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
         >
           Importer un PDF
         </button>

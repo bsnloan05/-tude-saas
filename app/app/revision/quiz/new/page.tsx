@@ -6,14 +6,14 @@ import RevisionCreate from "@/components/RevisionCreate";
 export default function NewQuizPage() {
   return (
     <div className="flex flex-col items-center px-4 py-12">
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-3xl">
         <Link
           href="/app/revision"
-          className="mb-4 inline-block text-sm font-medium text-[#8b97b0] transition-colors hover:text-[#e7ecf5]"
+          className="mb-5 inline-block text-base font-medium text-[#8b97b0] transition-colors hover:text-[#e7ecf5]"
         >
           ← Révision
         </Link>
-        <h1 className="mb-6 text-2xl font-bold text-[#e7ecf5]">Nouveau quiz</h1>
+        <h1 className="mb-8 text-3xl font-bold text-[#e7ecf5]">Nouveau quiz</h1>
         <RevisionCreate type="quiz" />
       </div>
     </div>
