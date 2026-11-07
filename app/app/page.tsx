@@ -948,6 +948,7 @@ export default function Home() {
     if (!transcript) {
       setStatus("error");
       setErrorMessage("Aucune parole n'a été détectée.");
+      window.posthog?.capture("transcription_empty_result");
       window.localStorage.removeItem(BACKUP_STORAGE_KEY);
       return;
     }
