@@ -178,7 +178,7 @@ function DemoPageContent() {
         )}
 
         {step === "generating" && (
-          <div className="flex flex-col items-center gap-6 rounded-xl border border-[#232d45] bg-[#0d1424]/60 px-6 py-20 text-center">
+          <div className="flex min-h-[65vh] flex-col items-center justify-center gap-6 text-center">
             <GeneratingAnimation />
             <p className="text-lg font-medium text-[#c3cbdc]">{PROGRESS_MESSAGES[progressIndex]}</p>
           </div>
