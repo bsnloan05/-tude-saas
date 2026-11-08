@@ -105,7 +105,8 @@ export default function DemoPage() {
         {step === "error" && (
           <div className="flex flex-col items-center gap-4 rounded-xl border border-red-900/50 bg-red-950/50 px-6 py-14 text-center">
             <p className="text-base text-red-200">{errorMessage}</p>
-            {errorMessage.includes("déjà été utilisée") ? (
+            {errorMessage.includes("déjà été utilisée") ||
+            errorMessage.includes("réservée aux comptes gratuits") ? (
               <Link
                 href="/app"
                 className="rounded-full bg-[#2563eb] px-6 py-2.5 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"

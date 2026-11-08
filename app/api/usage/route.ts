@@ -33,15 +33,17 @@ export async function GET() {
     0,
   );
 
-  // Sert à savoir si on propose le mode démo (/app/demo) : uniquement tant
-  // qu'un compte n'a encore aucune fiche et ne l'a pas déjà utilisé, pour que
-  // ça reste un vrai coup de pouce au tout début, pas une offre permanente.
+  // Sert à savoir si on propose le mode démo (/app/demo) : uniquement pour
+  // les comptes gratuits qui n'ont encore aucune fiche et ne l'ont pas déjà
+  // utilisée, pour que ça reste un vrai coup de pouce au tout début, pas une
+  // offre permanente — et jamais aux comptes payants, qui ont déjà payé et
+  // n'ont pas besoin d'être convaincus.
   const { count: ficheCount } = await supabase
     .from("fiches")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id);
 
-  const demoAvailable = !profile?.demo_used_at && !ficheCount;
+  const demoAvailable = plan === "free" && !profile?.demo_used_at && !ficheCount;
 
   // Le prénom vient soit du champ saisi à l'inscription par email, soit du
   // nom fourni par Google (format "Prénom Nom") pour une connexion OAuth.

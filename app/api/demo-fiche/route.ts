@@ -24,9 +24,16 @@ export async function POST() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("demo_used_at")
+    .select("plan, demo_used_at")
     .eq("id", user.id)
     .single();
+
+  if (profile?.plan && profile.plan !== "free") {
+    return NextResponse.json(
+      { error: "La démo est réservée aux comptes gratuits." },
+      { status: 403 },
+    );
+  }
 
   if (profile?.demo_used_at) {
     return NextResponse.json(
