@@ -174,6 +174,11 @@ export default function Home() {
   const [recoveredSession, setRecoveredSession] = useState<RecordingBackup | null>(
     null,
   );
+  // Permet de passer outre l'invite vers la démo (voir plus bas) pour
+  // revenir à l'écran normal d'enregistrement, sans attendre d'avoir
+  // vraiment utilisé la démo. Purement local : un rechargement de page
+  // réaffiche l'invite tant que la démo n'a pas été faite pour de vrai.
+  const [skipDemo, setSkipDemo] = useState(false);
 
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
   const pdfInputRef = useRef<HTMLInputElement | null>(null);
@@ -1075,23 +1080,31 @@ export default function Home() {
           )}
         </div>
 
-        {usage?.demoAvailable && status === "idle" && (
-          <Link
-            href="/app/demo"
-            className="flex w-full max-w-xl flex-col items-center gap-4 rounded-xl border border-[#2563eb]/40 bg-[#2563eb]/10 px-8 py-14 text-center transition-colors duration-150 hover:bg-[#2563eb]/15"
-          >
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2563eb]/15 text-[#38bdf8]">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-7 w-7">
-                <path d="M13 2L4 14h6l-1 8 10-13h-6l0-7z" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-            <span className="text-2xl font-bold text-[#38bdf8]">
-              Pas de cours sous la main pour l&apos;instant ?
-            </span>
-            <span className="max-w-sm text-base text-[#8b97b0]">
-              Vois en 30 secondes ce que Memoflash fait, avec un exemple de cours →
-            </span>
-          </Link>
+        {usage?.demoAvailable && status === "idle" && !skipDemo && (
+          <>
+            <Link
+              href="/app/demo"
+              className="flex w-full max-w-xl flex-col items-center gap-4 rounded-xl border border-[#2563eb]/40 bg-[#2563eb]/10 px-8 py-14 text-center transition-colors duration-150 hover:bg-[#2563eb]/15"
+            >
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2563eb]/15 text-[#38bdf8]">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-7 w-7">
+                  <path d="M13 2L4 14h6l-1 8 10-13h-6l0-7z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <span className="text-2xl font-bold text-[#38bdf8]">
+                Pas de cours sous la main pour l&apos;instant ?
+              </span>
+              <span className="max-w-sm text-base text-[#8b97b0]">
+                Vois en 30 secondes ce que Memoflash fait, avec un exemple de cours →
+              </span>
+            </Link>
+            <button
+              onClick={() => setSkipDemo(true)}
+              className="text-sm font-medium text-[#8b97b0] transition-colors hover:text-[#e7ecf5] hover:underline"
+            >
+              Ou commencer avec mon propre cours →
+            </button>
+          </>
         )}
 
         {recoveredSession && status === "idle" && (
@@ -1133,14 +1146,14 @@ export default function Home() {
           </div>
         )}
 
-        {!isSupported && !usage?.demoAvailable && (
+        {!isSupported && (!usage?.demoAvailable || skipDemo) && (
           <p className="rounded-lg border border-amber-900/50 bg-amber-950/50 px-4 py-3 text-sm text-amber-200 print:hidden">
             Ton navigateur ne supporte pas la reconnaissance vocale. Utilise
             Safari (Mac/iPhone) ou Google Chrome.
           </p>
         )}
 
-        {isSupported && !usage?.demoAvailable && (
+        {isSupported && (!usage?.demoAvailable || skipDemo) && (
           <div className="flex flex-col items-center gap-3">
             <button
               onClick={() => {
