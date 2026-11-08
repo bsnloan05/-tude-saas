@@ -90,14 +90,14 @@ export default function FichesPage() {
         )}
 
         {!error && fiches !== null && fiches.length === 0 && (
-          <div className="rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-8 text-center backdrop-blur-sm">
+          <div className="flex min-h-[55vh] flex-col items-center justify-center gap-4 text-center">
             <p className="text-sm text-[#8b97b0]">
               Tu n&apos;as encore aucune fiche enregistrée. Génère ta première
               fiche depuis la page principale !
             </p>
             <Link
               href="/app"
-              className="mt-4 inline-block rounded-full bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+              className="inline-block rounded-full bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
             >
               Créer une fiche
             </Link>
