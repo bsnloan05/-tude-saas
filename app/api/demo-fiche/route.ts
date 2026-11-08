@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { buildFicheSystemPrompt, generateSingleCallFiche, isGroqRateLimitError } from "@/lib/fiche-generation";
-import { DEMO_TRANSCRIPT } from "@/lib/demoTranscript";
+import { sleep } from "@/lib/fiche-generation";
+import { DEMO_FICHE_NOTES } from "@/lib/demoFiche";
 
 export const maxDuration = 60;
 
-// Génère une fiche à partir de l'exemple de cours bundlé (voir
-// lib/demoTranscript.ts), pour montrer le produit à un compte qui vient de
-// s'inscrire sans cours en direct ni fichier à importer. Volontairement sans
-// contrôle de quota/forfait (contrairement à generate-notes) : accessible aux
-// comptes gratuits, mais limité à une seule fois par compte via
-// profiles.demo_used_at, pour que ça reste un moment de démo guidé plutôt
-// qu'un générateur gratuit illimité.
+// Sert une fiche pré-générée (voir lib/demoFiche.ts) pour montrer le produit
+// à un compte qui vient de s'inscrire sans cours en direct ni fichier à
+// importer. Le cours démo est toujours le même (lib/demoTranscript.ts), donc
+// pas besoin de rappeler Groq à chaque fois : ça évite de consommer le quota
+// partagé avec les vrais clients pour un résultat qui serait de toute façon
+// identique. Limité à une seule fois par compte via profiles.demo_used_at,
+// pour que ça reste un moment de démo guidé plutôt qu'un raccourci permanent.
 export async function POST() {
   const supabase = await createClient();
   const {
@@ -42,27 +42,16 @@ export async function POST() {
     );
   }
 
-  try {
-    // Schémas activés volontairement pour la démo (normalement exclusifs au
-    // forfait À vie) : c'est le meilleur moment pour montrer cette
-    // fonctionnalité, avant même que la personne ait payé quoi que ce soit.
-    const notes = await generateSingleCallFiche(DEMO_TRANSCRIPT, buildFicheSystemPrompt(true));
+  // Pause artificielle : la fiche est déjà prête (pas d'appel Groq), mais un
+  // résultat instantané casserait l'effet "génération guidée" de l'écran de
+  // chargement (voir app/app/demo/page.tsx), qui tourne sur ~3 messages de
+  // 1,8s chacun.
+  await sleep(3200);
 
-    await supabase
-      .from("profiles")
-      .update({ demo_used_at: new Date().toISOString() })
-      .eq("id", user.id);
+  await supabase
+    .from("profiles")
+    .update({ demo_used_at: new Date().toISOString() })
+    .eq("id", user.id);
 
-    return NextResponse.json({ notes });
-  } catch (error) {
-    console.error("Erreur Groq API (démo):", error);
-    return NextResponse.json(
-      {
-        error: isGroqRateLimitError(error)
-          ? "Beaucoup de monde utilise Memoflash en ce moment. Attends quelques minutes puis réessaie."
-          : "La génération a rencontré un petit souci. Réessaie.",
-      },
-      { status: 500 },
-    );
-  }
+  return NextResponse.json({ notes: DEMO_FICHE_NOTES });
 }
