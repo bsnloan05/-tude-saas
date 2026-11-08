@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import FicheContent from "@/components/FicheContent";
 import { DEMO_TITLE, DEMO_TRANSCRIPT } from "@/lib/demoTranscript";
 
 type Step = "intro" | "course" | "generating" | "done" | "error";
+type AnimStyle = "ring" | "particles" | "scan" | "orbit";
 
 // Messages affichés tour à tour pendant la génération, pour que l'attente
 // (un seul appel Groq, quelques secondes) se ressente comme un vrai
@@ -17,13 +18,142 @@ const PROGRESS_MESSAGES = [
   "Mise en forme de ta fiche...",
 ];
 
+const BOLT_PATH = "M13 2L4 14h6l-1 8 10-13h-6l0-7z";
+
+// Quatre styles d'animation pour l'écran de génération, à comparer via
+// ?anim=ring|particles|scan|orbit sur cette page (défaut : ring). Et
+// ?preview=1 déclenche directement l'écran de génération sans vraiment
+// appeler l'API, pour comparer les styles sans consommer l'unique
+// génération démo autorisée par compte.
+function GeneratingAnimation({ anim }: { anim: AnimStyle }) {
+  if (anim === "particles") {
+    const sparkles = [
+      { top: "6%", left: "50%", delay: "0s" },
+      { top: "22%", left: "84%", delay: "0.3s" },
+      { top: "50%", left: "94%", delay: "0.6s" },
+      { top: "78%", left: "80%", delay: "0.9s" },
+      { top: "94%", left: "50%", delay: "1.2s" },
+      { top: "50%", left: "6%", delay: "0.45s" },
+    ];
+    return (
+      <div className="relative flex h-32 w-32 items-center justify-center">
+        {sparkles.map((s, i) => (
+          <span
+            key={i}
+            className="demo-anim-twinkle absolute h-2 w-2 rounded-full bg-[#38bdf8]"
+            style={{ top: s.top, left: s.left, animationDelay: s.delay }}
+          />
+        ))}
+        <span className="demo-anim-pulse flex h-16 w-16 items-center justify-center rounded-full bg-[#2563eb] text-white shadow-[0_0_30px_rgba(37,99,235,0.6)]">
+          <svg viewBox="0 0 24 24" fill="currentColor" className="h-8 w-8">
+            <path d={BOLT_PATH} />
+          </svg>
+        </span>
+      </div>
+    );
+  }
+
+  if (anim === "scan") {
+    return (
+      <div className="relative h-40 w-full max-w-xs overflow-hidden rounded-lg border border-[#232d45] bg-[#0b1120] px-4 py-3 text-left text-[11px] leading-relaxed text-[#3a4668]">
+        {DEMO_TRANSCRIPT.slice(0, 320)}
+        <div
+          className="demo-anim-scan absolute inset-x-0 h-10"
+          style={{
+            background:
+              "linear-gradient(to bottom, transparent, rgba(56,189,248,0.35), transparent)",
+            boxShadow: "0 0 20px 4px rgba(56,189,248,0.25)",
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (anim === "orbit") {
+    const dots = [
+      { radius: "44px", duration: "2.2s", size: "h-3 w-3", color: "bg-[#38bdf8]" },
+      { radius: "60px", duration: "3.4s", size: "h-2 w-2", color: "bg-[#2563eb]" },
+      { radius: "76px", duration: "4.6s", size: "h-1.5 w-1.5", color: "bg-[#7dd3fc]" },
+    ];
+    return (
+      <div className="relative flex h-40 w-40 items-center justify-center">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2563eb] text-white">
+          <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7">
+            <path d={BOLT_PATH} />
+          </svg>
+        </span>
+        {dots.map((d, i) => (
+          <span
+            key={i}
+            className="absolute top-1/2 left-1/2 -mt-1 -ml-1"
+            style={
+              {
+                "--orbit-radius": d.radius,
+                "--orbit-duration": d.duration,
+              } as CSSProperties
+            }
+          >
+            <span className={`demo-anim-orbit block ${d.size} rounded-full ${d.color}`} />
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  // "ring" (par défaut)
+  return (
+    <div className="relative flex h-32 w-32 items-center justify-center">
+      <span className="absolute inset-0 rounded-full bg-[#2563eb]/30 blur-xl" />
+      <span
+        className="absolute inset-0 animate-spin rounded-full border-4 border-transparent [border-right-color:#2563eb] [border-top-color:#38bdf8]"
+        style={{ animationDuration: "1.3s" }}
+      />
+      <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-[#2563eb] text-white">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="h-8 w-8">
+          <path d={BOLT_PATH} />
+        </svg>
+      </span>
+    </div>
+  );
+}
+
 export default function DemoPage() {
+  return (
+    <Suspense fallback={null}>
+      <DemoPageContent />
+    </Suspense>
+  );
+}
+
+function DemoPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>("intro");
   const [notes, setNotes] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [progressIndex, setProgressIndex] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const animParam = searchParams.get("anim");
+  const anim: AnimStyle =
+    animParam === "particles" || animParam === "scan" || animParam === "orbit"
+      ? animParam
+      : "ring";
+  const isPreview = searchParams.get("preview") === "1";
+
+  useEffect(() => {
+    if (!isPreview) return;
+    queueMicrotask(() => {
+      setStep("generating");
+      setProgressIndex(0);
+    });
+    intervalRef.current = setInterval(() => {
+      setProgressIndex((i) => (i + 1) % PROGRESS_MESSAGES.length);
+    }, 1800);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isPreview]);
 
   useEffect(() => {
     return () => {
@@ -129,9 +259,9 @@ export default function DemoPage() {
         )}
 
         {step === "generating" && (
-          <div className="flex flex-col items-center gap-4 rounded-xl border border-[#232d45] bg-[#0d1424]/60 px-6 py-20 text-center">
-            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#38bdf8]" />
-            <p className="text-base text-[#8b97b0]">{PROGRESS_MESSAGES[progressIndex]}</p>
+          <div className="flex flex-col items-center gap-6 rounded-xl border border-[#232d45] bg-[#0d1424]/60 px-6 py-20 text-center">
+            <GeneratingAnimation anim={anim} />
+            <p className="text-lg font-medium text-[#c3cbdc]">{PROGRESS_MESSAGES[progressIndex]}</p>
           </div>
         )}
 

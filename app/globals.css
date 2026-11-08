@@ -354,3 +354,58 @@ input[type="range"].slider-thumb-lg::-moz-range-thumb {
   cursor: pointer;
 }
 
+/* Animations de l'écran de génération sur /app/demo (plusieurs variantes
+   testées côte à côte via ?anim=, voir app/app/demo/page.tsx). */
+
+@keyframes demo-pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.85;
+  }
+}
+.demo-anim-pulse {
+  animation: demo-pulse-scale 1.6s ease-in-out infinite;
+}
+
+@keyframes demo-twinkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.demo-anim-twinkle {
+  animation: demo-twinkle 1.8s ease-in-out infinite;
+}
+
+@keyframes demo-scan-sweep {
+  0% {
+    top: 0%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+.demo-anim-scan {
+  animation: demo-scan-sweep 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes demo-orbit {
+  from {
+    transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg);
+  }
+}
+.demo-anim-orbit {
+  animation: demo-orbit var(--orbit-duration, 3s) linear infinite;
+}
+
