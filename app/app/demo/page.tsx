@@ -226,20 +226,12 @@ function DemoPageContent() {
                 C&apos;est exactement ce que Memoflash fait avec{" "}
                 <span className="text-emerald-400">tes propres cours</span>.
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                <button
-                  onClick={() => router.push("/app")}
-                  className="rounded-full bg-[#2563eb] px-7 py-3 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
-                >
-                  Enregistrer mon premier cours
-                </button>
-                <Link
-                  href="/pricing"
-                  className="rounded-full border border-[#2a3552] px-7 py-3 text-base font-medium text-[#c3cbdc] transition-colors transition-transform duration-150 hover:bg-[#1b2440] active:scale-95"
-                >
-                  Voir les forfaits
-                </Link>
-              </div>
+              <button
+                onClick={() => router.push("/app")}
+                className="rounded-full bg-[#2563eb] px-7 py-3 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+              >
+                Enregistrer mon premier cours
+              </button>
             </div>
           </div>
         )}
