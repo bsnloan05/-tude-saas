@@ -179,6 +179,11 @@ export default function Home() {
   // vraiment utilisé la démo. Purement local : un rechargement de page
   // réaffiche l'invite tant que la démo n'a pas été faite pour de vrai.
   const [skipDemo, setSkipDemo] = useState(false);
+  // Tant que /api/usage n'a pas répondu, on ne sait pas encore si ce compte
+  // doit voir l'invite démo ou l'écran d'enregistrement classique : on
+  // affiche un squelette plutôt que l'un des deux à l'aveugle, pour éviter
+  // le flash "mauvais écran puis bon écran" au chargement/rechargement.
+  const [usageLoaded, setUsageLoaded] = useState(false);
 
   const barRefs = useRef<Array<HTMLDivElement | null>>([]);
   const pdfInputRef = useRef<HTMLInputElement | null>(null);
@@ -415,6 +420,8 @@ export default function Home() {
       setUsage(data);
     } catch {
       // Pas grave si ça échoue : c'est juste un indicateur, pas bloquant.
+    } finally {
+      setUsageLoaded(true);
     }
   };
 
@@ -1080,7 +1087,15 @@ export default function Home() {
           )}
         </div>
 
-        {usage?.demoAvailable && status === "idle" && !skipDemo && (
+        {!usageLoaded && status === "idle" && (
+          <div className="flex w-full max-w-xl flex-col items-center gap-4 rounded-xl border border-[#232d45]/60 bg-[#0d1424]/30 px-8 py-14">
+            <div className="h-14 w-14 animate-pulse rounded-full bg-[#1b2440]" />
+            <div className="h-6 w-56 animate-pulse rounded bg-[#1b2440]" />
+            <div className="h-4 w-72 animate-pulse rounded bg-[#1b2440]" />
+          </div>
+        )}
+
+        {usageLoaded && usage?.demoAvailable && status === "idle" && !skipDemo && (
           <>
             <Link
               href="/app/demo"
@@ -1146,14 +1161,14 @@ export default function Home() {
           </div>
         )}
 
-        {!isSupported && (!usage?.demoAvailable || skipDemo) && (
+        {usageLoaded && !isSupported && (!usage?.demoAvailable || skipDemo) && (
           <p className="rounded-lg border border-amber-900/50 bg-amber-950/50 px-4 py-3 text-sm text-amber-200 print:hidden">
             Ton navigateur ne supporte pas la reconnaissance vocale. Utilise
             Safari (Mac/iPhone) ou Google Chrome.
           </p>
         )}
 
-        {isSupported && (!usage?.demoAvailable || skipDemo) && (
+        {usageLoaded && isSupported && (!usage?.demoAvailable || skipDemo) && (
           <div className="flex flex-col items-center gap-3">
             <button
               onClick={() => {
