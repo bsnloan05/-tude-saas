@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import FicheContent from "@/components/FicheContent";
 import { DEMO_TITLE, DEMO_TRANSCRIPT } from "@/lib/demoTranscript";
@@ -47,7 +47,6 @@ export default function DemoPage() {
 }
 
 function DemoPageContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>("intro");
   const [notes, setNotes] = useState("");
@@ -214,7 +213,14 @@ function DemoPageContent() {
                 <span className="text-emerald-400">tes propres cours</span>.
               </p>
               <button
-                onClick={() => router.push("/app")}
+                onClick={() => {
+                  // Navigation complète (pas router.push) : /app vient de
+                  // changer d'état (demo_used_at posé), un push "doux" peut
+                  // réafficher l'ancienne version en cache de la page avec
+                  // encore l'invite démo au lieu de l'écran normal.
+                  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                  window.location.href = "/app";
+                }}
                 className="rounded-full bg-[#2563eb] px-7 py-3 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
               >
                 Enregistrer mon premier cours
