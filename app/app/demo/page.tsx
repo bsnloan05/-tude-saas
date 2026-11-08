@@ -118,7 +118,7 @@ function DemoPageContent() {
         </Link>
 
         {step === "intro" && (
-          <div className="flex flex-col items-center gap-6 rounded-xl border border-[#232d45] bg-[#0d1424]/60 px-6 py-14 text-center">
+          <div className="flex min-h-[65vh] flex-col items-center justify-center gap-6 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2563eb]/15 text-[#38bdf8]">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-7 w-7">
                 <path d="M13 2L4 14h6l-1 8 10-13h-6l0-7z" strokeLinecap="round" strokeLinejoin="round" />
