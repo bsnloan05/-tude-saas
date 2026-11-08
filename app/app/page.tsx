@@ -1100,7 +1100,7 @@ export default function Home() {
             </Link>
             <button
               onClick={() => setSkipDemo(true)}
-              className="text-sm font-medium text-[#8b97b0] transition-colors hover:text-[#e7ecf5] hover:underline"
+              className="text-lg font-bold text-[#c3cbdc] transition-colors hover:text-[#e7ecf5] hover:underline"
             >
               Ou commencer avec mon propre cours →
             </button>
