@@ -143,17 +143,22 @@ function DemoPageContent() {
 
   useEffect(() => {
     if (!isPreview) return;
+    // "anim" est inclus dans les dépendances : sans ça, passer d'une URL de
+    // preview à une autre (ex: ?anim=ring -> ?anim=particles) sans
+    // rechargement complet de la page ne relançait pas ce cycle, et
+    // l'affichage restait bloqué sur le premier style testé.
     queueMicrotask(() => {
       setStep("generating");
       setProgressIndex(0);
     });
+    if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
       setProgressIndex((i) => (i + 1) % PROGRESS_MESSAGES.length);
     }, 1800);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isPreview]);
+  }, [isPreview, anim]);
 
   useEffect(() => {
     return () => {
