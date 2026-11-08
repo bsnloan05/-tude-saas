@@ -43,7 +43,10 @@ export async function POST() {
   }
 
   try {
-    const notes = await generateSingleCallFiche(DEMO_TRANSCRIPT, buildFicheSystemPrompt(false));
+    // Schémas activés volontairement pour la démo (normalement exclusifs au
+    // forfait À vie) : c'est le meilleur moment pour montrer cette
+    // fonctionnalité, avant même que la personne ait payé quoi que ce soit.
+    const notes = await generateSingleCallFiche(DEMO_TRANSCRIPT, buildFicheSystemPrompt(true));
 
     await supabase
       .from("profiles")

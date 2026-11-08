@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import FicheContent from "@/components/FicheContent";
-import { DEMO_TITLE } from "@/lib/demoTranscript";
+import { DEMO_TITLE, DEMO_TRANSCRIPT } from "@/lib/demoTranscript";
 
-type Step = "intro" | "generating" | "done" | "error";
+type Step = "intro" | "course" | "generating" | "done" | "error";
 
 // Messages affichés tour à tour pendant la génération, pour que l'attente
 // (un seul appel Groq, quelques secondes) se ressente comme un vrai
@@ -82,16 +82,49 @@ export default function DemoPage() {
               <p className="mx-auto max-w-md text-base text-[#8b97b0]">
                 Pas encore de cours à enregistrer ou de fichier à importer ? Pas de souci. On a
                 pris un vrai extrait de cours —{" "}
-                <span className="text-[#c3cbdc]">« {DEMO_TITLE} »</span> — et on va te montrer en
-                quelques secondes la fiche de révision que Memoflash en tire.
+                <span className="text-[#c3cbdc]">« {DEMO_TITLE} »</span> — tu vas d&apos;abord le
+                lire, puis générer la fiche de révision que Memoflash en tire.
               </p>
             </div>
             <button
-              onClick={startDemo}
+              onClick={() => {
+                window.posthog?.capture("demo_course_viewed");
+                setStep("course");
+              }}
               className="rounded-full bg-[#2563eb] px-8 py-3.5 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
             >
-              Voir la démo
+              Voir le cours
             </button>
+          </div>
+        )}
+
+        {step === "course" && (
+          <div className="flex flex-col gap-6">
+            <div className="rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-6">
+              <div className="mb-5 flex items-center gap-1.5 border-b border-[#232d45] pb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5 shrink-0 text-[#38bdf8]">
+                  <path d="M6 3h9l5 5v13a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M9 12h6M9 16h6M9 8h2" strokeLinecap="round" />
+                </svg>
+                Le cours — {DEMO_TITLE}
+              </div>
+              <div className="flex flex-col gap-4 text-base leading-relaxed text-[#c3cbdc]">
+                {DEMO_TRANSCRIPT.split("\n\n").map((paragraph, i) => (
+                  <p key={i}>{paragraph}</p>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-3 text-center">
+              <p className="text-sm text-[#8b97b0]">
+                Voilà le cours. Maintenant, regarde ce que Memoflash en fait.
+              </p>
+              <button
+                onClick={startDemo}
+                className="rounded-full bg-[#2563eb] px-8 py-3.5 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+              >
+                Générer la fiche
+              </button>
+            </div>
           </div>
         )}
 
