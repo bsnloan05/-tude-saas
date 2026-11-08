@@ -144,6 +144,7 @@ export default function Home() {
     quotaSeconds: number | null;
     plan: string;
     email: string;
+    demoAvailable: boolean;
   } | null>(null);
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
@@ -1073,6 +1074,20 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {usage?.demoAvailable && status === "idle" && (
+          <Link
+            href="/app/demo"
+            className="flex w-full max-w-md flex-col items-center gap-1.5 rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 px-5 py-4 text-center transition-colors duration-150 hover:bg-[#2563eb]/15"
+          >
+            <span className="text-sm font-semibold text-[#38bdf8]">
+              Pas de cours sous la main pour l&apos;instant ?
+            </span>
+            <span className="text-sm text-[#8b97b0]">
+              Vois en 30 secondes ce que Memoflash fait, avec un exemple de cours →
+            </span>
+          </Link>
+        )}
 
         {recoveredSession && status === "idle" && (
           <div className="flex w-full flex-col items-center gap-3 rounded-lg border border-[#2563eb]/40 bg-[#2563eb]/10 p-4 text-center">

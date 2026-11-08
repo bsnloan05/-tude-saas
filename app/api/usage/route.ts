@@ -15,7 +15,7 @@ export async function GET() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("plan")
+    .select("plan, demo_used_at")
     .eq("id", user.id)
     .single();
 
@@ -33,6 +33,16 @@ export async function GET() {
     0,
   );
 
+  // Sert à savoir si on propose le mode démo (/app/demo) : uniquement tant
+  // qu'un compte n'a encore aucune fiche et ne l'a pas déjà utilisé, pour que
+  // ça reste un vrai coup de pouce au tout début, pas une offre permanente.
+  const { count: ficheCount } = await supabase
+    .from("fiches")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  const demoAvailable = !profile?.demo_used_at && !ficheCount;
+
   // Le prénom vient soit du champ saisi à l'inscription par email, soit du
   // nom fourni par Google (format "Prénom Nom") pour une connexion OAuth.
   // Les comptes créés avant l'ajout du champ prénom n'ont ni l'un ni
@@ -47,6 +57,7 @@ export async function GET() {
     plan,
     usedSeconds,
     quotaSeconds,
+    demoAvailable,
     email: user.email,
     firstName,
   });
