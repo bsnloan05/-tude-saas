@@ -3,6 +3,18 @@
 import { useEffect, useId, useRef, useState } from "react";
 import mermaid from "mermaid";
 
+// Filet de sécurité : malgré la consigne du prompt, le modèle laisse parfois
+// échapper des parenthèses/deux-points/guillemets dans un label de nœud
+// (ex: "Activation de biais(s)"), ce qui casse tout le schéma Mermaid. On
+// nettoie uniquement le texte à l'intérieur des crochets [...] (jamais le
+// reste de la syntaxe, qui a besoin de ":" pour classDef/style).
+function sanitizeMermaidLabels(code: string): string {
+  return code.replace(/\[([^[\]]*)\]/g, (_match, label: string) => {
+    const cleaned = label.replace(/[()":;]/g, (char) => (char === ":" || char === ";" ? "," : ""));
+    return `[${cleaned}]`;
+  });
+}
+
 let initialized = false;
 function ensureInitialized() {
   if (initialized) return;
@@ -30,6 +42,8 @@ export default function MermaidDiagram({ code }: { code: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
 
+  const safeCode = sanitizeMermaidLabels(code);
+
   useEffect(() => {
     let cancelled = false;
     ensureInitialized();
@@ -40,14 +54,14 @@ export default function MermaidDiagram({ code }: { code: string }) {
     // rendu, pour ne jamais laisser mermaid tenter d'afficher quoi que ce
     // soit par lui-même sur un schéma invalide.
     mermaid
-      .parse(code, { suppressErrors: true })
+      .parse(safeCode, { suppressErrors: true })
       .then((isValid) => {
         if (cancelled) return;
         if (!isValid) {
           setFailed(true);
           return;
         }
-        return mermaid.render(safeId, code).then(({ svg }) => {
+        return mermaid.render(safeId, safeCode).then(({ svg }) => {
           if (!cancelled && containerRef.current) {
             containerRef.current.innerHTML = svg;
           }
@@ -61,7 +75,7 @@ export default function MermaidDiagram({ code }: { code: string }) {
     return () => {
       cancelled = true;
     };
-  }, [code, safeId]);
+  }, [safeCode, safeId]);
 
   if (failed) {
     return (

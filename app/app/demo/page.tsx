@@ -208,19 +208,6 @@ function DemoPageContent() {
 
         {step === "done" && (
           <div className="flex flex-col gap-6">
-            <div className="fiche-enter w-full rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-5 shadow-sm backdrop-blur-sm">
-              <div className="mb-5 flex items-center gap-1.5 border-b border-[#232d45] px-2 pb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5 shrink-0 text-[#38bdf8]">
-                  <path d="M12 20h9" strokeLinecap="round" />
-                  <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Exemple de fiche — {DEMO_TITLE}
-              </div>
-              <div className="px-2">
-                <FicheContent notes={notes} highlightMode />
-              </div>
-            </div>
-
             <div className="fiche-enter flex flex-col items-center gap-5 rounded-xl border border-emerald-500/40 bg-emerald-500/5 px-6 py-10 text-center">
               <p className="text-xl font-bold text-[#e7ecf5]">
                 C&apos;est exactement ce que Memoflash fait avec{" "}
@@ -232,6 +219,19 @@ function DemoPageContent() {
               >
                 Enregistrer mon premier cours
               </button>
+            </div>
+
+            <div className="fiche-enter w-full rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-5 shadow-sm backdrop-blur-sm">
+              <div className="mb-5 flex items-center gap-1.5 border-b border-[#232d45] px-2 pb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5 shrink-0 text-[#38bdf8]">
+                  <path d="M12 20h9" strokeLinecap="round" />
+                  <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Exemple de fiche — {DEMO_TITLE}
+              </div>
+              <div className="px-2">
+                <FicheContent notes={notes} highlightMode />
+              </div>
             </div>
           </div>
         )}
