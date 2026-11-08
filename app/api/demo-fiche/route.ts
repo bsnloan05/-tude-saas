@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sleep } from "@/lib/fiche-generation";
 import { DEMO_FICHE_NOTES } from "@/lib/demoFiche";
 
@@ -48,7 +49,11 @@ export async function POST() {
   // 1,8s chacun.
   await sleep(3200);
 
-  await supabase
+  // Client admin requis ici : comme partout ailleurs dans l'app (webhook
+  // Stripe, désabonnement...), le client lié à la session de l'utilisateur
+  // n'a pas le droit d'écrire sur sa propre ligne `profiles` (RLS) — un
+  // update avec le client normal échoue silencieusement, sans erreur.
+  await createAdminClient()
     .from("profiles")
     .update({ demo_used_at: new Date().toISOString() })
     .eq("id", user.id);
