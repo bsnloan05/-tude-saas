@@ -60,7 +60,6 @@ export async function GET(request: NextRequest) {
         distinctId: user.id,
         event: isNewSignup ? "signup_completed" : "login_completed",
       });
-      await posthogServer?.shutdown();
     }
   } catch (posthogError) {
     // Le suivi analytique ne doit jamais empêcher une vraie connexion.

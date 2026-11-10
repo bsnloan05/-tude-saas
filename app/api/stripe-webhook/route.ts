@@ -108,6 +108,5 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  await posthogServer?.shutdown();
   return NextResponse.json({ received: true });
 }
