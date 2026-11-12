@@ -116,6 +116,12 @@ export default function PodcastLive({
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const shouldListenRef = useRef(false);
   const finalTranscriptRef = useRef("");
+  // Accumule séparément ce qui est capté PENDANT que l'IA parle, uniquement
+  // pour le test anti-écho — ne touche jamais finalTranscriptRef tant que ce
+  // n'est pas confirmé comme une vraie interruption (sinon l'écho capté par
+  // le micro finit par être envoyé à Groq comme si c'était une vraie
+  // question une fois le silence détecté).
+  const speakingBufferRef = useRef("");
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastAiReplyRef = useRef("");
   const hasStartedRef = useRef(false);
@@ -172,6 +178,7 @@ export default function PodcastLive({
   // parle (voir onresult plus bas / bouton "Couper") — jamais un minuteur.
   const speak = (text: string) => {
     lastAiReplyRef.current = text;
+    speakingBufferRef.current = "";
     setStatus("speaking");
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
@@ -242,26 +249,39 @@ export default function PodcastLive({
 
     recognition.onresult = (event) => {
       let interim = "";
+      let finalChunk = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
         const text = result[0].transcript;
         if (result.isFinal) {
-          finalTranscriptRef.current += text + " ";
+          finalChunk += text + " ";
         } else {
           interim += text;
         }
       }
 
-      // Pendant que l'IA parle : vérifie si ce qui est capté ressemble à
-      // une vraie interruption plutôt qu'au micro qui se réentend lui-même.
+      // Pendant que l'IA parle : tant que ce qui est capté ressemble à de
+      // l'écho (le micro qui se réentend par les haut-parleurs), on ignore
+      // complètement le résultat — on ne touche JAMAIS finalTranscriptRef
+      // ici, sinon l'écho finirait par être envoyé à Groq comme une vraie
+      // question une fois le silence détecté (bug constaté en test : l'IA
+      // se répondait à elle-même). On ne garde que la part confirmée du
+      // résultat qui déclenche une vraie interruption, comme départ de la
+      // nouvelle phrase de l'étudiant.
       if (statusRef.current === "speaking") {
-        const combined = (finalTranscriptRef.current + interim).trim();
+        speakingBufferRef.current += finalChunk + interim;
+        const combined = speakingBufferRef.current.trim();
         if (combined && !isLikelyEcho(combined, lastAiReplyRef.current)) {
           window.speechSynthesis.cancel();
           setStatus("listening");
+          finalTranscriptRef.current = finalChunk;
+          speakingBufferRef.current = "";
+          scheduleSilenceCheck();
         }
+        return;
       }
 
+      finalTranscriptRef.current += finalChunk;
       scheduleSilenceCheck();
     };
 
