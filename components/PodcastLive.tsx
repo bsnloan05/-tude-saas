@@ -71,8 +71,19 @@ const INTERRUPT_KEYWORDS = ["stop", "attends", "pardon", "excuse-moi", "arrête"
 // annulation doit rester proche du bruit ambiant, une vraie voix qui parle
 // par-dessus doit faire monter le volume nettement au-dessus.
 const VOLUME_POLL_MS = 120;
-const MIN_VOICE_RMS = 0.05;
-const NOISE_FLOOR_MULTIPLIER = 2.5;
+// Seuils volontairement plus prudents qu'un premier essai : trop sensibles,
+// ils se déclenchaient quasi instantanément à chaque phrase de l'IA (testé
+// en direct). Mieux vaut rater une interruption discrète que couper l'IA en
+// permanence — le bouton "Couper" reste le filet de secours fiable à 100%.
+const MIN_VOICE_RMS = 0.09;
+const NOISE_FLOOR_MULTIPLIER = 4;
+// L'annulation d'écho du navigateur a besoin d'un court instant pour
+// s'adapter dès qu'un nouveau son démarre : le tout début de chaque phrase
+// de l'IA est presque toujours mal annulé (sursaut d'écho), ce qui
+// déclenchait une fausse interruption quasi immédiate. On ignore la
+// détection par volume pendant cette courte fenêtre après le début de
+// chaque phrase (le filet mot-clé reste actif, lui, dès le début).
+const BARGE_IN_GRACE_MS = 700;
 
 function computeRms(data: Uint8Array): number {
   let sumSquares = 0;
@@ -108,6 +119,10 @@ export default function PodcastLive({
   // finalTranscriptRef (l'interruption réelle est décidée par le volume, pas
   // par ce texte, voir plus bas).
   const speakingTranscriptRef = useRef("");
+  // Horodatage du début de la phrase en cours de l'IA — sert à ignorer la
+  // détection par volume pendant la courte fenêtre où l'annulation d'écho
+  // n'a pas encore eu le temps de s'adapter (voir BARGE_IN_GRACE_MS).
+  const speakStartRef = useRef(0);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasStartedRef = useRef(false);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -168,6 +183,7 @@ export default function PodcastLive({
   // parle (voir onresult plus bas / bouton "Couper") — jamais un minuteur.
   const speak = (text: string) => {
     speakingTranscriptRef.current = "";
+    speakStartRef.current = Date.now();
     setStatus("speaking");
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
@@ -345,6 +361,7 @@ export default function PodcastLive({
       const rms = computeRms(data);
 
       if (statusRef.current === "speaking") {
+        if (Date.now() - speakStartRef.current < BARGE_IN_GRACE_MS) return;
         const threshold = Math.max(noiseFloorRef.current * NOISE_FLOOR_MULTIPLIER, MIN_VOICE_RMS);
         if (rms > threshold) triggerBargeIn();
       } else {
@@ -353,7 +370,7 @@ export default function PodcastLive({
     };
 
     navigator.mediaDevices
-      ?.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
+      ?.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: false } })
       .then((stream) => {
         micStream = stream;
         audioContext = new AudioContext();
