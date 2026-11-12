@@ -49,7 +49,52 @@ interface PodcastMessage {
 const PODCAST_KICKOFF_MESSAGE =
   "(Présente le sujet du cours en 1 à 2 phrases, puis invite l'étudiant à poser sa première question.)";
 
-type PodcastStatus = "idle" | "listening" | "thinking" | "speaking" | "error";
+type PodcastStatus = "listening" | "thinking" | "speaking" | "error";
+
+// Durée de silence (sans nouveau mot capté) avant de considérer que
+// l'étudiant a fini de parler et d'envoyer sa question — remplace l'ancien
+// "onend" du mode pousser-pour-parler, qui ne signifie plus "fin de phrase"
+// maintenant que l'écoute est permanente (continuous).
+const SILENCE_TIMEOUT_MS = 1100;
+
+// En dessous de ce nombre de mots, un texte capté PENDANT que l'IA parle est
+// traité par prudence comme le micro qui se réentend lui-même (écho), sauf
+// s'il contient un mot-clé d'interruption explicite — trop court pour être
+// sûr que c'est une vraie interruption plutôt qu'un bout de l'écho.
+const MIN_BARGE_IN_WORDS = 4;
+const INTERRUPT_KEYWORDS = ["stop", "attends", "pardon", "excuse-moi", "arrête"];
+// Si plus de 60% des mots captés se retrouvent déjà dans ce que l'IA vient
+// de dire, c'est très probablement le micro qui capte sa propre voix par les
+// haut-parleurs plutôt qu'une vraie interruption.
+const ECHO_OVERLAP_THRESHOLD = 0.6;
+
+function normalizeWords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, "")
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+// Distingue "le micro se réentend parler l'IA" de "l'étudiant parle
+// vraiment par-dessus" — une heuristique texte, pas une vraie annulation
+// d'écho acoustique (non disponible via l'API de reconnaissance vocale du
+// navigateur). Fonctionne bien au casque/pièce calme, moins parfait au
+// haut-parleur d'un ordinateur portable : le bouton "Couper" sert de filet
+// de secours manuel pour ce cas-là.
+function isLikelyEcho(candidate: string, aiReply: string): boolean {
+  const lower = candidate.toLowerCase();
+  if (INTERRUPT_KEYWORDS.some((kw) => lower.includes(kw))) return false;
+
+  const candidateWords = normalizeWords(candidate);
+  if (candidateWords.length < MIN_BARGE_IN_WORDS) return true;
+
+  const aiWords = new Set(normalizeWords(aiReply));
+  if (aiWords.size === 0) return false;
+
+  const overlap = candidateWords.filter((w) => aiWords.has(w)).length;
+  return overlap / candidateWords.length > ECHO_OVERLAP_THRESHOLD;
+}
 
 export default function PodcastLive({
   sourceText,
@@ -66,15 +111,23 @@ export default function PodcastLive({
   const [isPlanError, setIsPlanError] = useState(false);
   const [transcriptLog, setTranscriptLog] = useState<PodcastMessage[]>([]);
 
+  const statusRef = useRef<PodcastStatus>("thinking");
   const historyRef = useRef<PodcastMessage[]>([]);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const shouldListenRef = useRef(false);
   const finalTranscriptRef = useRef("");
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastAiReplyRef = useRef("");
   const hasStartedRef = useRef(false);
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   // Envoie un message au serveur (Groq), affiche la réponse, puis la fait
   // parler. Utilisé à la fois pour le message d'accueil (historique vide) et
   // pour chaque question posée par l'étudiant.
-  const respond = async (message: string, isKickoff: boolean) => {
+  const respond = async (message: string, isKickoff = false) => {
     setStatus("thinking");
     setErrorMessage("");
     setIsPlanError(false);
@@ -107,45 +160,52 @@ export default function PodcastLive({
 
       speak(reply);
     } catch (error) {
+      shouldListenRef.current = false;
+      recognitionRef.current?.stop();
       setStatus("error");
       setErrorMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
     }
   };
 
-  // Fait parler l'IA. Seul onend/onerror ramène le statut à "idle" (jamais un
-  // minuteur) : c'est ce qui garantit que le bouton "Parler" ne redevient
-  // actif qu'une fois l'IA vraiment silencieuse, évitant tout effet larsen
-  // (le micro ne s'active jamais pendant que l'IA parle).
+  // Fait parler l'IA. Le statut ne revient à "listening" que via onend/onerror
+  // de l'utterance, ou via une vraie interruption détectée pendant qu'elle
+  // parle (voir onresult plus bas / bouton "Couper") — jamais un minuteur.
   const speak = (text: string) => {
+    lastAiReplyRef.current = text;
     setStatus("speaking");
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "fr-FR";
-    utterance.onend = () => setStatus("idle");
-    utterance.onerror = () => setStatus("idle");
+    utterance.onend = () => setStatus("listening");
+    utterance.onerror = () => setStatus("listening");
     window.speechSynthesis.speak(utterance);
   };
 
-  // Démarre l'écoute d'une seule phrase de l'étudiant. Appelé UNIQUEMENT
-  // depuis un clic explicite sur le bouton "Parler" — jamais automatiquement,
-  // jamais pendant "thinking"/"speaking" (le bouton est désactivé dans ces
-  // états, et cette fonction re-vérifie le statut par sécurité).
-  const startListening = () => {
-    if (status !== "idle" || !recognitionRef.current) return;
+  // Coupe l'IA manuellement — filet de secours si l'heuristique anti-écho ne
+  // détecte pas une vraie interruption (environnement bruyant, par exemple).
+  const interrupt = () => {
+    if (statusRef.current !== "speaking") return;
     window.speechSynthesis.cancel();
-    finalTranscriptRef.current = "";
+    setStatus("listening");
+  };
+
+  const retryListening = () => {
+    setErrorMessage("");
+    setIsPlanError(false);
+    shouldListenRef.current = true;
     setStatus("listening");
     try {
-      recognitionRef.current.start();
+      recognitionRef.current?.start();
     } catch {
-      setStatus("idle");
+      // Si ça échoue encore, onerror remettra "error" et on pourra réessayer.
     }
   };
 
-  // Détection + initialisation de la reconnaissance vocale. Une seule phrase
-  // à la fois (continuous = false) : pas besoin de la logique de
-  // redémarrage automatique de app/app/page.tsx, utilisée là-bas pour de la
-  // dictée continue, pas pour une conversation tour par tour.
+  // Écoute permanente (pas de bouton "Parler") : démarre au montage et reste
+  // active tout le long de la conversation, y compris pendant que l'IA
+  // parle (nécessaire pour pouvoir l'interrompre). Reprend la logique déjà
+  // éprouvée en prod dans app/app/page.tsx (continuous=true sur Chrome,
+  // continuous=false + redémarrage automatique ailleurs pour le bug WebKit).
   useEffect(() => {
     const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionCtor || !("speechSynthesis" in window)) {
@@ -154,51 +214,115 @@ export default function PodcastLive({
     }
 
     const recognition = new SpeechRecognitionCtor();
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    const ua = navigator.userAgent;
+    const isChromeEngine = /Chrome/.test(ua) && !/Edg|OPR/.test(ua);
+    recognition.continuous = isChromeEngine;
+    recognition.interimResults = true;
     recognition.lang = "fr-FR";
 
-    recognition.onresult = (event) => {
-      let transcript = "";
-      for (let i = 0; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result.isFinal) transcript += result[0].transcript;
+    // "onend" ne veut plus dire "l'étudiant a fini de parler" (l'écoute est
+    // continue) : c'est notre propre minuteur de silence qui détecte la fin
+    // d'un tour. Si "thinking" est encore en cours quand le silence est
+    // détecté, on re-vérifie un peu plus tard au lieu de perdre le texte.
+    const checkSilence = () => {
+      if (statusRef.current === "thinking") {
+        silenceTimerRef.current = setTimeout(checkSilence, 300);
+        return;
       }
-      finalTranscriptRef.current = transcript;
+      const transcript = finalTranscriptRef.current.trim();
+      finalTranscriptRef.current = "";
+      if (!transcript) return;
+      respond(transcript);
+    };
+
+    const scheduleSilenceCheck = () => {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = setTimeout(checkSilence, SILENCE_TIMEOUT_MS);
+    };
+
+    recognition.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        const text = result[0].transcript;
+        if (result.isFinal) {
+          finalTranscriptRef.current += text + " ";
+        } else {
+          interim += text;
+        }
+      }
+
+      // Pendant que l'IA parle : vérifie si ce qui est capté ressemble à
+      // une vraie interruption plutôt qu'au micro qui se réentend lui-même.
+      if (statusRef.current === "speaking") {
+        const combined = (finalTranscriptRef.current + interim).trim();
+        if (combined && !isLikelyEcho(combined, lastAiReplyRef.current)) {
+          window.speechSynthesis.cancel();
+          setStatus("listening");
+        }
+      }
+
+      scheduleSilenceCheck();
     };
 
     recognition.onerror = (event) => {
-      if (event.error === "no-speech" || event.error === "aborted") return;
+      // Erreurs temporaires : le redémarrage automatique (onend) suffit.
+      if (event.error === "no-speech" || event.error === "aborted" || event.error === "network") {
+        return;
+      }
+      shouldListenRef.current = false;
       setStatus("error");
       setErrorMessage("Erreur micro. Vérifie que le micro est autorisé pour ce site.");
     };
 
     recognition.onend = () => {
-      const transcript = finalTranscriptRef.current.trim();
-      if (!transcript) {
-        setStatus("idle");
-        return;
+      if (!shouldListenRef.current) return;
+      try {
+        recognition.start();
+      } catch {
+        setTimeout(() => {
+          if (!shouldListenRef.current) return;
+          try {
+            recognition.start();
+          } catch {
+            setTimeout(() => {
+              if (!shouldListenRef.current) return;
+              try {
+                recognition.start();
+              } catch {
+                // Vraiment bloqué : rien d'automatique de plus à faire ici.
+              }
+            }, 1500);
+          }
+        }, 300);
       }
-      respond(transcript, false);
     };
 
     recognitionRef.current = recognition;
+    shouldListenRef.current = true;
+    try {
+      recognition.start();
+    } catch {
+      // onerror/onend prendront le relais si besoin.
+    }
 
-    // Message d'accueil : lance la conversation sans jamais toucher le
-    // micro avant que l'IA ait fini de se présenter.
     if (!hasStartedRef.current) {
       hasStartedRef.current = true;
       respond(PODCAST_KICKOFF_MESSAGE, true);
     }
 
     return () => {
+      shouldListenRef.current = false;
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       window.speechSynthesis.cancel();
-      recognitionRef.current?.stop();
+      recognition.stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleExit = () => {
+    shouldListenRef.current = false;
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
     window.speechSynthesis.cancel();
     recognitionRef.current?.stop();
     onExit();
@@ -251,39 +375,63 @@ export default function PodcastLive({
         </div>
       )}
 
-      {status === "error" && (
+      {status === "error" ? (
         <div className="rounded-md border border-red-900/50 bg-red-950/50 px-4 py-3 text-base text-red-200">
           <p>{errorMessage}</p>
-          {isPlanError && (
+          {isPlanError ? (
             <Link
               href="/pricing"
               className="mt-2 inline-block font-medium text-[#38bdf8] hover:underline"
             >
               Voir les tarifs
             </Link>
+          ) : (
+            <button
+              onClick={retryListening}
+              className="mt-2 rounded-full bg-[#2563eb] px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
+            >
+              Réessayer
+            </button>
           )}
         </div>
+      ) : (
+        <div className="flex min-h-[20vh] flex-col items-center justify-center gap-4">
+          {status === "speaking" ? (
+            <button
+              onClick={interrupt}
+              className="flex h-20 w-20 items-center justify-center rounded-full bg-[#2563eb] text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+              aria-label="Couper l'IA"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7">
+                <rect x="6" y="6" width="12" height="12" rx="2" />
+              </svg>
+            </button>
+          ) : (
+            <div
+              className={`flex h-20 w-20 items-center justify-center rounded-full ${
+                status === "thinking" ? "bg-[#232d45]" : "bg-[#2563eb]/70"
+              }`}
+            >
+              {status === "thinking" ? (
+                <span className="h-7 w-7 animate-spin rounded-full border-2 border-transparent [border-right-color:#38bdf8] [border-top-color:#38bdf8]" />
+              ) : (
+                <span className="relative flex h-20 w-20 items-center justify-center">
+                  <span className="absolute h-20 w-20 animate-ping rounded-full bg-[#2563eb]/30" />
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="relative h-9 w-9 text-white">
+                    <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
+                    <path d="M19 11a7 7 0 01-14 0M12 18v3" strokeLinecap="round" />
+                  </svg>
+                </span>
+              )}
+            </div>
+          )}
+          <p className="text-sm text-[#8b97b0]">
+            {status === "listening" && "Je t'écoute"}
+            {status === "thinking" && "Réflexion..."}
+            {status === "speaking" && "Appuie pour couper"}
+          </p>
+        </div>
       )}
-
-      <div className="flex min-h-[20vh] flex-col items-center justify-center gap-4">
-        <button
-          onClick={status === "error" ? () => setStatus("idle") : startListening}
-          disabled={status === "thinking" || status === "speaking"}
-          className="flex h-20 w-20 items-center justify-center rounded-full bg-[#2563eb] text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95 disabled:cursor-not-allowed disabled:bg-[#232d45] disabled:opacity-60"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-9 w-9">
-            <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
-            <path d="M19 11a7 7 0 01-14 0M12 18v3" strokeLinecap="round" />
-          </svg>
-        </button>
-        <p className="text-sm text-[#8b97b0]">
-          {status === "idle" && "Appuie pour parler"}
-          {status === "listening" && "Écoute..."}
-          {status === "thinking" && "Réflexion..."}
-          {status === "speaking" && "..."}
-          {status === "error" && "Réessayer"}
-        </p>
-      </div>
     </div>
   );
 }
