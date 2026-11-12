@@ -63,7 +63,7 @@ export default function RevisionHubPage() {
           Entraîne-toi à partir de tes fiches, en flashcards ou en quiz.
         </p>
 
-        <div className="mb-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mb-6 grid gap-6 sm:grid-cols-2">
           <Link
             href="/app/revision/flashcards/new"
             className="flex flex-col gap-4 rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-10 transition-colors duration-150 hover:bg-[#121a30]"
@@ -92,6 +92,9 @@ export default function RevisionHubPage() {
               Des questions à choix multiples pour te tester.
             </span>
           </Link>
+        </div>
+
+        <div className="mb-10 grid gap-6 sm:grid-cols-2">
           <Link
             href="/app/revision/podcast/new"
             className="flex flex-col gap-4 rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-10 transition-colors duration-150 hover:bg-[#121a30]"
