@@ -63,7 +63,7 @@ export default function RevisionHubPage() {
           Entraîne-toi à partir de tes fiches, en flashcards ou en quiz.
         </p>
 
-        <div className="mb-10 grid gap-6 sm:grid-cols-2">
+        <div className="mb-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <Link
             href="/app/revision/flashcards/new"
             className="flex flex-col gap-4 rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-10 transition-colors duration-150 hover:bg-[#121a30]"
@@ -90,6 +90,19 @@ export default function RevisionHubPage() {
             <span className="text-2xl font-bold text-[#e7ecf5]">Quiz</span>
             <span className="text-base text-[#8b97b0]">
               Des questions à choix multiples pour te tester.
+            </span>
+          </Link>
+          <Link
+            href="/app/revision/podcast/new"
+            className="flex flex-col gap-4 rounded-xl border border-[#232d45] bg-[#0d1424]/60 p-10 transition-colors duration-150 hover:bg-[#121a30]"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-12 w-12 text-[#38bdf8]">
+              <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
+              <path d="M19 11a7 7 0 01-14 0M12 18v3" strokeLinecap="round" />
+            </svg>
+            <span className="text-2xl font-bold text-[#e7ecf5]">Podcast IA</span>
+            <span className="text-base text-[#8b97b0]">
+              Discute à voix haute avec une IA qui t&apos;explique ton cours.
             </span>
           </Link>
         </div>
