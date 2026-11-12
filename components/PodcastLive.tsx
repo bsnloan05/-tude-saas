@@ -57,43 +57,30 @@ type PodcastStatus = "listening" | "thinking" | "speaking" | "error";
 // maintenant que l'écoute est permanente (continuous).
 const SILENCE_TIMEOUT_MS = 1100;
 
-// En dessous de ce nombre de mots, un texte capté PENDANT que l'IA parle est
-// traité par prudence comme le micro qui se réentend lui-même (écho), sauf
-// s'il contient un mot-clé d'interruption explicite — trop court pour être
-// sûr que c'est une vraie interruption plutôt qu'un bout de l'écho.
-const MIN_BARGE_IN_WORDS = 4;
+// Filet rapide complémentaire : si l'un de ces mots est capté pendant que
+// l'IA parle, interruption immédiate même si le volume n'a pas encore eu le
+// temps de dépasser le seuil (point 3 ci-dessous).
 const INTERRUPT_KEYWORDS = ["stop", "attends", "pardon", "excuse-moi", "arrête"];
-// Si plus de 60% des mots captés se retrouvent déjà dans ce que l'IA vient
-// de dire, c'est très probablement le micro qui capte sa propre voix par les
-// haut-parleurs plutôt qu'une vraie interruption.
-const ECHO_OVERLAP_THRESHOLD = 0.6;
 
-function normalizeWords(text: string): string[] {
-  return text
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s]/gu, "")
-    .split(/\s+/)
-    .filter(Boolean);
-}
+// Détection d'interruption par VOLUME réel du micro (pas par comparaison de
+// texte : testé en direct, la reconnaissance vocale transcrit imparfaitement
+// sa propre voix captée en écho, ce qui rendait une comparaison de texte peu
+// fiable — l'IA finissait par se répondre à elle-même). On capte le micro
+// séparément avec l'annulation d'écho du navigateur (echoCancellation) et on
+// mesure le volume toutes les VOLUME_POLL_MS : l'écho résiduel après
+// annulation doit rester proche du bruit ambiant, une vraie voix qui parle
+// par-dessus doit faire monter le volume nettement au-dessus.
+const VOLUME_POLL_MS = 120;
+const MIN_VOICE_RMS = 0.05;
+const NOISE_FLOOR_MULTIPLIER = 2.5;
 
-// Distingue "le micro se réentend parler l'IA" de "l'étudiant parle
-// vraiment par-dessus" — une heuristique texte, pas une vraie annulation
-// d'écho acoustique (non disponible via l'API de reconnaissance vocale du
-// navigateur). Fonctionne bien au casque/pièce calme, moins parfait au
-// haut-parleur d'un ordinateur portable : le bouton "Couper" sert de filet
-// de secours manuel pour ce cas-là.
-function isLikelyEcho(candidate: string, aiReply: string): boolean {
-  const lower = candidate.toLowerCase();
-  if (INTERRUPT_KEYWORDS.some((kw) => lower.includes(kw))) return false;
-
-  const candidateWords = normalizeWords(candidate);
-  if (candidateWords.length < MIN_BARGE_IN_WORDS) return true;
-
-  const aiWords = new Set(normalizeWords(aiReply));
-  if (aiWords.size === 0) return false;
-
-  const overlap = candidateWords.filter((w) => aiWords.has(w)).length;
-  return overlap / candidateWords.length > ECHO_OVERLAP_THRESHOLD;
+function computeRms(data: Uint8Array): number {
+  let sumSquares = 0;
+  for (let i = 0; i < data.length; i++) {
+    const normalized = (data[i] - 128) / 128;
+    sumSquares += normalized * normalized;
+  }
+  return Math.sqrt(sumSquares / data.length);
 }
 
 export default function PodcastLive({
@@ -117,14 +104,17 @@ export default function PodcastLive({
   const shouldListenRef = useRef(false);
   const finalTranscriptRef = useRef("");
   // Accumule séparément ce qui est capté PENDANT que l'IA parle, uniquement
-  // pour le test anti-écho — ne touche jamais finalTranscriptRef tant que ce
-  // n'est pas confirmé comme une vraie interruption (sinon l'écho capté par
-  // le micro finit par être envoyé à Groq comme si c'était une vraie
-  // question une fois le silence détecté).
-  const speakingBufferRef = useRef("");
+  // pour le filet de secours par mot-clé — ne touche jamais
+  // finalTranscriptRef (l'interruption réelle est décidée par le volume, pas
+  // par ce texte, voir plus bas).
+  const speakingTranscriptRef = useRef("");
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastAiReplyRef = useRef("");
   const hasStartedRef = useRef(false);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  // Moyenne glissante du volume ambiant (hors "speaking"), pour un seuil
+  // d'interruption adaptatif plutôt qu'un seuil fixe qui marcherait mal
+  // selon le micro/la pièce de chacun.
+  const noiseFloorRef = useRef(0.02);
 
   useEffect(() => {
     statusRef.current = status;
@@ -177,8 +167,7 @@ export default function PodcastLive({
   // de l'utterance, ou via une vraie interruption détectée pendant qu'elle
   // parle (voir onresult plus bas / bouton "Couper") — jamais un minuteur.
   const speak = (text: string) => {
-    lastAiReplyRef.current = text;
-    speakingBufferRef.current = "";
+    speakingTranscriptRef.current = "";
     setStatus("speaking");
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
@@ -188,8 +177,9 @@ export default function PodcastLive({
     window.speechSynthesis.speak(utterance);
   };
 
-  // Coupe l'IA manuellement — filet de secours si l'heuristique anti-écho ne
-  // détecte pas une vraie interruption (environnement bruyant, par exemple).
+  // Coupe l'IA manuellement — filet de secours si la détection automatique
+  // par volume ne capte pas l'interruption (permission micro refusée pour la
+  // mesure de volume, environnement bruyant, etc.).
   const interrupt = () => {
     if (statusRef.current !== "speaking") return;
     window.speechSynthesis.cancel();
@@ -247,6 +237,20 @@ export default function PodcastLive({
       silenceTimerRef.current = setTimeout(checkSilence, SILENCE_TIMEOUT_MS);
     };
 
+    // Interrompt l'IA (déclenché soit par le volume réel du micro, soit par
+    // le filet de secours mot-clé) : coupe la synthèse vocale, repasse en
+    // écoute, et laisse le minuteur de silence capter la vraie question qui
+    // suit normalement (on ne cherche pas à deviner un texte ici, purement
+    // volume-driven la plupart du temps).
+    const triggerBargeIn = () => {
+      if (statusRef.current !== "speaking") return;
+      window.speechSynthesis.cancel();
+      setStatus("listening");
+      finalTranscriptRef.current = "";
+      speakingTranscriptRef.current = "";
+      scheduleSilenceCheck();
+    };
+
     recognition.onresult = (event) => {
       let interim = "";
       let finalChunk = "";
@@ -260,23 +264,16 @@ export default function PodcastLive({
         }
       }
 
-      // Pendant que l'IA parle : tant que ce qui est capté ressemble à de
-      // l'écho (le micro qui se réentend par les haut-parleurs), on ignore
-      // complètement le résultat — on ne touche JAMAIS finalTranscriptRef
-      // ici, sinon l'écho finirait par être envoyé à Groq comme une vraie
-      // question une fois le silence détecté (bug constaté en test : l'IA
-      // se répondait à elle-même). On ne garde que la part confirmée du
-      // résultat qui déclenche une vraie interruption, comme départ de la
-      // nouvelle phrase de l'étudiant.
+      // Pendant que l'IA parle : l'interruption est décidée par le VOLUME
+      // réel (voir le minuteur de mesure plus bas), pas par ce texte — on ne
+      // touche jamais finalTranscriptRef ici (sinon l'écho capté par le
+      // micro finirait par être envoyé à Groq, bug constaté en test : l'IA
+      // se répondait à elle-même). Seul un mot-clé d'interruption explicite
+      // sert de filet de secours rapide basé sur le texte.
       if (statusRef.current === "speaking") {
-        speakingBufferRef.current += finalChunk + interim;
-        const combined = speakingBufferRef.current.trim();
-        if (combined && !isLikelyEcho(combined, lastAiReplyRef.current)) {
-          window.speechSynthesis.cancel();
-          setStatus("listening");
-          finalTranscriptRef.current = finalChunk;
-          speakingBufferRef.current = "";
-          scheduleSilenceCheck();
+        speakingTranscriptRef.current += finalChunk + interim;
+        if (INTERRUPT_KEYWORDS.some((kw) => speakingTranscriptRef.current.toLowerCase().includes(kw))) {
+          triggerBargeIn();
         }
         return;
       }
@@ -331,11 +328,56 @@ export default function PodcastLive({
       respond(PODCAST_KICKOFF_MESSAGE, true);
     }
 
+    // Détection d'interruption par volume réel (voir le commentaire sur
+    // VOLUME_POLL_MS plus haut) : flux micro séparé, dédié à la mesure, avec
+    // l'annulation d'écho du navigateur activée. Si la permission échoue ou
+    // est refusée, pas d'erreur bloquante : le bouton "Couper" reste le
+    // filet de secours manuel, le reste de la conversation continue.
+    let audioContext: AudioContext | null = null;
+    let micStream: MediaStream | null = null;
+    let volumeInterval: ReturnType<typeof setInterval> | null = null;
+
+    const pollVolume = () => {
+      const analyser = analyserRef.current;
+      if (!analyser) return;
+      const data = new Uint8Array(analyser.fftSize);
+      analyser.getByteTimeDomainData(data);
+      const rms = computeRms(data);
+
+      if (statusRef.current === "speaking") {
+        const threshold = Math.max(noiseFloorRef.current * NOISE_FLOOR_MULTIPLIER, MIN_VOICE_RMS);
+        if (rms > threshold) triggerBargeIn();
+      } else {
+        noiseFloorRef.current = noiseFloorRef.current * 0.95 + rms * 0.05;
+      }
+    };
+
+    navigator.mediaDevices
+      ?.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
+      .then((stream) => {
+        micStream = stream;
+        audioContext = new AudioContext();
+        const source = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512;
+        source.connect(analyser);
+        analyserRef.current = analyser;
+        volumeInterval = setInterval(pollVolume, VOLUME_POLL_MS);
+      })
+      .catch(() => {
+        // Pas de détection auto par volume dans ce cas, mais la conversation
+        // (écoute, minuteur de silence, bouton "Couper") reste fonctionnelle.
+      });
+
     return () => {
       shouldListenRef.current = false;
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       window.speechSynthesis.cancel();
       recognition.stop();
+      if (volumeInterval) clearInterval(volumeInterval);
+      analyserRef.current = null;
+      micStream?.getTracks().forEach((track) => track.stop());
+      audioContext?.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
