@@ -73,8 +73,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           grand écran (captures d'écran, partage), sans gêner la navigation
           (pointer-events-none). Masqué sous lg où l'espace est trop
           restreint et où la barre mobile porte déjà le nom. */}
-      <span className="pointer-events-none fixed top-10 right-6 z-20 hidden text-4xl font-extrabold tracking-tight drop-shadow-[0_0_18px_rgba(37,99,235,0.45)] lg:block">
-        <span className="bg-gradient-to-r from-[#2563eb] to-[#38bdf8] bg-clip-text text-transparent">
+      <span className="pointer-events-none fixed top-8 right-6 z-20 hidden text-7xl font-extrabold tracking-tight drop-shadow-[0_0_35px_rgba(56,189,248,0.65)] lg:block">
+        <span className="bg-gradient-to-r from-[#3b82f6] via-[#38bdf8] to-[#22d3ee] bg-clip-text text-transparent">
           memoflash.io
         </span>
       </span>
