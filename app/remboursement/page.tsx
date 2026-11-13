@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Garantie remboursement — Memoflash",
+  title: "Garantie remboursement",
 };
 
 export default function RemboursementPage() {
