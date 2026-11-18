@@ -20,5 +20,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.3,
     },
+    {
+      url: "https://memoflash.io/fiche-de-revision-ia",
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
+      url: "https://memoflash.io/transformer-cours-en-fiche",
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
   ];
 }

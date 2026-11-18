@@ -187,9 +187,19 @@ export default function LandingPage() {
         </ScrollFadeIn>
       </section>
 
-      <footer className="flex w-full max-w-6xl items-center gap-4 border-t border-[#232d45] py-10">
-        <span className="text-sm font-bold text-[#e7ecf5]">Memoflash</span>
-        <span className="text-sm text-[#8b97b0]">N&apos;écris pas, écoute seulement.</span>
+      <footer className="flex w-full max-w-6xl flex-col gap-4 border-t border-[#232d45] py-10 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-bold text-[#e7ecf5]">Memoflash</span>
+          <span className="text-sm text-[#8b97b0]">N&apos;écris pas, écoute seulement.</span>
+        </div>
+        <div className="flex items-center gap-4 text-sm text-[#6b7690] sm:ml-auto">
+          <Link href="/fiche-de-revision-ia" className="hover:text-[#8b97b0]">
+            Fiche de révision IA
+          </Link>
+          <Link href="/transformer-cours-en-fiche" className="hover:text-[#8b97b0]">
+            Transformer un cours en fiche
+          </Link>
+        </div>
       </footer>
 
       <LiveActivityBanner />
