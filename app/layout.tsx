@@ -34,6 +34,9 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
   },
+  verification: {
+    google: "izu5st_3YmOUd0YBSUO-9qIi_myYB4b5RHhYzFCFvkg",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
