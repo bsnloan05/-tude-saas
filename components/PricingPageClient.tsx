@@ -344,6 +344,12 @@ export default function PricingPageClient() {
           </svg>
           Remboursé sous conditions
         </Link>
+        <Link href="/cgv" className="hover:text-[#c3cbdc]">
+          CGV
+        </Link>
+        <Link href="/mentions-legales" className="hover:text-[#c3cbdc]">
+          Mentions légales
+        </Link>
       </div>
 
       <div className="mt-12 w-full max-w-4xl border-t border-[#232d45] pt-8 sm:mt-20 sm:pt-12">

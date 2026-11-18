@@ -30,5 +30,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.9,
     },
+    {
+      url: "https://memoflash.io/mentions-legales",
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
+    {
+      url: "https://memoflash.io/cgv",
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
   ];
 }

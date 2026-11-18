@@ -192,12 +192,18 @@ export default function LandingPage() {
           <span className="text-sm font-bold text-[#e7ecf5]">Memoflash</span>
           <span className="text-sm text-[#8b97b0]">N&apos;écris pas, écoute seulement.</span>
         </div>
-        <div className="flex items-center gap-4 text-sm text-[#6b7690] sm:ml-auto">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-[#6b7690] sm:ml-auto">
           <Link href="/fiche-de-revision-ia" className="hover:text-[#8b97b0]">
             Fiche de révision IA
           </Link>
           <Link href="/transformer-cours-en-fiche" className="hover:text-[#8b97b0]">
             Transformer un cours en fiche
+          </Link>
+          <Link href="/mentions-legales" className="hover:text-[#8b97b0]">
+            Mentions légales
+          </Link>
+          <Link href="/cgv" className="hover:text-[#8b97b0]">
+            CGV
           </Link>
         </div>
       </footer>
