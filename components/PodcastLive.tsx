@@ -2,14 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  GoogleGenAI,
-  Modality,
-  StartSensitivity,
-  EndSensitivity,
-  type Session,
-  type LiveServerMessage,
-} from "@google/genai";
+import { GoogleGenAI, Modality, type Session, type LiveServerMessage } from "@google/genai";
 import { buildPodcastSystemPrompt, PODCAST_KICKOFF_TRIGGER } from "@/lib/podcast-conversation";
 
 // Modèle audio natif de l'API Live, éligible au palier gratuit au moment de
@@ -212,22 +205,14 @@ export default function PodcastLive({
           config: {
             responseModalities: [Modality.AUDIO],
             systemInstruction: buildPodcastSystemPrompt(sourceText),
-            // Par défaut, Gemini Live détecte le début de parole de façon très
-            // sensible (START_SENSITIVITY_HIGH) — ça déclenche parfois une
-            // fausse interruption sur l'écho de sa propre voix capté par le
-            // micro (surtout sans écouteurs), provoquant un bégaiement
-            // audible (l'IA se coupe en plein mot puis le reprend). On réduit
-            // la sensibilité pour qu'il faille une vraie voix plus nette/
-            // soutenue pour déclencher une interruption, tout en gardant le
-            // barge-in actif (pas de NO_INTERRUPTION, qui casserait
-            // l'interruption volontaire voulue par l'utilisateur).
-            realtimeInputConfig: {
-              automaticActivityDetection: {
-                startOfSpeechSensitivity: StartSensitivity.START_SENSITIVITY_LOW,
-                endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_LOW,
-                prefixPaddingMs: 300,
-              },
-            },
+            // Testé avec une sensibilité de détection abaissée (LOW) pour
+            // réduire les faux déclenchements sur l'écho : ça a aussi rendu
+            // l'interruption volontaire beaucoup trop dure à déclencher
+            // (signalé par l'utilisateur), donc retour à la sensibilité par
+            // défaut (HIGH, la plus réactive pour une vraie interruption).
+            // On compte uniquement sur echoCancellation côté micro
+            // (voir startMicrophoneStreaming) pour réduire l'écho à la
+            // source plutôt que sur la sensibilité du serveur.
           },
           callbacks: {
             onmessage: handleServerMessage,
