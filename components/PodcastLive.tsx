@@ -2,7 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { GoogleGenAI, Modality, type Session, type LiveServerMessage } from "@google/genai";
+import {
+  GoogleGenAI,
+  Modality,
+  StartSensitivity,
+  EndSensitivity,
+  type Session,
+  type LiveServerMessage,
+} from "@google/genai";
 import { buildPodcastSystemPrompt, PODCAST_KICKOFF_TRIGGER } from "@/lib/podcast-conversation";
 
 // Modèle audio natif de l'API Live, éligible au palier gratuit au moment de
@@ -131,7 +138,14 @@ export default function PodcastLive({
   };
 
   const startMicrophoneStreaming = async (session: Session) => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // echoCancellation peut vraiment agir ici (contrairement à l'ancienne
+    // version basée sur speechSynthesis, dont la sortie ne passait par aucun
+    // pipeline audio surveillable) : l'audio de l'IA est maintenant joué via
+    // une vraie destination Web Audio, que le navigateur peut référencer
+    // comme signal à annuler dans le micro.
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    });
     micStreamRef.current = stream;
 
     const inputContext = new AudioContext({ sampleRate: INPUT_SAMPLE_RATE });
@@ -198,6 +212,22 @@ export default function PodcastLive({
           config: {
             responseModalities: [Modality.AUDIO],
             systemInstruction: buildPodcastSystemPrompt(sourceText),
+            // Par défaut, Gemini Live détecte le début de parole de façon très
+            // sensible (START_SENSITIVITY_HIGH) — ça déclenche parfois une
+            // fausse interruption sur l'écho de sa propre voix capté par le
+            // micro (surtout sans écouteurs), provoquant un bégaiement
+            // audible (l'IA se coupe en plein mot puis le reprend). On réduit
+            // la sensibilité pour qu'il faille une vraie voix plus nette/
+            // soutenue pour déclencher une interruption, tout en gardant le
+            // barge-in actif (pas de NO_INTERRUPTION, qui casserait
+            // l'interruption volontaire voulue par l'utilisateur).
+            realtimeInputConfig: {
+              automaticActivityDetection: {
+                startOfSpeechSensitivity: StartSensitivity.START_SENSITIVITY_LOW,
+                endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_LOW,
+                prefixPaddingMs: 300,
+              },
+            },
           },
           callbacks: {
             onmessage: handleServerMessage,
