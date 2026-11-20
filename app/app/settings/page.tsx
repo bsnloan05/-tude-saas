@@ -229,7 +229,7 @@ export default function SettingsPage() {
                   : "border-[#2a3552] text-[#8b97b0] hover:bg-[#1b2440]"
               }`}
             >
-              Voix féminine
+              Nova
             </button>
             <button
               onClick={() => handleSetVoice("Charon")}
@@ -240,7 +240,7 @@ export default function SettingsPage() {
                   : "border-[#2a3552] text-[#8b97b0] hover:bg-[#1b2440]"
               }`}
             >
-              Voix masculine
+              Buzz
             </button>
           </div>
         </div>
