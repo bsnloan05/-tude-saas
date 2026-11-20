@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
   // compte d'une reconnexion en comparant la date de création à la date de
   // cette connexion : elles ne sont (quasi) identiques que lors de la toute
   // première connexion.
+  let isNewSignup = false;
   try {
     const user = data.user;
     if (user) {
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       const lastSignInAt = user.last_sign_in_at
         ? new Date(user.last_sign_in_at).getTime()
         : createdAt;
-      const isNewSignup = lastSignInAt - createdAt < 60000;
+      isNewSignup = lastSignInAt - createdAt < 60000;
 
       const posthogServer = getPostHogServerClient();
       posthogServer?.setPersonProperties({
@@ -66,5 +67,10 @@ export async function GET(request: NextRequest) {
     console.error("Erreur PostHog (callback OAuth):", posthogError);
   }
 
-  return NextResponse.redirect(`${origin}/app`);
+  // ?newSignup=1 : signal lu côté client (app/app/layout.tsx) pour
+  // appliquer, une seule fois, le choix de voix fait pendant l'onboarding
+  // avant la création du compte (reporté via localStorage) — jamais sur une
+  // simple reconnexion, pour ne jamais écraser un changement fait depuis
+  // dans Réglages.
+  return NextResponse.redirect(`${origin}/app${isNewSignup ? "?newSignup=1" : ""}`);
 }

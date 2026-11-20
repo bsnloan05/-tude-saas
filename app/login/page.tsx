@@ -52,10 +52,20 @@ function LoginForm() {
       if (error) {
         setErrorMessage(translateAuthError(error.message));
       } else if (data.user) {
+        // Choix de voix du Podcast IA fait pendant l'onboarding, avant que
+        // le compte n'existe (reporté via localStorage) : appliqué ici,
+        // une seule fois, exactement au moment de la création du compte —
+        // jamais plus tard, pour ne jamais écraser un changement fait
+        // ensuite dans Réglages.
+        const pendingVoice = localStorage.getItem("pendingPodcastVoice");
         await supabase
           .from("profiles")
-          .update({ has_password: true })
+          .update({
+            has_password: true,
+            ...(pendingVoice ? { podcast_voice: pendingVoice } : {}),
+          })
           .eq("id", data.user.id);
+        localStorage.removeItem("pendingPodcastVoice");
 
         if (data.session) {
           // Confirmation par email désactivée : le compte est déjà actif,

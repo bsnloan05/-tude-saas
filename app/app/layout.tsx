@@ -48,16 +48,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       if (user) window.posthog?.identify(user.id, { email: user.email });
 
       // Choix de voix fait pendant l'onboarding (avant même la création du
-      // compte) : reporté ici via localStorage, appliqué une seule fois dès
-      // qu'un vrai profil existe, puis effacé pour ne jamais écraser un
-      // changement fait plus tard dans Réglages.
-      const pendingVoice = localStorage.getItem("pendingPodcastVoice");
-      if (user && pendingVoice) {
-        supabase
-          .from("profiles")
-          .update({ podcast_voice: pendingVoice })
-          .eq("id", user.id)
-          .then(() => localStorage.removeItem("pendingPodcastVoice"));
+      // compte) pour une inscription Google : reporté via localStorage,
+      // mais appliqué UNIQUEMENT si l'URL porte explicitement ?newSignup=1
+      // (posé par app/auth/callback/route.ts juste après une vraie création
+      // de compte). Sans cette garde, ce bloc s'exécutait à chaque visite de
+      // /app pour n'importe quel utilisateur déjà connecté, et écrasait
+      // silencieusement un changement fait plus tard dans Réglages dès
+      // qu'une clé restait présente dans le navigateur (bug constaté : le
+      // choix "Buzz" dans Réglages revenait tout seul à "Nova").
+      // L'inscription par email applique directement ce choix dans
+      // app/login/page.tsx, au moment même de la création du compte — pas
+      // besoin de ce mécanisme différé pour ce chemin-là.
+      const url = new URL(window.location.href);
+      if (user && url.searchParams.get("newSignup") === "1") {
+        const pendingVoice = localStorage.getItem("pendingPodcastVoice");
+        if (pendingVoice) {
+          supabase.from("profiles").update({ podcast_voice: pendingVoice }).eq("id", user.id);
+        }
+        localStorage.removeItem("pendingPodcastVoice");
+        url.searchParams.delete("newSignup");
+        window.history.replaceState({}, "", url.toString());
       }
     });
 
