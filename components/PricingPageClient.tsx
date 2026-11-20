@@ -22,6 +22,7 @@ const STANDARD_FEATURES: Feature[] = [
   { text: "Transcription vocale en direct" },
   { text: "Historique de tes fiches (Mes fiches)" },
   { text: "Téléchargement et copie en un clic" },
+  { text: "Révision : flashcards, quiz et podcast IA" },
 ];
 
 const PLANS: Array<{
