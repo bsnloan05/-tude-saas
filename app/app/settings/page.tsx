@@ -43,6 +43,8 @@ export default function SettingsPage() {
   const [firstName, setFirstName] = useState("");
   const [savingFirstName, setSavingFirstName] = useState(false);
   const [firstNameSuccess, setFirstNameSuccess] = useState(false);
+  const [podcastVoice, setPodcastVoice] = useState<string>("Kore");
+  const [savingVoice, setSavingVoice] = useState(false);
 
   const refreshUsage = () => {
     fetch("/api/usage")
@@ -62,12 +64,13 @@ export default function SettingsPage() {
       if (!user) return;
       supabase
         .from("profiles")
-        .select("created_at, has_password")
+        .select("created_at, has_password, podcast_voice")
         .eq("id", user.id)
         .single()
         .then(({ data }) => {
           if (data?.created_at) setMemberSince(data.created_at);
           setHasPassword(data?.has_password ?? false);
+          setPodcastVoice(data?.podcast_voice || "Kore");
         });
     });
   }, []);
@@ -118,6 +121,19 @@ export default function SettingsPage() {
     setNewPassword("");
     setConfirmPassword("");
     setPasswordSuccess("Mot de passe enregistré.");
+  };
+
+  const handleSetVoice = async (voice: string) => {
+    setSavingVoice(true);
+    setPodcastVoice(voice);
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("profiles").update({ podcast_voice: voice }).eq("id", user.id);
+    }
+    setSavingVoice(false);
   };
 
   const handleLogout = async () => {
@@ -193,6 +209,40 @@ export default function SettingsPage() {
               Prénom enregistré.
             </p>
           )}
+        </div>
+
+        {/* Voix du Podcast IA */}
+        <div className="mt-6 rounded-lg border border-[#232d45] bg-[#0d1424]/60 p-6 backdrop-blur-sm">
+          <h2 className="mb-4 text-xs font-semibold tracking-wide text-[#8b97b0] uppercase">
+            Voix du Podcast IA
+          </h2>
+          <p className="mb-4 text-sm text-[#8b97b0]">
+            La voix utilisée par l&apos;IA quand tu discutes à voix haute avec elle.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => handleSetVoice("Kore")}
+              disabled={savingVoice}
+              className={`flex-1 rounded-md border px-4 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                podcastVoice === "Kore"
+                  ? "border-[#2563eb] bg-[#2563eb]/10 text-[#e7ecf5]"
+                  : "border-[#2a3552] text-[#8b97b0] hover:bg-[#1b2440]"
+              }`}
+            >
+              Voix féminine
+            </button>
+            <button
+              onClick={() => handleSetVoice("Charon")}
+              disabled={savingVoice}
+              className={`flex-1 rounded-md border px-4 py-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                podcastVoice === "Charon"
+                  ? "border-[#2563eb] bg-[#2563eb]/10 text-[#e7ecf5]"
+                  : "border-[#2a3552] text-[#8b97b0] hover:bg-[#1b2440]"
+              }`}
+            >
+              Voix masculine
+            </button>
+          </div>
         </div>
 
         {/* Forfait / usage */}

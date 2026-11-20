@@ -186,7 +186,7 @@ export default function PodcastLive({
           if (data.code === "plan_required") setIsPlanError(true);
           throw new Error(data.error || "Impossible de démarrer la session vocale.");
         }
-        const { token } = (await tokenResponse.json()) as { token: string };
+        const { token, voice } = (await tokenResponse.json()) as { token: string; voice: string };
         if (cancelled) return;
 
         const ai = new GoogleGenAI({ apiKey: token, httpOptions: { apiVersion: "v1alpha" } });
@@ -213,6 +213,9 @@ export default function PodcastLive({
             // On compte uniquement sur echoCancellation côté micro
             // (voir startMicrophoneStreaming) pour réduire l'écho à la
             // source plutôt que sur la sensibilité du serveur.
+            speechConfig: {
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } },
+            },
           },
           callbacks: {
             onmessage: handleServerMessage,

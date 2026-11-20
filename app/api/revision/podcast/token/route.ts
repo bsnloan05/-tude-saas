@@ -22,7 +22,7 @@ export async function POST() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("plan")
+    .select("plan, podcast_voice")
     .eq("id", user.id)
     .single();
 
@@ -51,7 +51,7 @@ export async function POST() {
         newSessionExpireTime: new Date(now + 60 * 1000).toISOString(),
       },
     });
-    return NextResponse.json({ token: token.name });
+    return NextResponse.json({ token: token.name, voice: profile?.podcast_voice || "Kore" });
   } catch (error) {
     console.error("Erreur Gemini Live (jeton éphémère):", error);
     return NextResponse.json(
