@@ -70,7 +70,7 @@ const GOAL_PHRASES: Record<string, string> = {
   "Avoir plus de temps libre": "avoir plus de temps libre",
 };
 
-const TOTAL_STEPS = QUESTIONS.length + 4;
+const TOTAL_STEPS = QUESTIONS.length + 5;
 
 // Reproduit le visuel d'un bulletin (capture d'écran envoyée par un
 // client) en vrai HTML plutôt qu'en image : les deux cartes "avant" et
@@ -181,6 +181,115 @@ function RealisticStep({
         <button
           onClick={onContinue}
           className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#2563eb] px-8 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
+        >
+          Continuer
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+            <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const VOICES = {
+  Kore: {
+    name: "Nova",
+    tagline: "Posée et claire, chaleureuse et patiente",
+    sample: "/voices/nova.wav",
+  },
+  Charon: {
+    name: "Buzz",
+    tagline: "Pote de révision fun, dynamique et joueur",
+    sample: "/voices/buzz.wav",
+  },
+} as const;
+
+// Choix de la voix du Podcast IA (voir components/PodcastLive.tsx et
+// Réglages, où ce choix peut aussi être changé plus tard) : un curseur à
+// deux positions, même style que les curseurs de moyenne au-dessus, qui
+// joue un court échantillon réel de la voix à chaque bascule.
+function VoiceStep({
+  voice,
+  onChangeVoice,
+  onBack,
+  onContinue,
+}: {
+  voice: keyof typeof VOICES;
+  onChangeVoice: (voice: keyof typeof VOICES) => void;
+  onBack: () => void;
+  onContinue: () => void;
+}) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isBuzz = voice === "Charon";
+  const current = VOICES[voice];
+
+  const selectVoice = (next: keyof typeof VOICES) => {
+    onChangeVoice(next);
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.pause();
+    audio.src = VOICES[next].sample;
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  };
+
+  return (
+    <div className="fiche-enter w-full">
+      <button
+        onClick={onBack}
+        className="mb-6 flex items-center gap-1.5 text-sm text-[#8b97b0] transition-colors duration-150 hover:text-[#e7ecf5]"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+          <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Question précédente
+      </button>
+
+      <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+        <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-[#6b7690] uppercase">
+          Ton tuteur
+        </p>
+        <h1 className="mb-8 text-balance text-2xl font-bold text-[#e7ecf5] sm:text-3xl">
+          Choisis le style de ton tuteur
+        </h1>
+
+        <div
+          key={voice}
+          className="badge-pop flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#2563eb] to-[#38bdf8] text-3xl font-bold text-white shadow-[0_8px_30px_rgba(37,99,235,0.4)]"
+        >
+          {current.name[0]}
+        </div>
+        <p className="mt-5 text-xl font-bold text-[#e7ecf5]">{current.name}</p>
+        <p className="mt-1 text-sm text-[#8b97b0]">{current.tagline}</p>
+
+        <div className="mt-8 w-full max-w-xs">
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={1}
+            value={isBuzz ? 1 : 0}
+            onChange={(e) => selectVoice(e.target.value === "1" ? "Charon" : "Kore")}
+            className="slider-thumb-lg h-3 w-full"
+            style={
+              {
+                "--thumb-color": "#38bdf8",
+                "--range-progress": isBuzz ? "100%" : "0%",
+              } as React.CSSProperties
+            }
+          />
+          <div className="mt-2 flex items-center justify-between text-xs font-semibold text-[#8b97b0]">
+            <span>Nova</span>
+            <span>Buzz</span>
+          </div>
+        </div>
+        <p className="mt-4 text-xs text-[#6b7690]">Glisse pour écouter chaque voix</p>
+        <audio ref={audioRef} className="hidden" />
+
+        <button
+          onClick={onContinue}
+          className="mt-10 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#2563eb] px-8 text-base font-semibold text-white transition-colors transition-transform duration-150 hover:bg-[#1d4ed8] active:scale-95"
         >
           Continuer
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
@@ -342,12 +451,15 @@ export default function OnboardingPage() {
   const [answers, setAnswers] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showGoalTestimonial, setShowGoalTestimonial] = useState(false);
+  const [showVoiceStep, setShowVoiceStep] = useState(false);
   const [showRealisticStep, setShowRealisticStep] = useState(false);
+  const [podcastVoice, setPodcastVoice] = useState<keyof typeof VOICES>("Kore");
 
   const isDone =
     !showCurrentAverageStep &&
     !showTargetAverageStep &&
     !showGoalTestimonial &&
+    !showVoiceStep &&
     !showRealisticStep &&
     step >= QUESTIONS.length;
   const goal = answers[GOAL_INDEX];
@@ -356,16 +468,19 @@ export default function OnboardingPage() {
 
   // Numéro affiché (1-indexé) : les deux étapes moyenne (actuelle, puis
   // visée), puis les questions, avec un témoignage après "gagner du temps
-  // sur une seule chose", et l'écran "c'est réaliste" juste avant le bilan.
+  // sur une seule chose", le choix de la voix du tuteur juste après, et
+  // l'écran "c'est réaliste" juste avant le bilan.
   const stepNumber = showCurrentAverageStep
     ? 1
     : showTargetAverageStep
       ? 2
       : showGoalTestimonial
         ? QUESTIONS.length + 3
-        : showRealisticStep
+        : showVoiceStep
           ? QUESTIONS.length + 4
-          : step + 3;
+          : showRealisticStep
+            ? QUESTIONS.length + 5
+            : step + 3;
 
   // Suit la progression dans le questionnaire via le numéro d'étape affiché
   // plutôt que chaque branche individuellement : ça capture tous les
@@ -595,6 +710,24 @@ export default function OnboardingPage() {
           }}
           onContinue={() => {
             setShowGoalTestimonial(false);
+            setShowVoiceStep(true);
+          }}
+        />
+      ) : showVoiceStep ? (
+        <VoiceStep
+          voice={podcastVoice}
+          onChangeVoice={setPodcastVoice}
+          onBack={() => {
+            setShowGoalTestimonial(true);
+            setShowVoiceStep(false);
+          }}
+          onContinue={() => {
+            // Reporté via localStorage : le compte n'existe pas encore à ce
+            // stade de l'onboarding (la création de compte vient après),
+            // donc impossible d'écrire directement dans profiles ici. Voir
+            // app/app/layout.tsx pour l'application une fois le compte créé.
+            localStorage.setItem("pendingPodcastVoice", podcastVoice);
+            setShowVoiceStep(false);
             setShowRealisticStep(true);
           }}
         />
@@ -602,7 +735,7 @@ export default function OnboardingPage() {
         <RealisticStep
           targetAverage={targetAverage}
           onBack={() => {
-            setShowGoalTestimonial(true);
+            setShowVoiceStep(true);
             setShowRealisticStep(false);
           }}
           onContinue={() => setShowRealisticStep(false)}

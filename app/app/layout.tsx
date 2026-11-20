@@ -46,6 +46,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     // sans effet si déjà identifié avec le même id.
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) window.posthog?.identify(user.id, { email: user.email });
+
+      // Choix de voix fait pendant l'onboarding (avant même la création du
+      // compte) : reporté ici via localStorage, appliqué une seule fois dès
+      // qu'un vrai profil existe, puis effacé pour ne jamais écraser un
+      // changement fait plus tard dans Réglages.
+      const pendingVoice = localStorage.getItem("pendingPodcastVoice");
+      if (user && pendingVoice) {
+        supabase
+          .from("profiles")
+          .update({ podcast_voice: pendingVoice })
+          .eq("id", user.id)
+          .then(() => localStorage.removeItem("pendingPodcastVoice"));
+      }
     });
 
     supabase
