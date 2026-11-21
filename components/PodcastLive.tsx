@@ -239,6 +239,12 @@ export default function PodcastLive({
 
     const inputContext = new AudioContext({ sampleRate: INPUT_SAMPLE_RATE });
     inputContextRef.current = inputContext;
+    // Un AudioContext peut démarrer "suspendu" selon la politique anti-
+    // autoplay du navigateur, surtout après plusieurs await (le clic
+    // d'origine sur "Démarrer" n'est alors plus considéré assez proche) —
+    // ça bloquerait silencieusement tout le flux micro, sans erreur visible,
+    // de façon intermittente. On force explicitement la reprise.
+    if (inputContext.state === "suspended") await inputContext.resume();
     const source = inputContext.createMediaStreamSource(stream);
     // ScriptProcessorNode est dépréciée mais reste largement supportée et
     // suffit pour ce besoin simple — pas de justification pour un
@@ -286,7 +292,12 @@ export default function PodcastLive({
         if (cancelled) return;
 
         const ai = new GoogleGenAI({ apiKey: token, httpOptions: { apiVersion: "v1alpha" } });
-        outputContextRef.current = new AudioContext({ sampleRate: OUTPUT_SAMPLE_RATE });
+        const outputContext = new AudioContext({ sampleRate: OUTPUT_SAMPLE_RATE });
+        // Même raison que pour inputContext (voir startMicrophoneStreaming) :
+        // sans ça, l'IA peut "parler" au sens des données reçues sans que
+        // rien ne soit réellement audible, de façon intermittente.
+        if (outputContext.state === "suspended") await outputContext.resume();
+        outputContextRef.current = outputContext;
         nextPlaybackTimeRef.current = 0;
 
         // Ne rien faire dans `onopen` qui référence la variable `session` :
