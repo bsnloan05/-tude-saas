@@ -2,8 +2,27 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { Patrick_Hand } from "next/font/google";
 import { GoogleGenAI, Modality, type Session, type LiveServerMessage } from "@google/genai";
-import { buildPodcastSystemPrompt, PODCAST_KICKOFF_TRIGGER } from "@/lib/podcast-conversation";
+import {
+  buildPodcastSystemPrompt,
+  PODCAST_KICKOFF_TRIGGER,
+  DIAGRAM_TOOL_NAME,
+  DIAGRAM_TOOL_DECLARATION,
+  DIAGRAM_MAX_STEPS,
+  DIAGRAM_TITLE_MAX_CHARS,
+  DIAGRAM_STEP_MAX_CHARS,
+} from "@/lib/podcast-conversation";
+
+// Police manuscrite pour l'affichage des schémas (voir plus bas) : donne le
+// rendu "tableau/croquis" demandé, chargée ici plutôt que globalement car
+// seul ce composant en a besoin.
+const patrickHand = Patrick_Hand({ weight: "400", subsets: ["latin"] });
+
+interface PodcastDiagram {
+  title: string;
+  steps: string[];
+}
 
 // Modèle audio natif de l'API Live, éligible au palier gratuit au moment de
 // l'écriture. Google fait tourner régulièrement les versions "preview" de ce
@@ -39,6 +58,7 @@ export default function PodcastLive({
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isPlanError, setIsPlanError] = useState(false);
+  const [diagram, setDiagram] = useState<PodcastDiagram | null>(null);
 
   const sessionRef = useRef<Session | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
@@ -100,19 +120,51 @@ export default function PodcastLive({
     };
   };
 
+  // Ne garde que des champs bien formés et dans des tailles raisonnables —
+  // si l'IA renvoie une forme inattendue, on ignore silencieusement plutôt
+  // que d'afficher un schéma cassé ou de planter : un schéma raté ne doit
+  // jamais perturber la conversation vocale (voir lib/podcast-conversation.ts).
+  const parseDiagramArgs = (args: unknown): PodcastDiagram | null => {
+    if (!args || typeof args !== "object") return null;
+    const { titre, etapes } = args as { titre?: unknown; etapes?: unknown };
+    if (typeof titre !== "string" || !titre.trim()) return null;
+    if (!Array.isArray(etapes) || etapes.length < 2) return null;
+
+    const steps = etapes
+      .filter((step): step is string => typeof step === "string" && step.trim().length > 0)
+      .slice(0, DIAGRAM_MAX_STEPS)
+      .map((step) => step.trim().slice(0, DIAGRAM_STEP_MAX_CHARS));
+    if (steps.length < 2) return null;
+
+    return { title: titre.trim().slice(0, DIAGRAM_TITLE_MAX_CHARS), steps };
+  };
+
   const handleServerMessage = (message: LiveServerMessage) => {
     const content = message.serverContent;
-    if (!content) return;
+    if (content) {
+      if (content.interrupted) {
+        stopPlayback();
+      }
 
-    if (content.interrupted) {
-      stopPlayback();
+      const parts = content.modelTurn?.parts ?? [];
+      for (const part of parts) {
+        if (part.inlineData?.data) {
+          playAudioChunk(part.inlineData.data);
+        }
+      }
     }
 
-    const parts = content.modelTurn?.parts ?? [];
-    for (const part of parts) {
-      if (part.inlineData?.data) {
-        playAudioChunk(part.inlineData.data);
+    const calls = message.toolCall?.functionCalls ?? [];
+    for (const call of calls) {
+      if (call.name === DIAGRAM_TOOL_NAME) {
+        const parsed = parseDiagramArgs(call.args);
+        if (parsed) setDiagram(parsed);
       }
+      // Toujours répondre, même si l'appel était mal formé et ignoré :
+      // sans réponse, le modèle attendrait indéfiniment ce retour.
+      sessionRef.current?.sendToolResponse({
+        functionResponses: [{ id: call.id, name: call.name, response: { output: "ok" } }],
+      });
     }
   };
 
@@ -216,6 +268,7 @@ export default function PodcastLive({
             speechConfig: {
               voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } },
             },
+            tools: [{ functionDeclarations: [DIAGRAM_TOOL_DECLARATION] }],
           },
           callbacks: {
             onmessage: handleServerMessage,
@@ -318,6 +371,36 @@ export default function PodcastLive({
         </div>
       ) : (
         <div className="flex min-h-[20vh] flex-col items-center justify-center gap-4">
+          {diagram && (
+            <div className="relative w-full max-w-sm rounded-xl border-2 border-dashed border-[#3a4568] bg-[#141b2e] p-5 shadow-lg">
+              <button
+                onClick={() => setDiagram(null)}
+                aria-label="Fermer le schéma"
+                className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full text-[#8b97b0] transition-colors hover:bg-[#1b2440] hover:text-[#e7ecf5]"
+              >
+                ×
+              </button>
+              <p className={`${patrickHand.className} mb-4 text-center text-xl text-[#e7ecf5]`}>
+                {diagram.title}
+              </p>
+              <div className="flex flex-col items-center gap-1">
+                {diagram.steps.map((step, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1">
+                    <div
+                      className={`${patrickHand.className} rounded-[255px_15px_225px_15px/15px_225px_15px_255px] border-2 border-[#38bdf8]/60 bg-[#0d1424] px-4 py-2 text-center text-lg text-[#c3cbdc] ${
+                        i % 2 === 0 ? "-rotate-1" : "rotate-1"
+                      }`}
+                    >
+                      {step}
+                    </div>
+                    {i < diagram.steps.length - 1 && (
+                      <span className="text-xl text-[#38bdf8]/70">↓</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div
             className={`flex h-20 w-20 items-center justify-center rounded-full ${
               status === "connecting" ? "bg-[#232d45]" : "bg-[#2563eb]/70"
