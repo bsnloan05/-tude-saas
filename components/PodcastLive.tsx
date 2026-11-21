@@ -74,6 +74,16 @@ export default function PodcastLive({
   // cours (voir outputAudioTranscription dans la config de connexion), pour
   // déclencher la génération d'un schéma une fois le tour terminé.
   const turnTranscriptRef = useRef("");
+  // Le kickoff est le seul tour envoyé en texte (sendClientContent) plutôt
+  // qu'en vrai flux audio micro — confirmé en test réel que c'est
+  // spécifiquement ce tour qui peut déclencher un bug Gemini Live connu :
+  // le modèle répond parfois par du texte (son "plan" de réponse, jamais
+  // affiché) au lieu de générer de l'audio, sans erreur. Résultat : silence
+  // total au démarrage, car aucun chunk audio n'arrive jamais pour ce tour.
+  // On relance automatiquement le kickoff tant qu'aucun audio n'est arrivé.
+  const awaitingKickoffAudioRef = useRef(true);
+  const kickoffRetriesRef = useRef(0);
+  const MAX_KICKOFF_RETRIES = 2;
 
   // Vide immédiatement toute la file de lecture audio en attente : c'est
   // l'effet déclenché par `interrupted`, le signal serveur qui remplace
@@ -197,6 +207,10 @@ export default function PodcastLive({
     if (!content) return;
 
     if (content.interrupted) {
+      // L'utilisateur a pris la parole avant même la fin du kickoff : on
+      // laisse la conversation suivre son cours plutôt que de relancer un
+      // kickoff qui n'a plus lieu d'être.
+      awaitingKickoffAudioRef.current = false;
       stopPlayback();
       flushTurnTranscript();
     }
@@ -204,6 +218,7 @@ export default function PodcastLive({
     const parts = content.modelTurn?.parts ?? [];
     for (const part of parts) {
       if (part.inlineData?.data) {
+        awaitingKickoffAudioRef.current = false;
         playAudioChunk(part.inlineData.data);
       }
     }
@@ -213,6 +228,21 @@ export default function PodcastLive({
     }
 
     if (content.turnComplete) {
+      if (awaitingKickoffAudioRef.current) {
+        if (kickoffRetriesRef.current < MAX_KICKOFF_RETRIES && sessionRef.current) {
+          kickoffRetriesRef.current += 1;
+          console.log("[podcast-debug-connect] kickoff sans audio, nouvelle tentative", kickoffRetriesRef.current);
+          sessionRef.current.sendClientContent({
+            turns: [{ role: "user", parts: [{ text: PODCAST_KICKOFF_TRIGGER }] }],
+            turnComplete: true,
+          });
+        } else {
+          // On abandonne après 2 tentatives supplémentaires plutôt que de
+          // réessayer indéfiniment : l'étudiant peut toujours lancer la
+          // conversation lui-même au micro si le kickoff échoue encore.
+          awaitingKickoffAudioRef.current = false;
+        }
+      }
       flushTurnTranscript();
     }
   };
