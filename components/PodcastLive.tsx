@@ -74,10 +74,6 @@ export default function PodcastLive({
   // cours (voir outputAudioTranscription dans la config de connexion), pour
   // déclencher la génération d'un schéma une fois le tour terminé.
   const turnTranscriptRef = useRef("");
-  // Incrémenté à chaque appel de requestDiagram : permet d'ignorer une
-  // réponse arrivée en retard si une demande plus récente a déjà été
-  // lancée depuis (voir requestDiagram).
-  const diagramRequestIdRef = useRef(0);
 
   // Vide immédiatement toute la file de lecture audio en attente : c'est
   // l'effet déclenché par `interrupted`, le signal serveur qui remplace
@@ -154,15 +150,17 @@ export default function PodcastLive({
   // si ça mérite un schéma. Échec silencieux volontaire : si cet appel rate
   // ou met du temps, la conversation vocale n'en est jamais affectée.
   //
-  // Déclenché aussi bien sur une interruption que sur une fin de tour
-  // propre (voir flushTurnTranscript) : plusieurs appels peuvent donc partir
-  // à quelques secondes d'écart. Sans garde, le plus lent des deux pouvait
-  // écraser le résultat du plus récent (ou effacer un schéma valide avec un
-  // résultat vide arrivé après coup) — on ne garde que la réponse du tout
-  // dernier appel lancé, les autres sont ignorées si elles arrivent après.
+  // Pas de garde anti-concurrence ici (déjà tenté et retiré) : un
+  // compteur "n'applique que la toute dernière requête lancée" semblait
+  // logique, mais dans une conversation active un nouveau tour démarre
+  // presque toujours avant que la requête précédente n'ait eu le temps de
+  // répondre — ça invalidait quasiment chaque réponse et faisait
+  // disparaître les schémas presque à chaque fois. Le petit risque restant
+  // (une réponse plus ancienne qui s'affiche après une plus récente si
+  // elles se doublent) est largement préférable à "rien ne s'affiche
+  // jamais".
   const requestDiagram = async (text: string) => {
     if (text.trim().length < DIAGRAM_MIN_TRANSCRIPT_CHARS) return;
-    const requestId = ++diagramRequestIdRef.current;
     try {
       const response = await fetch("/api/revision/podcast/diagram", {
         method: "POST",
@@ -171,7 +169,6 @@ export default function PodcastLive({
       });
       if (!response.ok) return;
       const { diagram: raw } = await response.json();
-      if (requestId !== diagramRequestIdRef.current) return;
       const parsed = parseDiagramResponse(raw);
       if (parsed) setDiagram(parsed);
     } catch {
