@@ -7,12 +7,14 @@ import { GoogleGenAI, Modality, type Session, type LiveServerMessage } from "@go
 import {
   buildPodcastSystemPrompt,
   PODCAST_KICKOFF_TRIGGER,
-  DIAGRAM_TOOL_NAME,
-  DIAGRAM_TOOL_DECLARATION,
   DIAGRAM_MAX_STEPS,
   DIAGRAM_TITLE_MAX_CHARS,
   DIAGRAM_STEP_MAX_CHARS,
 } from "@/lib/podcast-conversation";
+
+// En dessous de ça, pas la peine de solliciter l'API pour un schéma (ex:
+// "oui", "d'accord", une phrase de transition).
+const DIAGRAM_MIN_TRANSCRIPT_CHARS = 30;
 
 // Police manuscrite pour l'affichage des schémas (voir plus bas) : donne le
 // rendu "tableau/croquis" demandé, chargée ici plutôt que globalement car
@@ -68,6 +70,10 @@ export default function PodcastLive({
   const nextPlaybackTimeRef = useRef(0);
   const pendingSourcesRef = useRef<AudioBufferSourceNode[]>([]);
   const closedByUserRef = useRef(false);
+  // Accumule la transcription texte de ce que l'IA dit pendant le tour en
+  // cours (voir outputAudioTranscription dans la config de connexion), pour
+  // déclencher la génération d'un schéma une fois le tour terminé.
+  const turnTranscriptRef = useRef("");
 
   // Vide immédiatement toute la file de lecture audio en attente : c'est
   // l'effet déclenché par `interrupted`, le signal serveur qui remplace
@@ -121,50 +127,68 @@ export default function PodcastLive({
   };
 
   // Ne garde que des champs bien formés et dans des tailles raisonnables —
-  // si l'IA renvoie une forme inattendue, on ignore silencieusement plutôt
-  // que d'afficher un schéma cassé ou de planter : un schéma raté ne doit
-  // jamais perturber la conversation vocale (voir lib/podcast-conversation.ts).
-  const parseDiagramArgs = (args: unknown): PodcastDiagram | null => {
-    if (!args || typeof args !== "object") return null;
-    const { titre, etapes } = args as { titre?: unknown; etapes?: unknown };
-    if (typeof titre !== "string" || !titre.trim()) return null;
-    if (!Array.isArray(etapes) || etapes.length < 2) return null;
+  // si la réponse a une forme inattendue, on ignore silencieusement plutôt
+  // que d'afficher un schéma cassé : un schéma raté ne doit jamais
+  // perturber la conversation vocale.
+  const parseDiagramResponse = (data: unknown): PodcastDiagram | null => {
+    if (!data || typeof data !== "object") return null;
+    const { title: rawTitle, steps: rawSteps } = data as { title?: unknown; steps?: unknown };
+    if (typeof rawTitle !== "string" || !rawTitle.trim()) return null;
+    if (!Array.isArray(rawSteps) || rawSteps.length < 2) return null;
 
-    const steps = etapes
+    const steps = rawSteps
       .filter((step): step is string => typeof step === "string" && step.trim().length > 0)
       .slice(0, DIAGRAM_MAX_STEPS)
       .map((step) => step.trim().slice(0, DIAGRAM_STEP_MAX_CHARS));
     if (steps.length < 2) return null;
 
-    return { title: titre.trim().slice(0, DIAGRAM_TITLE_MAX_CHARS), steps };
+    return { title: rawTitle.trim().slice(0, DIAGRAM_TITLE_MAX_CHARS), steps };
+  };
+
+  // Appelée une fois le tour de l'IA terminé, avec ce qu'elle vient de dire
+  // à voix haute — un appel Gemini séparé (pas Groq, voir la route) décide
+  // si ça mérite un schéma. Échec silencieux volontaire : si cet appel rate
+  // ou met du temps, la conversation vocale n'en est jamais affectée.
+  const requestDiagram = async (text: string) => {
+    if (text.trim().length < DIAGRAM_MIN_TRANSCRIPT_CHARS) return;
+    try {
+      const response = await fetch("/api/revision/podcast/diagram", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!response.ok) return;
+      const { diagram: raw } = await response.json();
+      const parsed = parseDiagramResponse(raw);
+      if (parsed) setDiagram(parsed);
+    } catch {
+      // Silencieux, volontairement (voir commentaire ci-dessus).
+    }
   };
 
   const handleServerMessage = (message: LiveServerMessage) => {
     const content = message.serverContent;
-    if (content) {
-      if (content.interrupted) {
-        stopPlayback();
-      }
+    if (!content) return;
 
-      const parts = content.modelTurn?.parts ?? [];
-      for (const part of parts) {
-        if (part.inlineData?.data) {
-          playAudioChunk(part.inlineData.data);
-        }
+    if (content.interrupted) {
+      stopPlayback();
+    }
+
+    const parts = content.modelTurn?.parts ?? [];
+    for (const part of parts) {
+      if (part.inlineData?.data) {
+        playAudioChunk(part.inlineData.data);
       }
     }
 
-    const calls = message.toolCall?.functionCalls ?? [];
-    for (const call of calls) {
-      if (call.name === DIAGRAM_TOOL_NAME) {
-        const parsed = parseDiagramArgs(call.args);
-        if (parsed) setDiagram(parsed);
-      }
-      // Toujours répondre, même si l'appel était mal formé et ignoré :
-      // sans réponse, le modèle attendrait indéfiniment ce retour.
-      sessionRef.current?.sendToolResponse({
-        functionResponses: [{ id: call.id, name: call.name, response: { output: "ok" } }],
-      });
+    if (content.outputTranscription?.text) {
+      turnTranscriptRef.current += content.outputTranscription.text;
+    }
+
+    if (content.turnComplete) {
+      const text = turnTranscriptRef.current;
+      turnTranscriptRef.current = "";
+      requestDiagram(text);
     }
   };
 
@@ -268,7 +292,10 @@ export default function PodcastLive({
             speechConfig: {
               voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } },
             },
-            tools: [{ functionDeclarations: [DIAGRAM_TOOL_DECLARATION] }],
+            // Transcription texte de ce que l'IA dit, utilisée uniquement
+            // pour déclencher la génération d'un schéma après coup (voir
+            // requestDiagram) — jamais affichée telle quelle à l'écran.
+            outputAudioTranscription: {},
           },
           callbacks: {
             onmessage: handleServerMessage,
