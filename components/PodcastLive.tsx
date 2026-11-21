@@ -166,12 +166,24 @@ export default function PodcastLive({
     }
   };
 
+  // Déclenche la génération du schéma avec ce qui a été accumulé jusqu'ici,
+  // puis vide le buffer. Appelé aussi bien sur une fin de tour normale que
+  // sur une interruption (voir plus bas) : vu les soucis d'interruption déjà
+  // rencontrés sur ce Podcast IA, une réponse coupée avant la fin propre est
+  // courante — sans ça, le tour aurait pu ne jamais être exploité.
+  const flushTurnTranscript = () => {
+    const text = turnTranscriptRef.current;
+    turnTranscriptRef.current = "";
+    requestDiagram(text);
+  };
+
   const handleServerMessage = (message: LiveServerMessage) => {
     const content = message.serverContent;
     if (!content) return;
 
     if (content.interrupted) {
       stopPlayback();
+      flushTurnTranscript();
     }
 
     const parts = content.modelTurn?.parts ?? [];
@@ -186,9 +198,7 @@ export default function PodcastLive({
     }
 
     if (content.turnComplete) {
-      const text = turnTranscriptRef.current;
-      turnTranscriptRef.current = "";
-      requestDiagram(text);
+      flushTurnTranscript();
     }
   };
 
