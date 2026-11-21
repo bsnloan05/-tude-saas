@@ -43,39 +43,59 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ diagram: null });
   }
 
-  try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const response = await ai.models.generateContent({
-      model: DIAGRAM_DECISION_MODEL,
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: `Voici ce qu'un professeur vient de dire à voix haute à un étudiant :\n\n"""\n${text.trim().slice(0, 2000)}\n"""\n\nCe passage décrit-il un vrai processus en plusieurs étapes, une chronologie, une hiérarchie, ou une suite de causes/conséquences qui mérite vraiment un petit schéma visuel pour mieux comprendre ? Sois strict : la plupart des passages ne méritent AUCUN schéma, uniquement les vrais enchaînements structurés.`,
-            },
-          ],
-        },
-      ],
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            schemaPertinent: { type: Type.BOOLEAN },
-            titre: { type: Type.STRING, maxLength: String(DIAGRAM_TITLE_MAX_CHARS) },
-            etapes: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING, maxLength: String(DIAGRAM_STEP_MAX_CHARS) },
-              maxItems: String(DIAGRAM_MAX_STEPS),
-            },
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const generationConfig = {
+    model: DIAGRAM_DECISION_MODEL,
+    contents: [
+      {
+        role: "user" as const,
+        parts: [
+          {
+            text: `Voici ce qu'un professeur vient de dire à voix haute à un étudiant :\n\n"""\n${text.trim().slice(0, 2000)}\n"""\n\nCe passage décrit-il un vrai processus en plusieurs étapes, une chronologie, une hiérarchie, ou une suite de causes/conséquences qui mérite vraiment un petit schéma visuel pour mieux comprendre ? Sois strict : la plupart des passages ne méritent AUCUN schéma, uniquement les vrais enchaînements structurés.`,
           },
-          required: ["schemaPertinent"],
-        },
+        ],
       },
-    });
+    ],
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          schemaPertinent: { type: Type.BOOLEAN },
+          titre: { type: Type.STRING, maxLength: String(DIAGRAM_TITLE_MAX_CHARS) },
+          etapes: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING, maxLength: String(DIAGRAM_STEP_MAX_CHARS) },
+            maxItems: String(DIAGRAM_MAX_STEPS),
+          },
+        },
+        required: ["schemaPertinent"],
+      },
+    },
+  };
 
-    const raw = response.text ?? "{}";
+  // Confirmé en test réel : ce modèle renvoie parfois une erreur 503
+  // "high demand" côté Google (pic de charge, rien à voir avec notre code).
+  // Google indique lui-même que ces pics sont généralement temporaires —
+  // on retente deux fois avec une courte pause avant d'abandonner.
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await ai.models.generateContent(generationConfig);
+      return parseDiagramResponse(response.text ?? "{}");
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  // Un schéma raté ne doit jamais remonter d'erreur visible : la
+  // conversation vocale continue normalement sans lui.
+  console.error("Erreur génération schéma Podcast IA (après 3 tentatives):", lastError);
+  return NextResponse.json({ diagram: null });
+}
+
+function parseDiagramResponse(raw: string) {
+  try {
     const parsed = JSON.parse(raw) as {
       schemaPertinent?: boolean;
       titre?: string;
