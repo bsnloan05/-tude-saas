@@ -191,6 +191,16 @@ export default function PodcastLive({
     const content = message.serverContent;
     if (!content) return;
 
+    // Journal temporaire (à retirer une fois le souci de déclenchement des
+    // schémas réglé) : pour voir exactement ce qui arrive vraiment côté
+    // transcription, sans deviner.
+    console.log("[podcast-debug]", {
+      hasAudio: !!content.modelTurn?.parts?.some((p) => p.inlineData),
+      outputTranscription: content.outputTranscription,
+      turnComplete: content.turnComplete,
+      interrupted: content.interrupted,
+    });
+
     if (content.interrupted) {
       stopPlayback();
       flushTurnTranscript();
