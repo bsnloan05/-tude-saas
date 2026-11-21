@@ -167,12 +167,17 @@ export default function PodcastLive({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      if (!response.ok) return;
+      if (!response.ok) {
+        console.log("[podcast-debug-diagram] HTTP non-ok", response.status);
+        return;
+      }
       const { diagram: raw } = await response.json();
+      console.log("[podcast-debug-diagram] raw", JSON.stringify(raw));
       const parsed = parseDiagramResponse(raw);
+      console.log("[podcast-debug-diagram] parsed", JSON.stringify(parsed));
       if (parsed) setDiagram(parsed);
-    } catch {
-      // Silencieux, volontairement (voir commentaire ci-dessus).
+    } catch (err) {
+      console.log("[podcast-debug-diagram] exception", String(err));
     }
   };
 
