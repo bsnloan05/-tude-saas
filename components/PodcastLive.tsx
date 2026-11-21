@@ -74,6 +74,10 @@ export default function PodcastLive({
   // cours (voir outputAudioTranscription dans la config de connexion), pour
   // déclencher la génération d'un schéma une fois le tour terminé.
   const turnTranscriptRef = useRef("");
+  // Incrémenté à chaque appel de requestDiagram : permet d'ignorer une
+  // réponse arrivée en retard si une demande plus récente a déjà été
+  // lancée depuis (voir requestDiagram).
+  const diagramRequestIdRef = useRef(0);
 
   // Vide immédiatement toute la file de lecture audio en attente : c'est
   // l'effet déclenché par `interrupted`, le signal serveur qui remplace
@@ -149,8 +153,16 @@ export default function PodcastLive({
   // à voix haute — un appel Gemini séparé (pas Groq, voir la route) décide
   // si ça mérite un schéma. Échec silencieux volontaire : si cet appel rate
   // ou met du temps, la conversation vocale n'en est jamais affectée.
+  //
+  // Déclenché aussi bien sur une interruption que sur une fin de tour
+  // propre (voir flushTurnTranscript) : plusieurs appels peuvent donc partir
+  // à quelques secondes d'écart. Sans garde, le plus lent des deux pouvait
+  // écraser le résultat du plus récent (ou effacer un schéma valide avec un
+  // résultat vide arrivé après coup) — on ne garde que la réponse du tout
+  // dernier appel lancé, les autres sont ignorées si elles arrivent après.
   const requestDiagram = async (text: string) => {
     if (text.trim().length < DIAGRAM_MIN_TRANSCRIPT_CHARS) return;
+    const requestId = ++diagramRequestIdRef.current;
     try {
       const response = await fetch("/api/revision/podcast/diagram", {
         method: "POST",
@@ -159,6 +171,7 @@ export default function PodcastLive({
       });
       if (!response.ok) return;
       const { diagram: raw } = await response.json();
+      if (requestId !== diagramRequestIdRef.current) return;
       const parsed = parseDiagramResponse(raw);
       if (parsed) setDiagram(parsed);
     } catch {
