@@ -171,22 +171,28 @@ export default function PodcastLive({
   // jamais".
   const requestDiagram = async (text: string) => {
     if (text.trim().length < DIAGRAM_MIN_TRANSCRIPT_CHARS) return;
+    console.log("[podcast-debug-diagram] texte envoyé", JSON.stringify(text));
     try {
       const response = await fetch("/api/revision/podcast/diagram", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      if (!response.ok) return;
+      if (!response.ok) {
+        console.log("[podcast-debug-diagram] HTTP non-ok", response.status);
+        return;
+      }
       const { diagram: raw } = await response.json();
+      console.log("[podcast-debug-diagram] raw", JSON.stringify(raw));
       const parsed = parseDiagramResponse(raw);
+      console.log("[podcast-debug-diagram] parsed", JSON.stringify(parsed));
       // Chaque nouveau tour remplace le schéma affiché par celui du sujet
       // actuel — y compris en le faisant disparaître (`null`) si ce tour ne
       // mérite pas de schéma : sans ça, un schéma reste affiché même une
       // fois la conversation passée à un tout autre sujet.
       setDiagram(parsed);
-    } catch {
-      // Un schéma raté ne doit jamais perturber la conversation vocale.
+    } catch (err) {
+      console.log("[podcast-debug-diagram] exception", String(err));
     }
   };
 
