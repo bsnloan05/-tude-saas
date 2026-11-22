@@ -180,7 +180,11 @@ export default function PodcastLive({
       if (!response.ok) return;
       const { diagram: raw } = await response.json();
       const parsed = parseDiagramResponse(raw);
-      if (parsed) setDiagram(parsed);
+      // Chaque nouveau tour remplace le schéma affiché par celui du sujet
+      // actuel — y compris en le faisant disparaître (`null`) si ce tour ne
+      // mérite pas de schéma : sans ça, un schéma reste affiché même une
+      // fois la conversation passée à un tout autre sujet.
+      setDiagram(parsed);
     } catch {
       // Un schéma raté ne doit jamais perturber la conversation vocale.
     }
