@@ -171,24 +171,18 @@ export default function PodcastLive({
   // jamais".
   const requestDiagram = async (text: string) => {
     if (text.trim().length < DIAGRAM_MIN_TRANSCRIPT_CHARS) return;
-    console.log("[podcast-debug-diagram] texte envoyé", JSON.stringify(text));
     try {
       const response = await fetch("/api/revision/podcast/diagram", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      if (!response.ok) {
-        console.log("[podcast-debug-diagram] HTTP non-ok", response.status);
-        return;
-      }
+      if (!response.ok) return;
       const { diagram: raw } = await response.json();
-      console.log("[podcast-debug-diagram] raw", JSON.stringify(raw));
       const parsed = parseDiagramResponse(raw);
-      console.log("[podcast-debug-diagram] parsed", JSON.stringify(parsed));
       if (parsed) setDiagram(parsed);
-    } catch (err) {
-      console.log("[podcast-debug-diagram] exception", String(err));
+    } catch {
+      // Un schéma raté ne doit jamais perturber la conversation vocale.
     }
   };
 
@@ -232,7 +226,6 @@ export default function PodcastLive({
       if (awaitingKickoffAudioRef.current) {
         if (kickoffRetriesRef.current < MAX_KICKOFF_RETRIES && sessionRef.current) {
           kickoffRetriesRef.current += 1;
-          console.log("[podcast-debug-connect] kickoff sans audio, nouvelle tentative", kickoffRetriesRef.current);
           sessionRef.current.sendClientContent({
             turns: [{ role: "user", parts: [{ text: PODCAST_KICKOFF_TRIGGER }] }],
             turnComplete: true,
@@ -280,22 +273,15 @@ export default function PodcastLive({
     // d'origine sur "Démarrer" n'est alors plus considéré assez proche) —
     // ça bloquerait silencieusement tout le flux micro, sans erreur visible,
     // de façon intermittente. On force explicitement la reprise.
-    console.log("[podcast-debug-connect] inputContext.state avant resume:", inputContext.state);
     if (inputContext.state === "suspended") await inputContext.resume();
-    console.log("[podcast-debug-connect] inputContext.state après resume:", inputContext.state);
     const source = inputContext.createMediaStreamSource(stream);
     // ScriptProcessorNode est dépréciée mais reste largement supportée et
     // suffit pour ce besoin simple — pas de justification pour un
     // AudioWorklet séparé ici.
     const processor = inputContext.createScriptProcessor(4096, 1, 1);
     processorRef.current = processor;
-    let hasLoggedFirstChunk = false;
 
     processor.onaudioprocess = (event) => {
-      if (!hasLoggedFirstChunk) {
-        hasLoggedFirstChunk = true;
-        console.log("[podcast-debug-connect] premier chunk micro envoyé");
-      }
       const floatData = event.inputBuffer.getChannelData(0);
       const pcm16 = new Int16Array(floatData.length);
       for (let i = 0; i < floatData.length; i++) {
@@ -336,12 +322,10 @@ export default function PodcastLive({
 
         const ai = new GoogleGenAI({ apiKey: token, httpOptions: { apiVersion: "v1alpha" } });
         const outputContext = new AudioContext({ sampleRate: OUTPUT_SAMPLE_RATE });
-        console.log("[podcast-debug-connect] outputContext.state avant resume:", outputContext.state);
         // Même raison que pour inputContext (voir startMicrophoneStreaming) :
         // sans ça, l'IA peut "parler" au sens des données reçues sans que
         // rien ne soit réellement audible, de façon intermittente.
         if (outputContext.state === "suspended") await outputContext.resume();
-        console.log("[podcast-debug-connect] outputContext.state après resume:", outputContext.state);
         outputContextRef.current = outputContext;
         nextPlaybackTimeRef.current = 0;
 
@@ -374,18 +358,13 @@ export default function PodcastLive({
             outputAudioTranscription: {},
           },
           callbacks: {
-            onmessage: (message) => {
-              console.log("[podcast-debug-connect] onmessage reçu", JSON.stringify(message).slice(0, 200));
-              handleServerMessage(message);
-            },
-            onerror: (err) => {
-              console.log("[podcast-debug-connect] onerror", String(err));
+            onmessage: handleServerMessage,
+            onerror: () => {
               if (cancelled || closedByUserRef.current) return;
               setStatus("error");
               setErrorMessage("La connexion vocale a été interrompue. Réessaie.");
             },
-            onclose: (ev) => {
-              console.log("[podcast-debug-connect] onclose", JSON.stringify({ code: ev?.code, reason: ev?.reason }));
+            onclose: () => {
               if (cancelled || closedByUserRef.current) return;
               setStatus("error");
               setErrorMessage("La connexion vocale a été interrompue. Réessaie.");
@@ -397,18 +376,14 @@ export default function PodcastLive({
           return;
         }
         sessionRef.current = session;
-        console.log("[podcast-debug-connect] session connectée, envoi du kickoff");
 
         session.sendClientContent({
           turns: [{ role: "user", parts: [{ text: PODCAST_KICKOFF_TRIGGER }] }],
           turnComplete: true,
         });
-        console.log("[podcast-debug-connect] kickoff envoyé");
         try {
           await startMicrophoneStreaming(session);
-          console.log("[podcast-debug-connect] micro démarré");
-        } catch (micError) {
-          console.log("[podcast-debug-connect] erreur micro", String(micError));
+        } catch {
           setStatus("error");
           setErrorMessage("Erreur micro. Vérifie que le micro est autorisé pour ce site.");
           return;
