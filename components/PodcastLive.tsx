@@ -171,6 +171,7 @@ export default function PodcastLive({
   // jamais".
   const requestDiagram = async (text: string) => {
     if (text.trim().length < DIAGRAM_MIN_TRANSCRIPT_CHARS) return;
+    console.log("[podcast-debug-diagram] texte envoyé", JSON.stringify(text));
     try {
       const response = await fetch("/api/revision/podcast/diagram", {
         method: "POST",
