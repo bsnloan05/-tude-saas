@@ -51,12 +51,17 @@ export async function POST(request: NextRequest) {
         role: "user" as const,
         parts: [
           {
-            text: `Voici ce qu'un professeur vient de dire à voix haute à un étudiant :\n\n"""\n${text.trim().slice(0, 2000)}\n"""\n\nCe passage décrit-il un vrai processus en plusieurs étapes, une chronologie, une hiérarchie, ou une suite de causes/conséquences qui mérite vraiment un petit schéma visuel pour mieux comprendre ? Sois strict : la plupart des passages ne méritent AUCUN schéma, uniquement les vrais enchaînements structurés.`,
+            text: `Voici ce qu'un professeur vient de dire à voix haute à un étudiant :\n\n"""\n${text.trim().slice(0, 2000)}\n"""\n\nCe passage décrit-il un vrai processus en plusieurs étapes, une chronologie, une hiérarchie, une suite de causes/conséquences, OU une classification/comparaison de plusieurs éléments parallèles bien distincts (ex: plusieurs définitions, catégories, types) qui mérite vraiment un petit schéma visuel pour mieux comprendre ? Sois strict : la plupart des passages ne méritent AUCUN schéma, uniquement les vrais enchaînements ou regroupements structurés — pas une simple phrase descriptive isolée.`,
           },
         ],
       },
     ],
     config: {
+      // Confirmé en test réel : sans limite, ce modèle part parfois en
+      // répétition dégénérée sur le titre (des dizaines de milliers de
+      // caractères de texte délirant) au lieu de s'arrêter proprement —
+      // un schéma n'a jamais besoin de plus de quelques dizaines de mots.
+      maxOutputTokens: 400,
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
