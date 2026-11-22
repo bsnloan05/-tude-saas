@@ -374,8 +374,19 @@ export default function PodcastLive({
             // plus haute que ça ; réduit ici pour une réponse plus rapide,
             // au prix d'un risque légèrement plus élevé de couper l'étudiant
             // s'il marque une pause en pleine phrase.
+            // Signalé aussi : quand c'est l'IA qui pose une question et
+            // attend la réponse, elle met parfois du temps à réagir, ou
+            // rate carrément le tout début de la réponse (il faut répéter) —
+            // jamais quand c'est l'étudiant qui l'interrompt en pleine
+            // phrase, qui marche très bien. `prefixPaddingMs` est la durée
+            // de parole requise avant que le serveur "s'engage" sur un
+            // début de prise de parole : contrairement à
+            // startOfSpeechSensitivity/endOfSpeechSensitivity (niveaux de
+            // sensibilité, jamais retouchés depuis l'incident), c'est un
+            // délai numérique — abaissé ici pour que le tout début d'une
+            // réponse soit reconnu plus vite après un silence.
             realtimeInputConfig: {
-              automaticActivityDetection: { silenceDurationMs: 500 },
+              automaticActivityDetection: { silenceDurationMs: 500, prefixPaddingMs: 100 },
             },
             // Transcription texte de ce que l'IA dit, utilisée uniquement
             // pour déclencher la génération d'un schéma après coup (voir
