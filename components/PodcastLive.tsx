@@ -91,6 +91,18 @@ export default function PodcastLive({
   const turnHasContentRef = useRef(false);
   const emptyTurnRetriesRef = useRef(0);
   const MAX_EMPTY_TURN_RETRIES = 2;
+  // Signalé le 2026-11-22 : même après la règle de prompt "enchaîne
+  // toi-même" (voir buildPodcastSystemPrompt), l'IA s'arrête parfois quand
+  // même après une simple affirmation, sans question ni suite — une
+  // instruction de prompt n'est jamais suivie à 100% par le modèle. Filet de
+  // sécurité générique, indépendant de la cause exacte : si plus rien ne se
+  // passe (ni nouveau message serveur, ni reprise de l'IA) pendant plusieurs
+  // secondes après la fin d'un tour, on relance tout seul plutôt que de
+  // laisser l'étudiant découvrir qu'il doit dire "continue".
+  const continueWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoContinueCountRef = useRef(0);
+  const MAX_AUTO_CONTINUE = 4;
+  const CONTINUE_WATCHDOG_MS = 8000;
 
   // Vide immédiatement toute la file de lecture audio en attente : c'est
   // l'effet déclenché par `interrupted`, le signal serveur qui remplace
@@ -208,7 +220,32 @@ export default function PodcastLive({
     requestDiagram(text);
   };
 
+  const clearContinueWatchdog = () => {
+    if (continueWatchdogRef.current) {
+      clearTimeout(continueWatchdogRef.current);
+      continueWatchdogRef.current = null;
+    }
+  };
+
+  const scheduleContinueWatchdog = () => {
+    clearContinueWatchdog();
+    if (autoContinueCountRef.current >= MAX_AUTO_CONTINUE) return;
+    continueWatchdogRef.current = setTimeout(() => {
+      if (!sessionRef.current) return;
+      autoContinueCountRef.current += 1;
+      sessionRef.current.sendClientContent({
+        turns: [{ role: "user", parts: [{ text: "(Continue.)" }] }],
+        turnComplete: true,
+      });
+    }, CONTINUE_WATCHDOG_MS);
+  };
+
   const handleServerMessage = (message: LiveServerMessage) => {
+    // N'importe quel message serveur signale une activité réelle : on
+    // annule le filet de sécurité, il sera reprogrammé à la prochaine fin
+    // de tour si besoin.
+    clearContinueWatchdog();
+
     const content = message.serverContent;
     if (!content) return;
 
@@ -262,10 +299,12 @@ export default function PodcastLive({
       }
       turnHasContentRef.current = false;
       flushTurnTranscript();
+      scheduleContinueWatchdog();
     }
   };
 
   const cleanup = () => {
+    clearContinueWatchdog();
     processorRef.current?.disconnect();
     processorRef.current = null;
     micStreamRef.current?.getTracks().forEach((track) => track.stop());
