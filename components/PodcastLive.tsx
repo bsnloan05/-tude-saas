@@ -362,6 +362,21 @@ export default function PodcastLive({
             speechConfig: {
               voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } },
             },
+            // Signalé par l'utilisateur : l'IA met du temps à répondre une
+            // fois qu'on a fini de parler. `silenceDurationMs` est le délai
+            // de silence que le serveur attend avant de considérer le tour
+            // terminé — distinct de `startOfSpeechSensitivity`/
+            // `endOfSpeechSensitivity` (jamais retouchés depuis l'incident
+            // où ça avait cassé l'interruption volontaire, voir mémoire) :
+            // ce réglage-ci ne change pas la détection de voix elle-même,
+            // juste le délai avant de conclure que l'étudiant a terminé.
+            // Valeur par défaut de l'API non documentée précisément mais
+            // plus haute que ça ; réduit ici pour une réponse plus rapide,
+            // au prix d'un risque légèrement plus élevé de couper l'étudiant
+            // s'il marque une pause en pleine phrase.
+            realtimeInputConfig: {
+              automaticActivityDetection: { silenceDurationMs: 500 },
+            },
             // Transcription texte de ce que l'IA dit, utilisée uniquement
             // pour déclencher la génération d'un schéma après coup (voir
             // requestDiagram) — jamais affichée telle quelle à l'écran.
