@@ -577,14 +577,7 @@ export default function PodcastLive({
             {status === "live" && (isAiSpeaking ? "Je t'explique..." : "Je t'écoute")}
           </p>
           {diagram && (
-            <div className="relative w-full max-w-sm rounded-xl border-2 border-dashed border-[#3a4568] bg-[#141b2e] p-5 shadow-lg">
-              <button
-                onClick={() => setDiagram(null)}
-                aria-label="Fermer le schéma"
-                className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full text-[#8b97b0] transition-colors hover:bg-[#1b2440] hover:text-[#e7ecf5]"
-              >
-                ×
-              </button>
+            <div className="relative w-full max-w-sm rounded-xl bg-[#141b2e] p-5 shadow-lg">
               <p className={`${patrickHand.className} mb-4 text-center text-xl text-[#e7ecf5]`}>
                 {diagram.title}
               </p>
@@ -592,7 +585,7 @@ export default function PodcastLive({
                 {diagram.steps.map((step, i) => (
                   <div key={i} className="flex flex-col items-center gap-1">
                     <div
-                      className={`${patrickHand.className} rounded-[255px_15px_225px_15px/15px_225px_15px_255px] border-2 border-[#38bdf8]/60 bg-[#0d1424] px-4 py-2 text-center text-lg text-[#c3cbdc] ${
+                      className={`${patrickHand.className} px-4 py-2 text-center text-lg text-[#c3cbdc] ${
                         i % 2 === 0 ? "-rotate-1" : "rotate-1"
                       }`}
                     >
