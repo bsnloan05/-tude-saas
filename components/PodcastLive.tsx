@@ -553,6 +553,29 @@ export default function PodcastLive({
         </div>
       ) : (
         <div className="flex min-h-[20vh] flex-col items-center justify-center gap-4">
+          <div
+            className={`flex h-20 w-20 items-center justify-center rounded-full ${
+              status === "connecting" ? "bg-[#232d45]" : "bg-[#2563eb]/70"
+            }`}
+          >
+            {status === "connecting" ? (
+              <span className="h-7 w-7 animate-spin rounded-full border-2 border-transparent [border-right-color:#38bdf8] [border-top-color:#38bdf8]" />
+            ) : (
+              <span className="relative flex h-20 w-20 items-center justify-center">
+                {isAiSpeaking && (
+                  <span className="absolute h-20 w-20 animate-ping rounded-full bg-[#2563eb]/30" />
+                )}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="relative h-9 w-9 text-white">
+                  <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
+                  <path d="M19 11a7 7 0 01-14 0M12 18v3" strokeLinecap="round" />
+                </svg>
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-[#8b97b0]">
+            {status === "connecting" && "Connexion..."}
+            {status === "live" && (isAiSpeaking ? "Je t'explique..." : "Je t'écoute")}
+          </p>
           {diagram && (
             <div className="relative w-full max-w-sm rounded-xl border-2 border-dashed border-[#3a4568] bg-[#141b2e] p-5 shadow-lg">
               <button
@@ -583,29 +606,6 @@ export default function PodcastLive({
               </div>
             </div>
           )}
-          <div
-            className={`flex h-20 w-20 items-center justify-center rounded-full ${
-              status === "connecting" ? "bg-[#232d45]" : "bg-[#2563eb]/70"
-            }`}
-          >
-            {status === "connecting" ? (
-              <span className="h-7 w-7 animate-spin rounded-full border-2 border-transparent [border-right-color:#38bdf8] [border-top-color:#38bdf8]" />
-            ) : (
-              <span className="relative flex h-20 w-20 items-center justify-center">
-                {isAiSpeaking && (
-                  <span className="absolute h-20 w-20 animate-ping rounded-full bg-[#2563eb]/30" />
-                )}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="relative h-9 w-9 text-white">
-                  <path d="M12 14a3 3 0 003-3V6a3 3 0 10-6 0v5a3 3 0 003 3z" />
-                  <path d="M19 11a7 7 0 01-14 0M12 18v3" strokeLinecap="round" />
-                </svg>
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-[#8b97b0]">
-            {status === "connecting" && "Connexion..."}
-            {status === "live" && (isAiSpeaking ? "Je t'explique..." : "Je t'écoute")}
-          </p>
         </div>
       )}
     </div>
