@@ -61,11 +61,10 @@ export default function PodcastLive({
   const [errorMessage, setErrorMessage] = useState("");
   const [isPlanError, setIsPlanError] = useState(false);
   const [diagram, setDiagram] = useState<PodcastDiagram | null>(null);
-  // Sous-titre live (dernière phrase en cours), mini-sommaire des points
-  // abordés, et chronomètre de session — purement visuels, pour occuper
-  // l'espace sous le micro sans surcharger l'écran d'un transcript complet.
+  // Sous-titre live (dernière phrase en cours) et chronomètre de session —
+  // purement visuels, pour occuper l'espace sous le micro sans surcharger
+  // l'écran d'un transcript complet.
   const [caption, setCaption] = useState("");
-  const [summaryPoints, setSummaryPoints] = useState<string[]>([]);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const sessionStartRef = useRef<number | null>(null);
 
@@ -225,13 +224,6 @@ export default function PodcastLive({
     const text = turnTranscriptRef.current;
     turnTranscriptRef.current = "";
     requestDiagram(text);
-    // Un tour trop court (ex: "oui", une relance interne) ne mérite pas une
-    // ligne dans le mini-sommaire — même seuil que pour le schéma.
-    if (text.trim().length >= DIAGRAM_MIN_TRANSCRIPT_CHARS) {
-      const firstSentence = (text.trim().split(/(?<=[.!?])\s/)[0] ?? text.trim()).trim();
-      const label = firstSentence.length > 60 ? `${firstSentence.slice(0, 57)}…` : firstSentence;
-      setSummaryPoints((prev) => [...prev, label]);
-    }
   };
 
   const clearContinueWatchdog = () => {
@@ -639,16 +631,6 @@ export default function PodcastLive({
                 ))}
               </div>
             </div>
-          )}
-          {summaryPoints.length > 0 && (
-            <ul className="w-full max-w-sm space-y-1.5 text-sm text-[#8b97b0]">
-              {summaryPoints.map((point, i) => (
-                <li key={i} className="flex gap-2">
-                  <span className="text-[#38bdf8]/70">•</span>
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       )}
