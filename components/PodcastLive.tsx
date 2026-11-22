@@ -84,6 +84,13 @@ export default function PodcastLive({
   const awaitingKickoffAudioRef = useRef(true);
   const kickoffRetriesRef = useRef(0);
   const MAX_KICKOFF_RETRIES = 2;
+  // Même bug, généralisé à n'importe quel tour (signalé le 2026-11-22 : un
+  // blocage au tout début d'une conversation, hors kickoff) : si un tour se
+  // termine sans avoir produit ni audio ni transcription, on relance
+  // doucement plutôt que de rester bloqué en silence.
+  const turnHasContentRef = useRef(false);
+  const emptyTurnRetriesRef = useRef(0);
+  const MAX_EMPTY_TURN_RETRIES = 2;
 
   // Vide immédiatement toute la file de lecture audio en attente : c'est
   // l'effet déclenché par `interrupted`, le signal serveur qui remplace
@@ -171,28 +178,22 @@ export default function PodcastLive({
   // jamais".
   const requestDiagram = async (text: string) => {
     if (text.trim().length < DIAGRAM_MIN_TRANSCRIPT_CHARS) return;
-    console.log("[podcast-debug-diagram] texte envoyé", JSON.stringify(text));
     try {
       const response = await fetch("/api/revision/podcast/diagram", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      if (!response.ok) {
-        console.log("[podcast-debug-diagram] HTTP non-ok", response.status);
-        return;
-      }
+      if (!response.ok) return;
       const { diagram: raw } = await response.json();
-      console.log("[podcast-debug-diagram] raw", JSON.stringify(raw));
       const parsed = parseDiagramResponse(raw);
-      console.log("[podcast-debug-diagram] parsed", JSON.stringify(parsed));
       // Chaque nouveau tour remplace le schéma affiché par celui du sujet
       // actuel — y compris en le faisant disparaître (`null`) si ce tour ne
       // mérite pas de schéma : sans ça, un schéma reste affiché même une
       // fois la conversation passée à un tout autre sujet.
       setDiagram(parsed);
-    } catch (err) {
-      console.log("[podcast-debug-diagram] exception", String(err));
+    } catch {
+      // Un schéma raté ne doit jamais perturber la conversation vocale.
     }
   };
 
@@ -224,11 +225,13 @@ export default function PodcastLive({
     for (const part of parts) {
       if (part.inlineData?.data) {
         awaitingKickoffAudioRef.current = false;
+        turnHasContentRef.current = true;
         playAudioChunk(part.inlineData.data);
       }
     }
 
     if (content.outputTranscription?.text) {
+      turnHasContentRef.current = true;
       turnTranscriptRef.current += content.outputTranscription.text;
     }
 
@@ -246,7 +249,18 @@ export default function PodcastLive({
           // conversation lui-même au micro si le kickoff échoue encore.
           awaitingKickoffAudioRef.current = false;
         }
+      } else if (!turnHasContentRef.current) {
+        if (emptyTurnRetriesRef.current < MAX_EMPTY_TURN_RETRIES && sessionRef.current) {
+          emptyTurnRetriesRef.current += 1;
+          sessionRef.current.sendClientContent({
+            turns: [{ role: "user", parts: [{ text: "(Continue.)" }] }],
+            turnComplete: true,
+          });
+        }
+      } else {
+        emptyTurnRetriesRef.current = 0;
       }
+      turnHasContentRef.current = false;
       flushTurnTranscript();
     }
   };
@@ -291,7 +305,6 @@ export default function PodcastLive({
     const processor = inputContext.createScriptProcessor(4096, 1, 1);
     processorRef.current = processor;
 
-    let chunkCount = 0;
     processor.onaudioprocess = (event) => {
       const floatData = event.inputBuffer.getChannelData(0);
       const pcm16 = new Int16Array(floatData.length);
@@ -304,19 +317,14 @@ export default function PodcastLive({
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
       const base64 = btoa(binary);
 
-      chunkCount++;
       try {
         session.sendRealtimeInput({
           audio: { data: base64, mimeType: `audio/pcm;rate=${INPUT_SAMPLE_RATE}` },
         });
-        if (chunkCount % 50 === 0) {
-          console.log("[podcast-debug-connect] micro actif, chunk n°", chunkCount);
-        }
-      } catch (err) {
+      } catch {
         // Sans ce try/catch, une exception ici (ex: socket déjà fermé côté
         // serveur) peut rester invisible — une exception dans
         // onaudioprocess ne remonte pas forcément à la console.
-        console.log("[podcast-debug-connect] erreur envoi chunk micro", String(err));
       }
     };
 
@@ -406,18 +414,13 @@ export default function PodcastLive({
             outputAudioTranscription: {},
           },
           callbacks: {
-            onmessage: (message) => {
-              console.log("[podcast-debug-connect] onmessage", JSON.stringify(message).slice(0, 300));
-              handleServerMessage(message);
-            },
-            onerror: (err) => {
-              console.log("[podcast-debug-connect] onerror", String(err));
+            onmessage: handleServerMessage,
+            onerror: () => {
               if (cancelled || closedByUserRef.current) return;
               setStatus("error");
               setErrorMessage("La connexion vocale a été interrompue. Réessaie.");
             },
-            onclose: (ev) => {
-              console.log("[podcast-debug-connect] onclose", JSON.stringify({ code: ev?.code, reason: ev?.reason }));
+            onclose: () => {
               if (cancelled || closedByUserRef.current) return;
               setStatus("error");
               setErrorMessage("La connexion vocale a été interrompue. Réessaie.");
