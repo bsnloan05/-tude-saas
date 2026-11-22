@@ -23,6 +23,10 @@ export const PODCAST_SOURCE_MAX_CHARS = 6000;
 export const DIAGRAM_MAX_STEPS = 6;
 export const DIAGRAM_TITLE_MAX_CHARS = 60;
 export const DIAGRAM_STEP_MAX_CHARS = 50;
+// Un seul emoji (parfois 2 code points, ex: drapeaux/emojis composés) choisi
+// par le modèle pour illustrer chaque étape — volontairement très court pour
+// qu'une dérive du modèle ne puisse jamais produire autre chose qu'un emoji.
+export const DIAGRAM_EMOJI_MAX_CHARS = 4;
 
 // Message interne envoyé au tout premier tour pour que l'IA se présente et
 // lance la conversation, sans qu'un vrai message "utilisateur" n'apparaisse.

@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI, Type } from "@google/genai";
 import { createClient } from "@/lib/supabase/server";
 import { hasRevisionAccess } from "@/lib/plans";
-import { DIAGRAM_MAX_STEPS, DIAGRAM_TITLE_MAX_CHARS, DIAGRAM_STEP_MAX_CHARS } from "@/lib/podcast-conversation";
+import {
+  DIAGRAM_MAX_STEPS,
+  DIAGRAM_TITLE_MAX_CHARS,
+  DIAGRAM_STEP_MAX_CHARS,
+  DIAGRAM_EMOJI_MAX_CHARS,
+} from "@/lib/podcast-conversation";
 
 export const maxDuration = 30;
 
@@ -51,7 +56,7 @@ export async function POST(request: NextRequest) {
         role: "user" as const,
         parts: [
           {
-            text: `Voici ce qu'un professeur vient de dire à voix haute à un étudiant :\n\n"""\n${text.trim().slice(0, 2000)}\n"""\n\nCe passage décrit-il plusieurs éléments distincts et nommables (étapes d'un processus, catégories, définitions, ou facteurs/composantes liés à un concept central) qui gagneraient à être présentés sous forme d'un petit schéma visuel (quelques blocs étiquetés) ? Réponds oui dès que tu peux identifier clairement 2 à 6 éléments distincts à nommer, même si leur relation exacte (séquence, catégories, facteurs autour d'un concept) n'est pas strictement une chronologie. Réponds non si le passage est une simple phrase de transition, une excuse, une question, ou une remarque générale sans éléments distincts identifiables.`,
+            text: `Voici ce qu'un professeur vient de dire à voix haute à un étudiant :\n\n"""\n${text.trim().slice(0, 2000)}\n"""\n\nCe passage décrit-il plusieurs éléments distincts et nommables (étapes d'un processus, catégories, définitions, ou facteurs/composantes liés à un concept central) qui gagneraient à être présentés sous forme d'un petit schéma visuel (quelques blocs étiquetés) ? Réponds oui dès que tu peux identifier clairement 2 à 6 éléments distincts à nommer, même si leur relation exacte (séquence, catégories, facteurs autour d'un concept) n'est pas strictement une chronologie. Réponds non si le passage est une simple phrase de transition, une excuse, une question, ou une remarque générale sans éléments distincts identifiables.\n\nSi oui, donne aussi pour chaque étape un seul emoji pertinent qui illustre bien son contenu (ex: une couronne pour un roi, une pièce pour l'argent, une balance pour la justice) — choisis un emoji vraiment lié au sens de l'étape, pas un emoji générique répété à chaque fois.`,
           },
         ],
       },
@@ -71,7 +76,14 @@ export async function POST(request: NextRequest) {
           titre: { type: Type.STRING, maxLength: String(DIAGRAM_TITLE_MAX_CHARS) },
           etapes: {
             type: Type.ARRAY,
-            items: { type: Type.STRING, maxLength: String(DIAGRAM_STEP_MAX_CHARS) },
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                texte: { type: Type.STRING, maxLength: String(DIAGRAM_STEP_MAX_CHARS) },
+                emoji: { type: Type.STRING, maxLength: String(DIAGRAM_EMOJI_MAX_CHARS) },
+              },
+              required: ["texte"],
+            },
             maxItems: String(DIAGRAM_MAX_STEPS),
           },
         },
@@ -115,14 +127,26 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ diagram: null });
 }
 
-// Peut lancer (JSON invalide) si la réponse est corrompue — l'appelant
-// retente dans ce cas plutôt que de considérer ça comme un "pas de schéma"
-// légitime. Un `schemaPertinent: false` valide, lui, n'est jamais une erreur.
-function parseDiagram(raw: string): { title: string; steps: string[] } | null {
+// Un vrai mot (français ou toute autre langue) ne dépasse jamais ~25
+// caractères sans espace — confirmé en test réel que la répétition
+// dégénérée du modèle peut aussi prendre la forme d'un bloc de caractères
+// collés sans espaces (ex: "...hjhgkhjfhjkfhjkdfhjkhjkdfhjk...") qui reste
+// sous le seuil de longueur totale (voir plus bas) et passerait inaperçu
+// sans cette vérification.
+const MAX_WORD_LENGTH = 25;
+function hasGlueGarbage(text: string): boolean {
+  return text.split(/\s+/).some((word) => word.length > MAX_WORD_LENGTH);
+}
+
+// Peut lancer (JSON invalide, ou texte détecté comme corrompu) si la
+// réponse est mauvaise — l'appelant retente dans ce cas plutôt que de
+// considérer ça comme un "pas de schéma" légitime. Un `schemaPertinent:
+// false` valide, lui, n'est jamais une erreur.
+function parseDiagram(raw: string): { title: string; steps: { text: string; emoji: string }[] } | null {
   const parsed = JSON.parse(raw) as {
     schemaPertinent?: boolean;
     titre?: string;
-    etapes?: string[];
+    etapes?: { texte?: string; emoji?: string }[];
   };
 
   if (
@@ -134,8 +158,23 @@ function parseDiagram(raw: string): { title: string; steps: string[] } | null {
     return null;
   }
 
+  if (hasGlueGarbage(parsed.titre) || parsed.etapes.some((s) => typeof s.texte === "string" && hasGlueGarbage(s.texte))) {
+    throw new Error("Texte corrompu détecté (mots anormalement longs, répétition dégénérée probable)");
+  }
+
+  const steps = parsed.etapes
+    .filter((s) => typeof s?.texte === "string" && s.texte.trim().length > 0)
+    .slice(0, DIAGRAM_MAX_STEPS)
+    .map((s) => ({
+      text: s.texte!.slice(0, DIAGRAM_STEP_MAX_CHARS),
+      // Un emoji manquant ou mal formé ne doit jamais casser l'affichage —
+      // simple texte vide, le rendu s'adapte (voir PodcastLive.tsx).
+      emoji: typeof s.emoji === "string" ? s.emoji.slice(0, DIAGRAM_EMOJI_MAX_CHARS) : "",
+    }));
+  if (steps.length < 2) return null;
+
   return {
     title: parsed.titre.slice(0, DIAGRAM_TITLE_MAX_CHARS),
-    steps: parsed.etapes.slice(0, DIAGRAM_MAX_STEPS).map((s) => String(s).slice(0, DIAGRAM_STEP_MAX_CHARS)),
+    steps,
   };
 }

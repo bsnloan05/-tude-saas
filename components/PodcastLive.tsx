@@ -10,6 +10,7 @@ import {
   DIAGRAM_MAX_STEPS,
   DIAGRAM_TITLE_MAX_CHARS,
   DIAGRAM_STEP_MAX_CHARS,
+  DIAGRAM_EMOJI_MAX_CHARS,
 } from "@/lib/podcast-conversation";
 
 // En dessous de ça, pas la peine de solliciter l'API pour un schéma (ex:
@@ -21,9 +22,18 @@ const DIAGRAM_MIN_TRANSCRIPT_CHARS = 30;
 // seul ce composant en a besoin.
 const patrickHand = Patrick_Hand({ weight: "400", subsets: ["latin"] });
 
+// Une couleur différente par étape plutôt qu'un bleu uniforme — cycle sur la
+// longueur du tableau, pas de limite liée à DIAGRAM_MAX_STEPS.
+const DIAGRAM_STEP_COLORS = ["#38bdf8", "#34d399", "#f59e0b", "#a78bfa", "#f472b6", "#fb923c"];
+
+interface PodcastDiagramStep {
+  text: string;
+  emoji: string;
+}
+
 interface PodcastDiagram {
   title: string;
-  steps: string[];
+  steps: PodcastDiagramStep[];
 }
 
 // Modèle audio natif de l'API Live, éligible au palier gratuit au moment de
@@ -172,9 +182,16 @@ export default function PodcastLive({
     if (!Array.isArray(rawSteps) || rawSteps.length < 2) return null;
 
     const steps = rawSteps
-      .filter((step): step is string => typeof step === "string" && step.trim().length > 0)
+      .filter(
+        (step): step is { text?: unknown; emoji?: unknown } =>
+          !!step && typeof step === "object" && typeof (step as { text?: unknown }).text === "string"
+      )
+      .filter((step) => (step.text as string).trim().length > 0)
       .slice(0, DIAGRAM_MAX_STEPS)
-      .map((step) => step.trim().slice(0, DIAGRAM_STEP_MAX_CHARS));
+      .map((step) => ({
+        text: (step.text as string).trim().slice(0, DIAGRAM_STEP_MAX_CHARS),
+        emoji: typeof step.emoji === "string" ? step.emoji.trim().slice(0, DIAGRAM_EMOJI_MAX_CHARS) : "",
+      }));
     if (steps.length < 2) return null;
 
     return { title: rawTitle.trim().slice(0, DIAGRAM_TITLE_MAX_CHARS), steps };
@@ -610,25 +627,30 @@ export default function PodcastLive({
             <p className="max-w-sm text-center text-sm italic text-[#6b7694]">{caption}</p>
           )}
           {diagram && (
-            <div className="relative w-full max-w-sm rounded-xl bg-[#141b2e] p-5 shadow-lg">
+            <div className="relative w-full max-w-sm">
               <p className={`${patrickHand.className} mb-4 text-center text-xl text-[#e7ecf5]`}>
                 {diagram.title}
               </p>
               <div className="flex flex-col items-center gap-1">
-                {diagram.steps.map((step, i) => (
-                  <div key={i} className="flex flex-col items-center gap-1">
-                    <div
-                      className={`${patrickHand.className} px-4 py-2 text-center text-lg text-[#c3cbdc] ${
-                        i % 2 === 0 ? "-rotate-1" : "rotate-1"
-                      }`}
-                    >
-                      {step}
+                {diagram.steps.map((step, i) => {
+                  const color = DIAGRAM_STEP_COLORS[i % DIAGRAM_STEP_COLORS.length];
+                  return (
+                    <div key={i} className="flex flex-col items-center gap-1">
+                      <div
+                        className={`${patrickHand.className} flex items-center gap-2 px-2 py-1 text-center text-lg ${
+                          i % 2 === 0 ? "-rotate-1" : "rotate-1"
+                        }`}
+                        style={{ color }}
+                      >
+                        {step.emoji && <span className="text-xl">{step.emoji}</span>}
+                        <span>{step.text}</span>
+                      </div>
+                      {i < diagram.steps.length - 1 && (
+                        <span className="text-xl" style={{ color, opacity: 0.7 }}>↓</span>
+                      )}
                     </div>
-                    {i < diagram.steps.length - 1 && (
-                      <span className="text-xl text-[#38bdf8]/70">↓</span>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
