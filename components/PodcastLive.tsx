@@ -61,6 +61,13 @@ export default function PodcastLive({
   const [errorMessage, setErrorMessage] = useState("");
   const [isPlanError, setIsPlanError] = useState(false);
   const [diagram, setDiagram] = useState<PodcastDiagram | null>(null);
+  // Sous-titre live (dernière phrase en cours), mini-sommaire des points
+  // abordés, et chronomètre de session — purement visuels, pour occuper
+  // l'espace sous le micro sans surcharger l'écran d'un transcript complet.
+  const [caption, setCaption] = useState("");
+  const [summaryPoints, setSummaryPoints] = useState<string[]>([]);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const sessionStartRef = useRef<number | null>(null);
 
   const sessionRef = useRef<Session | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
@@ -218,6 +225,13 @@ export default function PodcastLive({
     const text = turnTranscriptRef.current;
     turnTranscriptRef.current = "";
     requestDiagram(text);
+    // Un tour trop court (ex: "oui", une relance interne) ne mérite pas une
+    // ligne dans le mini-sommaire — même seuil que pour le schéma.
+    if (text.trim().length >= DIAGRAM_MIN_TRANSCRIPT_CHARS) {
+      const firstSentence = (text.trim().split(/(?<=[.!?])\s/)[0] ?? text.trim()).trim();
+      const label = firstSentence.length > 60 ? `${firstSentence.slice(0, 57)}…` : firstSentence;
+      setSummaryPoints((prev) => [...prev, label]);
+    }
   };
 
   const clearContinueWatchdog = () => {
@@ -270,6 +284,10 @@ export default function PodcastLive({
     if (content.outputTranscription?.text) {
       turnHasContentRef.current = true;
       turnTranscriptRef.current += content.outputTranscription.text;
+      // Sous-titre live : ne garde que la dernière phrase (complète ou en
+      // cours), pas tout le cumul du tour — sinon la ligne grossit sans fin.
+      const sentences = turnTranscriptRef.current.split(/(?<=[.!?])\s+/).filter(Boolean);
+      setCaption(sentences[sentences.length - 1] ?? "");
     }
 
     if (content.turnComplete) {
@@ -447,9 +465,11 @@ export default function PodcastLive({
             realtimeInputConfig: {
               automaticActivityDetection: { silenceDurationMs: 500, prefixPaddingMs: 100 },
             },
-            // Transcription texte de ce que l'IA dit, utilisée uniquement
-            // pour déclencher la génération d'un schéma après coup (voir
-            // requestDiagram) — jamais affichée telle quelle à l'écran.
+            // Transcription texte de ce que l'IA dit : sert à déclencher la
+            // génération d'un schéma après coup (voir requestDiagram), et
+            // alimente aussi le sous-titre live et le mini-sommaire affichés
+            // à l'écran (jamais le texte brut complet, juste la dernière
+            // phrase et un court résumé par tour).
             outputAudioTranscription: {},
           },
           callbacks: {
@@ -499,6 +519,17 @@ export default function PodcastLive({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Chronomètre de session : démarre dès que la connexion est vraiment
+  // établie (pas au montage), s'arrête tout seul si on quitte "live".
+  useEffect(() => {
+    if (status !== "live") return;
+    if (sessionStartRef.current === null) sessionStartRef.current = Date.now();
+    const interval = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - (sessionStartRef.current ?? Date.now())) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [status]);
 
   const retryConnection = () => {
     cleanup();
@@ -574,8 +605,18 @@ export default function PodcastLive({
           </div>
           <p className="text-sm text-[#8b97b0]">
             {status === "connecting" && "Connexion..."}
-            {status === "live" && (isAiSpeaking ? "Je t'explique..." : "Je t'écoute")}
+            {status === "live" && (
+              <>
+                {isAiSpeaking ? "Je t'explique..." : "Je t'écoute"}
+                {" — "}
+                {String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:
+                {String(elapsedSeconds % 60).padStart(2, "0")}
+              </>
+            )}
           </p>
+          {caption && (
+            <p className="max-w-sm text-center text-sm italic text-[#6b7694]">{caption}</p>
+          )}
           {diagram && (
             <div className="relative w-full max-w-sm rounded-xl bg-[#141b2e] p-5 shadow-lg">
               <p className={`${patrickHand.className} mb-4 text-center text-xl text-[#e7ecf5]`}>
@@ -598,6 +639,16 @@ export default function PodcastLive({
                 ))}
               </div>
             </div>
+          )}
+          {summaryPoints.length > 0 && (
+            <ul className="w-full max-w-sm space-y-1.5 text-sm text-[#8b97b0]">
+              {summaryPoints.map((point, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-[#38bdf8]/70">•</span>
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       )}
