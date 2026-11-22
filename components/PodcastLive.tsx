@@ -291,6 +291,7 @@ export default function PodcastLive({
     const processor = inputContext.createScriptProcessor(4096, 1, 1);
     processorRef.current = processor;
 
+    let chunkCount = 0;
     processor.onaudioprocess = (event) => {
       const floatData = event.inputBuffer.getChannelData(0);
       const pcm16 = new Int16Array(floatData.length);
@@ -303,9 +304,20 @@ export default function PodcastLive({
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
       const base64 = btoa(binary);
 
-      session.sendRealtimeInput({
-        audio: { data: base64, mimeType: `audio/pcm;rate=${INPUT_SAMPLE_RATE}` },
-      });
+      chunkCount++;
+      try {
+        session.sendRealtimeInput({
+          audio: { data: base64, mimeType: `audio/pcm;rate=${INPUT_SAMPLE_RATE}` },
+        });
+        if (chunkCount % 50 === 0) {
+          console.log("[podcast-debug-connect] micro actif, chunk n°", chunkCount);
+        }
+      } catch (err) {
+        // Sans ce try/catch, une exception ici (ex: socket déjà fermé côté
+        // serveur) peut rester invisible — une exception dans
+        // onaudioprocess ne remonte pas forcément à la console.
+        console.log("[podcast-debug-connect] erreur envoi chunk micro", String(err));
+      }
     };
 
     source.connect(processor);
@@ -394,13 +406,18 @@ export default function PodcastLive({
             outputAudioTranscription: {},
           },
           callbacks: {
-            onmessage: handleServerMessage,
-            onerror: () => {
+            onmessage: (message) => {
+              console.log("[podcast-debug-connect] onmessage", JSON.stringify(message).slice(0, 300));
+              handleServerMessage(message);
+            },
+            onerror: (err) => {
+              console.log("[podcast-debug-connect] onerror", String(err));
               if (cancelled || closedByUserRef.current) return;
               setStatus("error");
               setErrorMessage("La connexion vocale a été interrompue. Réessaie.");
             },
-            onclose: () => {
+            onclose: (ev) => {
+              console.log("[podcast-debug-connect] onclose", JSON.stringify({ code: ev?.code, reason: ev?.reason }));
               if (cancelled || closedByUserRef.current) return;
               setStatus("error");
               setErrorMessage("La connexion vocale a été interrompue. Réessaie.");
