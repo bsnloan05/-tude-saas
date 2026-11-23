@@ -27,10 +27,15 @@ interface SpeechRecognitionErrorEvent extends Event {
   error: string;
 }
 
+interface SpeechGrammarListInstance {
+  addFromString: (grammar: string, weight?: number) => void;
+}
+
 interface SpeechRecognitionInstance extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
+  grammars?: SpeechGrammarListInstance;
   start: () => void;
   stop: () => void;
   onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
@@ -42,6 +47,8 @@ declare global {
   interface Window {
     SpeechRecognition?: new () => SpeechRecognitionInstance;
     webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
+    SpeechGrammarList?: new () => SpeechGrammarListInstance;
+    webkitSpeechGrammarList?: new () => SpeechGrammarListInstance;
   }
 }
 
@@ -301,6 +308,24 @@ export default function Home() {
     recognition.continuous = isChromeEngine;
     recognition.interimResults = true;
     recognition.lang = "fr-FR";
+
+    // Essai léger pour réduire les confusions sur des termes courts et
+    // ambigus signalées par un utilisateur (ex: "UV" transcrit "SUV",
+    // "franc" transcrit "France") : SpeechGrammarList fait pencher la
+    // reconnaissance vers ces mots sans la restreindre à eux (le reste du
+    // discours continue d'être transcrit normalement). Support très inégal
+    // selon les navigateurs — ignoré silencieusement si absent, et reste une
+    // amélioration "best-effort" plutôt qu'une vraie garantie (contrairement
+    // à une API de transcription dédiée avec un vrai prompt de contexte).
+    const SpeechGrammarListCtor =
+      window.SpeechGrammarList || window.webkitSpeechGrammarList;
+    if (SpeechGrammarListCtor) {
+      const grammarList = new SpeechGrammarListCtor();
+      const grammar =
+        "#JSGF V1.0; grammar termes; public <terme> = UV | UE | ECTS | CM | TD | TP | amphi | franc | francs ;";
+      grammarList.addFromString(grammar, 1);
+      recognition.grammars = grammarList;
+    }
 
     recognition.onresult = (event) => {
       let interim = "";
