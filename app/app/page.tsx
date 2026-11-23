@@ -453,6 +453,15 @@ export default function Home() {
     // et récupérable au prochain chargement.
     if (status !== "recording" && status !== "generating" && status !== "error") return;
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (status === "recording" && isRecordingRef.current) {
+        // Une vraie fermeture d'onglet (pas une navigation interne à l'app,
+        // déjà couverte par le nettoyage au démontage ci-dessous) ne laisse
+        // pas le temps à un fetch classique de se terminer — sendBeacon est
+        // fait spécifiquement pour ça : il part en arrière-plan sans bloquer
+        // ni attendre de réponse. Sans ça, le verrou anti-partage de compte
+        // restait posé jusqu'à expiration (voir recording/start/route.ts).
+        navigator.sendBeacon("/api/recording/stop");
+      }
       event.preventDefault();
       event.returnValue = "";
     };
