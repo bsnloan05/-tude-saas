@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-// Un enregistrement resté "actif" plus longtemps que ça est considéré comme
-// abandonné (onglet fermé, crash, mise en veille...) et n'empêche plus d'en
-// démarrer un nouveau, pour ne jamais bloquer quelqu'un définitivement par
-// erreur. Confirmé en test réel (signalement client) : 6h est bien trop long
-// — un onglet fermé brutalement (crash, veille, réseau coupé) laisse le
-// verrou bloquer l'utilisateur sur SON PROPRE compte pendant des heures,
-// avec un message trompeur ("sur un autre appareil"). Abaissé à une durée
-// cohérente avec un vrai cours (jamais plusieurs heures d'affilée).
-const STALE_AFTER_MS = 90 * 60 * 1000;
+// Depuis l'ajout du heartbeat (voir recording/heartbeat/route.ts, appelé
+// toutes les ~60s par app/app/page.tsx pendant l'enregistrement),
+// `recording_started_at` reflète en réalité le DERNIER signe de vie reçu,
+// pas l'heure de démarrage initiale — donc ce délai n'a plus besoin de
+// couvrir la durée d'un cours entier, juste l'intervalle entre deux
+// battements (avec une marge pour un réseau lent ou un onglet mis en
+// veille par l'OS). Confirmé en test réel (deux signalements clients) que
+// sans heartbeat, même un délai d'1h30 laissait des utilisateurs bloqués
+// sur leur propre compte après une fermeture brutale (surtout sur mobile,
+// où ni beforeunload ni le démontage React ne se déclenchent de façon
+// fiable).
+const STALE_AFTER_MS = 5 * 60 * 1000;
 
 export async function POST() {
   const supabase = await createClient();

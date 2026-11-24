@@ -517,6 +517,26 @@ export default function Home() {
   }, [status]);
 
   useEffect(() => {
+    if (status !== "recording") return;
+    // Filet de sécurité pour le verrou anti-partage de compte
+    // (voir recording/start/route.ts) : signalé deux fois par des clients
+    // réels (bloqués sur "enregistrement en cours sur un autre appareil"
+    // alors qu'ils n'avaient qu'un seul appareil) — ni la fermeture d'onglet
+    // (beforeunload/sendBeacon) ni le démontage React ne se déclenchent de
+    // façon fiable sur mobile (appli mise en arrière-plan puis tuée par
+    // l'OS, sans aucun évènement JS). Un battement de cœur régulier pendant
+    // l'enregistrement permet de considérer le verrou obsolète après
+    // quelques minutes SANS heartbeat reçu, peu importe la cause de l'arrêt.
+    const HEARTBEAT_INTERVAL_MS = 60 * 1000;
+    const sendHeartbeat = () => {
+      fetch("/api/recording/heartbeat", { method: "POST" }).catch(() => {});
+    };
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [status]);
+
+  useEffect(() => {
     if (status !== "recording") {
       queueMicrotask(() => setMicSilent(false));
       return;
